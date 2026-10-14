@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bandu - Party Games</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.85em' x='50%25' text-anchor='middle' font-size='70'%3E🎮%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <h1 class="logo" id="logo">
+            <span class="letter-b">B</span>
+            <span class="letter-a">A</span>
+            <span class="letter-n">N</span>
+            <span class="letter-d">D</span>
+            <span class="letter-u">U</span>
+        </h1>
+        <p class="tagline">Party games com os amigos</p>
+    </header>
+
+    <main class="main">
+        <!-- Barra de pesquisa e filtro -->
+        <div class="search-bar">
+            <div class="search-input-wrapper">
+                <span class="search-icon">🔍</span>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="search-input" 
+                    placeholder="Buscar jogo..."
+                    autocomplete="off"
+                >
+            </div>
+            <button class="filter-button" id="filterButton" aria-label="Abrir filtros">
+                <span class="filter-icon">⚙️</span>
+            </button>
+        </div>
+
+        <!-- Painel de filtros -->
+        <div class="filter-panel" id="filterPanel">
+            <div class="filter-group">
+                <label class="filter-label">Número de jogadores</label>
+                <div class="filter-options" data-filter="players">
+                    <button class="filter-chip" data-value="any">Qualquer</button>
+                    <button class="filter-chip" data-value="2">2+</button>
+                    <button class="filter-chip" data-value="4">4+</button>
+                    <button class="filter-chip" data-value="6">6+</button>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Dispositivo</label>
+                <div class="filter-options" data-filter="device">
+                    <button class="filter-chip" data-value="any">Qualquer</button>
+                    <button class="filter-chip" data-value="shared">Tela compartilhada</button>
+                    <button class="filter-chip" data-value="each">Cada um no seu</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="games-grid" id="gamesGrid">
+            <!-- Cores com Dicas -->
+            <div class="game-card" 
+                 data-game="corescomdicas.html"
+                 data-title="cores com dicas"
+                 data-players-min="1"
+                 data-device="shared each"
+                 data-emoji="🎨"
+                 data-bg="linear-gradient(135deg, #FF8FA3 0%, #FFC078 100%)">
+                <div class="card-image" style="background: linear-gradient(135deg, #FF8FA3 0%, #FFC078 100%);">
+                    <span class="card-emoji">🎨</span>
+                </div>
+                <h2 class="card-title">Cores com Dicas</h2>
+            </div>
+
+            <!-- Impostor -->
+            <div class="game-card" 
+                 data-game="imposto.html"
+                 data-title="impostor"
+                 data-players-min="4"
+                 data-device="shared"
+                 data-emoji="🕵️"
+                 data-bg="linear-gradient(135deg, #7BE495 0%, #6EC6FF 100%)">
+                <div class="card-image" style="background: linear-gradient(135deg, #7BE495 0%, #6EC6FF 100%);">
+                    <span class="card-emoji">🕵️</span>
+                </div>
+                <h2 class="card-title">Impostor</h2>
+            </div>
+
+            <!-- Mímica -->
+            <div class="game-card" 
+                 data-game="mimica.html"
+                 data-title="mímica mimica"
+                 data-players-min="4"
+                 data-device="shared"
+                 data-emoji="🤸"
+                 data-bg="linear-gradient(135deg, #FFE066 0%, #FF9A8B 100%)">
+                <div class="card-image" style="background: linear-gradient(135deg, #FFE066 0%, #FF9A8B 100%);">
+                    <span class="card-emoji">🤸</span>
+                </div>
+                <h2 class="card-title">Mímica</h2>
+            </div>
+
+            <!-- Eu Nunca -->
+            <div class="game-card" 
+                 data-game="eununca.html"
+                 data-title="eu nunca eununca"
+                 data-players-min="3"
+                 data-device="shared"
+                 data-emoji="🙊"
+                 data-bg="linear-gradient(135deg, #C77DFF 0%, #FF7EB9 100%)">
+                <div class="card-image" style="background: linear-gradient(135deg, #C77DFF 0%, #FF7EB9 100%);">
+                    <span class="card-emoji">🙊</span>
+                </div>
+                <h2 class="card-title">Eu Nunca</h2>
+            </div>
+
+            <!-- Espião -->
+            <div class="game-card" 
+                 data-game="espiao.html"
+                 data-title="espião espiao"
+                 data-players-min="4"
+                 data-device="each"
+                 data-emoji="🔍"
+                 data-bg="linear-gradient(135deg, #4DD0C8 0%, #7B9EFF 100%)">
+                <div class="card-image" style="background: linear-gradient(135deg, #4DD0C8 0%, #7B9EFF 100%);">
+                    <span class="card-emoji">🔍</span>
+                </div>
+                <h2 class="card-title">Espião</h2>
+            </div>
+
+            <!-- Cidade Dorme -->
+            <div class="game-card" 
+                 data-game="cidadedorme.html"
+                 data-title="cidade dorme cidadedorme"
+                 data-players-min="6"
+                 data-device="shared each"
+                 data-emoji="🌙"
+                 data-bg="linear-gradient(135deg, #6A8EEA 0%, #4DD0C8 100%)">
+                <div class="card-image" style="background: linear-gradient(135deg, #6A8EEA 0%, #4DD0C8 100%);">
+                    <span class="card-emoji">🌙</span>
+                </div>
+                <h2 class="card-title">Cidade Dorme</h2>
+            </div>
+
+            <!-- Sintonia -->
+            <div class="game-card" 
+                 data-game="sintonia.html"
+                 data-title="sintonia"
+                 data-players-min="2"
+                 data-device="shared each"
+                 data-emoji="📊"
+                 data-bg="linear-gradient(135deg, #FFB067 0%, #A8E063 100%)">
+                <div class="card-image" style="background: linear-gradient(135deg, #FFB067 0%, #A8E063 100%);">
+                    <span class="card-emoji">📊</span>
+                </div>
+                <h2 class="card-title">Sintonia</h2>
+            </div>
+        </div>
+
+        <div class="no-results" id="noResults" style="display: none;">
+            <p>😕 Nenhum jogo encontrado</p>
+            <span>Tente ajustar os filtros ou a busca</span>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© Bandu 2026</p>
+    </footer>
+
+    <!-- Overlay + Modal para o card expandido -->
+    <div class="card-overlay" id="cardOverlay"></div>
+    <div class="card-modal" id="cardModal">
+        <button class="modal-close" id="modalClose" aria-label="Fechar">✕</button>
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>
