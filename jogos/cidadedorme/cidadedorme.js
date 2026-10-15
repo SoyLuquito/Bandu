@@ -30,7 +30,7 @@ const auth = getAuth(app);
 // CONSTANTES
 // ============================================================
 const MAX_PLAYERS = 10;
-const MIN_PLAYERS = 4;
+const MIN_PLAYERS = 2;
 const CODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const CODE_LENGTH = 6;
 
@@ -65,8 +65,6 @@ const screens = {
     gameOver: document.getElementById('gameOverScreen')
 };
 
-const roomCodeBadge = document.getElementById('roomCodeBadge');
-const roomCodeText = document.getElementById('roomCodeText');
 const exitModal = document.getElementById('exitModal');
 const nameModal = document.getElementById('nameModal');
 const nameInput = document.getElementById('nameInput');
@@ -111,15 +109,6 @@ function showScreen(key) {
         else screens[k].classList.add('hidden');
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function showRoomCode(code) {
-    if (code) {
-        roomCodeText.innerText = code;
-        roomCodeBadge.classList.remove('hidden');
-    } else {
-        roomCodeBadge.classList.add('hidden');
-    }
 }
 
 function getPlayersArray(roomData) {
@@ -411,7 +400,6 @@ function listenToRoom(code) {
         else if (status === 'resultado') renderRoundResult();
         else if (status === 'fim') renderGameOver();
 
-        showRoomCode(code);
     }, (err) => {
         console.error('Listener error:', err);
         alert('Erro de conexão: ' + err.message);
@@ -460,8 +448,11 @@ function renderLobby() {
     if (state.isHost) {
         startBtn.classList.remove('hidden');
         readyBtn.classList.add('hidden');
-        const allReady = players.length >= MIN_PLAYERS && players.every(p => p.pronto);
-        startBtn.disabled = !allReady;
+        // O host NÃO precisa estar "pronto" — só os convidados
+        const convidados = players.filter(p => p.uid !== state.uid);
+        const todosProntos = convidados.every(p => p.pronto);
+        const temGenteSuficiente = players.length >= MIN_PLAYERS;
+        startBtn.disabled = !(todosProntos && temGenteSuficiente);
     } else {
         startBtn.classList.add('hidden');
         readyBtn.classList.remove('hidden');
@@ -513,8 +504,9 @@ document.getElementById('startGameBtn').addEventListener('click', async () => {
         alert(`Precisa de pelo menos ${MIN_PLAYERS} jogadores`);
         return;
     }
-    if (!players.every(p => p.pronto)) {
-        alert('Todos precisam estar prontos');
+    const convidados = players.filter(p => p.uid !== state.uid);
+    if (!convidados.every(p => p.pronto)) {
+        alert('Todos os convidados precisam estar prontos');
         return;
     }
     showLoading('Iniciando partida...');
@@ -1256,7 +1248,6 @@ function cleanupAndHome() {
     hideLoading();
 
     showScreen('home');
-    showRoomCode(null);
     document.getElementById('joinCodeInput').value = '';
 }
 
