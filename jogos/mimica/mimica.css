@@ -188,7 +188,7 @@ body:has(#configScreen:not(.hidden)) {
     border: 2px solid var(--bege-escuro);
     border-radius: 12px;
     font-family: inherit;
-    font-size: 0.9rem;
+    font-size: 1rem; /* 16px — evita o zoom automático no mobile */
     outline: none;
 }
 
@@ -202,7 +202,7 @@ body:has(#configScreen:not(.hidden)) {
     border: 2px solid var(--bege-escuro);
     border-radius: 12px;
     font-family: inherit;
-    font-size: 0.9rem;
+    font-size: 1rem;
     outline: none;
     background: #FFFFFF;
 }
@@ -633,7 +633,7 @@ body:has(#configScreen:not(.hidden)) {
     .input-with-button input,
     .custom-select {
         padding: 0.65rem 0.75rem;
-        font-size: 0.85rem;
+        font-size: 1rem; /* mantém 16px para não dar zoom no mobile */
     }
 
     .chip-btn {
