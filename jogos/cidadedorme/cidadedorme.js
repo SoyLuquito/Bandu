@@ -50,7 +50,7 @@ const state = {
     roleConfirmed: false,
     voteTimerInterval: null,
     voteStartedAt: null,
-    pendingAction: null // { type: 'create' } | { type: 'join', code: 'ABC123' }
+    pendingAction: null
 };
 
 // DOM
@@ -70,6 +70,20 @@ const roomCodeText = document.getElementById('roomCodeText');
 const exitModal = document.getElementById('exitModal');
 const nameModal = document.getElementById('nameModal');
 const nameInput = document.getElementById('nameInput');
+const loadingOverlay = document.getElementById('loadingOverlay');
+const loadingText = document.getElementById('loadingText');
+
+// ============================================================
+// LOADING
+// ============================================================
+function showLoading(text = 'Carregando...') {
+    loadingText.innerText = text;
+    loadingOverlay.classList.remove('hidden');
+}
+
+function hideLoading() {
+    loadingOverlay.classList.add('hidden');
+}
 
 // ============================================================
 // UTILITÁRIOS
@@ -110,7 +124,17 @@ function showRoomCode(code) {
 
 function getPlayersArray(roomData) {
     if (!roomData || !roomData.jogadores) return [];
-    return Object.entries(roomData.jogadores).map(([uid, p]) => ({ uid, ...p }));
+    return Object.entries(roomData.jogadores)
+        .filter(([uid, p]) => p && typeof p === 'object' && uid) // ← ignora registros órfãos
+        .map(([uid, p]) => ({
+            uid,
+            nome: p.nome || 'Jogador',
+            vivo: !!p.vivo,
+            pronto: !!p.pronto,
+            papel: p.papel || null,
+            viuPapel: !!p.viuPapel,
+            prontoDia: !!p.prontoDia
+        }));
 }
 
 function getAlivePlayers(roomData) {
@@ -119,7 +143,17 @@ function getAlivePlayers(roomData) {
 
 function getMyPlayer(roomData) {
     if (!roomData || !roomData.jogadores || !state.uid) return null;
-    return roomData.jogadores[state.uid] || null;
+    const p = roomData.jogadores[state.uid];
+    if (!p) return null;
+    return {
+        uid: state.uid,
+        nome: p.nome || 'Jogador',
+        vivo: !!p.vivo,
+        pronto: !!p.pronto,
+        papel: p.papel || null,
+        viuPapel: !!p.viuPapel,
+        prontoDia: !!p.prontoDia
+    };
 }
 
 // ============================================================
@@ -129,7 +163,6 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         state.uid = user.uid;
         console.log('Anônimo logado:', user.uid);
-        // Se tinha ação pendente (usuário clicou criar/entrar antes de logar)
         if (state.pendingAction) {
             const act = state.pendingAction;
             state.pendingAction = null;
@@ -137,7 +170,7 @@ onAuthStateChanged(auth, (user) => {
             else if (act.type === 'join') doJoinRoom(act.code, act.name);
         }
     } else {
-        console.warn('Não autenticado');
+        console.warn('Aguardando autenticação...');
     }
 });
 
@@ -210,10 +243,10 @@ document.getElementById('createRoomBtn').addEventListener('click', () => {
 });
 
 async function doCreateRoom(name) {
+    showLoading('Criando sala...');
     try {
         state.playerName = name.slice(0, 15);
 
-        // Gera código único
         let code, exists = true, tries = 0;
         while (exists && tries < 10) {
             code = generateRoomCode();
@@ -221,7 +254,11 @@ async function doCreateRoom(name) {
             exists = check.exists();
             tries++;
         }
-        if (exists) { alert('Não foi possível gerar um código único. Tente de novo.'); return; }
+        if (exists) {
+            hideLoading();
+            alert('Não foi possível gerar um código único. Tente de novo.');
+            return;
+        }
 
         const roomRef = doc(db, 'partidas', code);
         await setDoc(roomRef, {
@@ -254,8 +291,10 @@ async function doCreateRoom(name) {
         state.roomCode = code;
         state.roomRef = roomRef;
         state.isHost = true;
+        hideLoading();
         listenToRoom(code);
     } catch (err) {
+        hideLoading();
         console.error(err);
         alert('Erro ao criar sala: ' + err.message);
     }
@@ -283,22 +322,43 @@ document.getElementById('joinRoomBtn').addEventListener('click', () => {
 });
 
 async function doJoinRoom(code, name) {
+    showLoading('Entrando na sala...');
     try {
         state.playerName = name.slice(0, 15);
 
         const roomRef = doc(db, 'partidas', code);
         const snap = await getDoc(roomRef);
 
-        if (!snap.exists()) { alert('Sala não encontrada'); return; }
+        if (!snap.exists()) {
+            hideLoading();
+            alert('Sala não encontrada');
+            return;
+        }
 
         const roomData = snap.data();
-        if (roomData.status !== 'lobby') { alert('A partida já começou'); return; }
+        if (roomData.status !== 'lobby') {
+            hideLoading();
+            alert('A partida já começou');
+            return;
+        }
 
         const players = getPlayersArray(roomData);
-        if (players.length >= MAX_PLAYERS) { alert('Sala cheia'); return; }
+        if (players.length >= MAX_PLAYERS) {
+            hideLoading();
+            alert('Sala cheia');
+            return;
+        }
 
-        const nomeDuplicado = players.some(p => p.nome.toLowerCase() === state.playerName.toLowerCase());
-        if (nomeDuplicado) { alert('Já tem alguém com esse nome na sala'); return; }
+        // CORRIGIDO: valida nome antes de comparar
+        const meuNome = state.playerName.toLowerCase();
+        const nomeDuplicado = players.some(p =>
+            typeof p.nome === 'string' && p.nome.toLowerCase() === meuNome
+        );
+        if (nomeDuplicado) {
+            hideLoading();
+            alert('Já tem alguém com esse nome na sala');
+            return;
+        }
 
         await updateDoc(roomRef, {
             [`jogadores.${state.uid}`]: {
@@ -314,8 +374,10 @@ async function doJoinRoom(code, name) {
         state.roomCode = code;
         state.roomRef = roomRef;
         state.isHost = false;
+        hideLoading();
         listenToRoom(code);
     } catch (err) {
+        hideLoading();
         console.error(err);
         alert('Erro ao entrar: ' + err.message);
     }
@@ -421,7 +483,6 @@ function setChipActive(groupId, value) {
     });
 }
 
-// Chips de config
 ['assassinosGroup', 'anjoGroup', 'tempoGroup', 'votoGroup'].forEach(groupId => {
     document.querySelectorAll(`#${groupId} .chip-btn`).forEach(btn => {
         btn.addEventListener('click', async () => {
@@ -456,7 +517,12 @@ document.getElementById('startGameBtn').addEventListener('click', async () => {
         alert('Todos precisam estar prontos');
         return;
     }
-    await startNewRound();
+    showLoading('Iniciando partida...');
+    try {
+        await startNewRound();
+    } finally {
+        hideLoading();
+    }
 });
 
 // ============================================================
@@ -468,7 +534,6 @@ async function startNewRound() {
     const players = getPlayersArray(state.roomData);
     const config = state.roomData.config;
 
-    // Sorteia
     const shuffled = shuffle(players.map(p => p.uid));
     const numAssassinos = Math.min(config.assassinos, Math.floor(players.length / 3));
     const assassinos = shuffled.slice(0, numAssassinos);
@@ -486,7 +551,7 @@ async function startNewRound() {
         else if (p.uid === anjo) papel = 'anjo';
 
         jogadoresAtualizados[p.uid] = {
-            ...p,
+            nome: p.nome,
             vivo: true,
             pronto: true,
             papel,
@@ -547,11 +612,8 @@ function renderRole() {
     icon.setAttribute('data-lucide', info.icon);
 
     const confirmBtn = document.getElementById('roleConfirmBtn');
-    if (me.viuPapel) {
-        confirmBtn.classList.add('hidden');
-    } else {
-        confirmBtn.classList.remove('hidden');
-    }
+    if (me.viuPapel) confirmBtn.classList.add('hidden');
+    else confirmBtn.classList.remove('hidden');
 
     if (window.lucide) lucide.createIcons();
 }
@@ -565,7 +627,6 @@ document.getElementById('roleConfirmBtn').addEventListener('click', async () => 
 });
 
 async function checkAllSawRole() {
-    // Espera um pouco pra garantir que o snapshot se atualize
     setTimeout(async () => {
         const snap = await getDoc(state.roomRef);
         if (!snap.exists()) return;
@@ -601,7 +662,6 @@ function renderNight() {
 
     const noite = state.roomData.noite || {};
 
-    // Cidadão não age — mas clica em "pronto" para o dia
     if (me.papel === 'cidadao') {
         subtitle.innerText = 'A cidade dorme...';
         if (me.prontoDia) {
@@ -622,7 +682,6 @@ function renderNight() {
         return;
     }
 
-    // Já agiu?
     let jaAgiu = false;
     if (me.papel === 'assassino') {
         const escolhas = noite.assassinoEscolheu || {};
@@ -652,9 +711,7 @@ function renderNight() {
             btn.addEventListener('click', async () => {
                 const escolhas = { ...(state.roomData.noite.assassinoEscolheu || {}) };
                 escolhas[state.uid] = alvo.uid;
-                await updateDoc(state.roomRef, {
-                    'noite.assassinoEscolheu': escolhas
-                });
+                await updateDoc(state.roomRef, { 'noite.assassinoEscolheu': escolhas });
                 if (state.isHost) setTimeout(checkNightComplete, 300);
             });
             grid.appendChild(btn);
@@ -693,9 +750,7 @@ function renderNight() {
             btn.className = 'target-btn';
             btn.innerText = alvo.uid === state.uid ? 'Você mesmo' : alvo.nome;
             btn.addEventListener('click', async () => {
-                await updateDoc(state.roomRef, {
-                    'noite.anjoProtegeu': alvo.uid
-                });
+                await updateDoc(state.roomRef, { 'noite.anjoProtegeu': alvo.uid });
                 if (state.isHost) setTimeout(checkNightComplete, 300);
             });
             grid.appendChild(btn);
@@ -708,7 +763,6 @@ function renderNight() {
 
 async function checkNightComplete() {
     if (!state.isHost) return;
-
     const snap = await getDoc(state.roomRef);
     if (!snap.exists()) return;
     const room = snap.data();
@@ -716,20 +770,16 @@ async function checkNightComplete() {
     const noite = room.noite || {};
     const vivos = getAlivePlayers(room);
 
-    // Checa se assassinos já escolheram (todos que estão vivos)
     const assassinosVivos = vivos.filter(p => p.papel === 'assassino');
     const escolhasAssassinos = noite.assassinoEscolheu || {};
     const assassinosOk = assassinosVivos.every(a => escolhasAssassinos[a.uid]);
 
-    // Detetive vivo escolheu?
     const detetiveVivo = vivos.find(p => p.papel === 'detetive');
     const detetiveOk = !detetiveVivo || !!noite.detetiveInvestigou;
 
-    // Anjo vivo escolheu?
     const anjoVivo = vivos.find(p => p.papel === 'anjo');
     const anjoOk = !anjoVivo || !!noite.anjoProtegeu;
 
-    // Cidadãos vivos deram ok?
     const cidadaosVivos = vivos.filter(p => p.papel === 'cidadao');
     const cidadaosOk = cidadaosVivos.every(c => c.prontoDia);
 
@@ -742,11 +792,11 @@ async function resolveNight() {
     const snap = await getDoc(state.roomRef);
     if (!snap.exists()) return;
     const room = snap.data();
+    if (room.status !== 'noite') return; // já resolveu
 
     const noite = room.noite || {};
     const escolhas = Object.values(noite.assassinoEscolheu || {});
 
-    // Conta votos dos assassinos
     const contagem = {};
     escolhas.forEach(id => { contagem[id] = (contagem[id] || 0) + 1; });
 
@@ -786,7 +836,6 @@ async function resolveNight() {
         };
     }
 
-    // Checa fim
     const vivos = Object.entries(jogadoresAtualizados)
         .filter(([, p]) => p.vivo)
         .map(([uid, p]) => ({ uid, ...p }));
@@ -867,16 +916,6 @@ function renderVote() {
     const room = state.roomData;
     const me = getMyPlayer(room);
 
-    // Inicia votação se ainda não
-    if (state.isHost && !room.votacaoIniciadaEm) {
-        updateDoc(state.roomRef, {
-            votacaoIniciadaEm: Date.now(),
-            votacaoDuracao: room.config.tempoVotacao
-        });
-        return;
-    }
-
-    // Timer
     if (state.voteTimerInterval) clearInterval(state.voteTimerInterval);
     const timerEl = document.getElementById('voteTimer');
     const started = room.votacaoIniciadaEm || Date.now();
@@ -921,16 +960,13 @@ function renderVote() {
             btn.innerText = alvo.nome;
             btn.addEventListener('click', async () => {
                 state.myVote = alvo.uid;
-                await updateDoc(state.roomRef, {
-                    [`votos.${state.uid}`]: alvo.uid
-                });
+                await updateDoc(state.roomRef, { [`votos.${state.uid}`]: alvo.uid });
                 if (state.isHost) setTimeout(checkVotesComplete, 300);
             });
             grid.appendChild(btn);
         });
     }
 
-    // Progresso de votos
     const progressEl = document.getElementById('voteProgress');
     const votantesVivos = vivos.filter(p => p.vivo && p.uid !== undefined);
     const jaVotaram = votantesVivos.filter(p => votos[p.uid]).length;
@@ -956,7 +992,7 @@ async function resolveVote() {
     const snap = await getDoc(state.roomRef);
     if (!snap.exists()) return;
     const room = snap.data();
-    if (room.status !== 'votacao') return; // já resolveu
+    if (room.status !== 'votacao') return;
 
     const votos = room.votos || {};
     const contagem = {};
@@ -1093,7 +1129,7 @@ function renderGameOver() {
         line.className = 'result-line';
         line.innerHTML = `
             <span class="label">${p.nome}</span>
-            <span class="value ${p.papel}">${p.papel}</span>
+            <span class="value ${p.papel || 'cidadao'}">${p.papel || '—'}</span>
         `;
         reveal.appendChild(line);
     });
@@ -1117,35 +1153,47 @@ function renderGameOver() {
 
 document.getElementById('rematchBtn').addEventListener('click', async () => {
     if (!state.isHost) return;
-    await startNewRound();
+    showLoading('Preparando nova partida...');
+    try {
+        await startNewRound();
+    } finally {
+        hideLoading();
+    }
 });
 
 document.getElementById('editConfigBtn').addEventListener('click', async () => {
     if (!state.isHost) return;
-    const jogadoresAtualizados = JSON.parse(JSON.stringify(state.roomData.jogadores));
-    Object.keys(jogadoresAtualizados).forEach(uid => {
-        jogadoresAtualizados[uid].pronto = false;
-        jogadoresAtualizados[uid].viuPapel = false;
-        jogadoresAtualizados[uid].prontoDia = false;
-        jogadoresAtualizados[uid].papel = null;
-        jogadoresAtualizados[uid].vivo = true;
-    });
+    showLoading('Voltando ao lobby...');
+    try {
+        const jogadoresAtualizados = JSON.parse(JSON.stringify(state.roomData.jogadores));
+        Object.keys(jogadoresAtualizados).forEach(uid => {
+            jogadoresAtualizados[uid].pronto = false;
+            jogadoresAtualizados[uid].viuPapel = false;
+            jogadoresAtualizados[uid].prontoDia = false;
+            jogadoresAtualizados[uid].papel = null;
+            jogadoresAtualizados[uid].vivo = true;
+        });
 
-    await updateDoc(state.roomRef, {
-        status: 'lobby',
-        jogadores: jogadoresAtualizados,
-        noite: null,
-        votos: null,
-        historico: [],
-        vencedor: null,
-        resultadoRodada: null
-    });
+        await updateDoc(state.roomRef, {
+            status: 'lobby',
+            jogadores: jogadoresAtualizados,
+            noite: null,
+            votos: null,
+            historico: [],
+            vencedor: null,
+            resultadoRodada: null
+        });
+    } finally {
+        hideLoading();
+    }
 });
 
 document.getElementById('closeRoomBtn').addEventListener('click', async () => {
     if (!state.isHost) return;
     if (!confirm('Encerrar a sala para todos?')) return;
+    showLoading('Encerrando sala...');
     try { await deleteDoc(state.roomRef); } catch (e) { console.error(e); }
+    hideLoading();
     cleanupAndHome();
 });
 
@@ -1161,6 +1209,8 @@ document.getElementById('cancelExitBtn').addEventListener('click', () => {
 });
 
 document.getElementById('confirmExitBtn').addEventListener('click', async () => {
+    // CORRIGIDO: fecha o modal IMEDIATAMENTE ao clicar em Sair
+    exitModal.classList.add('hidden');
     await leaveRoom();
 });
 
@@ -1199,6 +1249,11 @@ function cleanupAndHome() {
     state.myRole = null;
     state.myVote = null;
     state.roleConfirmed = false;
+
+    // CORRIGIDO: garante que todos os modais estejam fechados
+    exitModal.classList.add('hidden');
+    nameModal.classList.add('hidden');
+    hideLoading();
 
     showScreen('home');
     showRoomCode(null);
