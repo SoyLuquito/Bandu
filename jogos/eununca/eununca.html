@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eu Nunca - Bandu</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232E2626' stroke-width='2'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3Cline x1='9' y1='10' x2='15' y2='10'/%3E%3Cline x1='9' y1='14' x2='13' y2='14'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="eununca.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <div class="top-bar">
+        <button class="icon-button exit-btn" id="exitBtn" aria-label="Voltar ao Bandu">
+            <i data-lucide="arrow-left"></i>
+        </button>
+    </div>
+
+    <main class="container">
+
+        <!-- ================= FASE 1: SELEÇÃO DE BARALHO ================= -->
+        <section id="menuScreen" class="card-panel">
+            <header class="panel-header">
+                <h1>Eu Nunca</h1>
+                <p>Revelações para animar a roda</p>
+            </header>
+
+            <div class="deck-list">
+                <button type="button" class="deck-card deck-livre" id="deckLivreBtn">
+                    <div class="deck-icon">
+                        <i data-lucide="sparkles"></i>
+                    </div>
+                    <div class="deck-info">
+                        <h2>Baralho Livre</h2>
+                        <p>Perguntas leves sobre o dia a dia, vergonhas e situações engraçadas</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="deck-arrow"></i>
+                </button>
+
+                <button type="button" class="deck-card deck-adulto" id="deckAdultoBtn">
+                    <div class="deck-icon">
+                        <i data-lucide="flame"></i>
+                    </div>
+                    <div class="deck-info">
+                        <h2>Baralho +18</h2>
+                        <p>Perguntas picantes, sem pudor. Só para maiores de idade</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="deck-arrow"></i>
+                </button>
+            </div>
+
+            <p class="menu-hint">Cada um lê em voz alta e a roda responde. Sem julgamentos!</p>
+        </section>
+
+
+        <!-- ================= FASE 2: JOGO ================= -->
+        <section id="gameScreen" class="card-panel hidden">
+            <div class="round-badge" id="deckBadge">Baralho Livre</div>
+            <p class="subtitle" id="counterText">1 / 100</p>
+
+            <div class="question-card" id="questionCard">
+                <div class="question-inner">
+                    <div class="question-marker">
+                        <i data-lucide="quote" class="quote-icon"></i>
+                    </div>
+                    <p class="question-text" id="questionText">Eu nunca...</p>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-primary btn-block btn-next" id="nextQuestionBtn">
+                <i data-lucide="arrow-right"></i> Próxima
+            </button>
+
+            <button type="button" class="btn btn-secondary btn-block btn-change" id="changeDeckBtn">
+                <i data-lucide="shuffle"></i> Trocar Baralho
+            </button>
+        </section>
+
+    </main>
+
+    <!-- Modal de confirmação de idade -->
+    <div class="modal-overlay hidden" id="ageModal">
+        <div class="modal-card">
+            <div class="modal-icon">
+                <i data-lucide="alert-triangle"></i>
+            </div>
+            <h3>Conteúdo +18</h3>
+            <p>Este baralho contém perguntas de cunho adulto. Você confirma que tem <strong>18 anos ou mais</strong>?</p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" id="cancelAgeBtn">Não, voltar</button>
+                <button class="btn btn-danger" id="confirmAgeBtn">Sim, tenho +18</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmação para sair -->
+    <div class="modal-overlay hidden" id="exitModal">
+        <div class="modal-card">
+            <h3>Sair do Jogo?</h3>
+            <p>Você voltará para o menu do Bandu.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" id="cancelExitBtn">Continuar</button>
+                <button class="btn btn-danger" id="confirmExitBtn">Sair</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="eununca.js"></script>
+</body>
+</html>

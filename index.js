@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===== Banco de dados dos jogos (info que só aparece no modal) =====
     const GAMES_INFO = {
-        'corescomdicas.html': {
+        '/jogos/corescomdicas/corescomdicas.html': {
             title: 'Cores com Dicas',
             icon: 'palette',
             bg: 'linear-gradient(135deg, #FF8FA3 0%, #FFC078 100%)',
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
             device: '1 dispositivo',
             description: 'Faça mímica para que sua equipe adivinhe a palavra ou frase. Sem falar, sem sons, só gestos!'
         },
-        'eununca.html': {
+        '/jogos/eununca/eununca.html': {
             title: 'Eu Nunca',
             icon: 'message-circle',
             bg: 'linear-gradient(135deg, #C77DFF 0%, #FF7EB9 100%)',
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
             device: '1 dispositivo',
             description: 'O jogo clássico de revelações! Diga algo que nunca fez e descubra quem já fez. Prepare-se para rir!'
         },
-        'espiao.html': {
+        '/jogos/espiao/espiao.html': {
             title: 'Espião',
             icon: 'search',
             bg: 'linear-gradient(135deg, #4DD0C8 0%, #7B9EFF 100%)',
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
             device: 'Cada um no seu',
             description: 'Dê pistas para sua equipe encontrar as palavras secretas no tabuleiro, mas cuidado para não ajudar o time adversário!'
         },
-        'cidadedorme.html': {
+        '/jogos/cidadedorme/cidadedorme.html': {
             title: 'Cidade Dorme',
             icon: 'moon',
             bg: 'linear-gradient(135deg, #6A8EEA 0%, #4DD0C8 100%)',
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
             device: '1 dispositivo ou Cada um no seu',
             description: 'A cidade dorme, mas o assassino está acordado! Descubra quem está matando os cidadãos antes que seja tarde.'
         },
-        'sintonia.html': {
+        '/jogos/sintonia/sintonia.html': {
             title: 'Sintonia',
             icon: 'activity',
             bg: 'linear-gradient(135deg, #FFB067 0%, #A8E063 100%)',
