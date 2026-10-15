@@ -1,4 +1,4 @@
-// Bandu - Lobby de Party Games
+// Rally - Lobby de Party Games
 // Versão 1.3
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
             device: 'Tela compartilhada',
             description: 'Todos recebem a mesma palavra, exceto o impostor. Descubra quem é o impostor antes que ele te engane!'
         },
-        'mimica.html': {
+        '/jogos/mimica/mimica.html': {
             title: 'Mímica',
             emoji: '🤸',
             bg: 'linear-gradient(135deg, #FFE066 0%, #FF9A8B 100%)',
@@ -205,5 +205,5 @@ document.addEventListener('DOMContentLoaded', () => {
         noResults.style.display = visibleCount === 0 ? 'block' : 'none';
     }
 
-    console.log('🎉 Bandu carregado com sucesso!');
+    console.log('🎉 Rally carregado com sucesso!');
 });
