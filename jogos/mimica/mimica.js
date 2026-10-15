@@ -95,9 +95,105 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     };
 
-    // ÁUDIO DE ALARME
-    const alarmSound = new Audio('../../sons/ringtone1.mp3');
+    // ============================================================
+    // ÁUDIO DE ALARME (com destravamento para mobile)
+    // ============================================================
+    const ALARM_SRC = '../../sons/ringtone1.mp3';
+
+    // Elemento <audio> tradicional (funciona na maioria dos casos)
+    const alarmSound = new Audio(ALARM_SRC);
     alarmSound.preload = 'auto';
+    alarmSound.volume = 1.0;
+
+    // Web Audio API (fallback mais robusto para mobile)
+    let audioCtx = null;
+    let audioBuffer = null;
+
+    // Tenta carregar o buffer via fetch para o Web Audio API
+    async function loadAudioBuffer() {
+        try {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) return;
+            audioCtx = new Ctx();
+            const response = await fetch(ALARM_SRC);
+            const arrayBuffer = await response.arrayBuffer();
+            audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+        } catch (e) {
+            console.warn('Web Audio API não disponível para o alarme:', e);
+        }
+    }
+    loadAudioBuffer();
+
+    // Destrava o áudio no primeiro gesto do usuário (obrigatório no iOS/Android)
+    let audioUnlocked = false;
+    function unlockAudio() {
+        if (audioUnlocked) return;
+        audioUnlocked = true;
+
+        // 1. Destrava o elemento <audio>
+        alarmSound.muted = true;
+        const p = alarmSound.play();
+        if (p && p.then) {
+            p.then(() => {
+                alarmSound.pause();
+                alarmSound.currentTime = 0;
+                alarmSound.muted = false;
+            }).catch(() => {
+                alarmSound.muted = false;
+            });
+        } else {
+            alarmSound.pause();
+            alarmSound.currentTime = 0;
+            alarmSound.muted = false;
+        }
+
+        // 2. Destrava o AudioContext (se existir)
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
+        // Remove os listeners — só precisa destravar uma vez
+        document.removeEventListener('touchstart', unlockAudio);
+        document.removeEventListener('click', unlockAudio);
+        document.removeEventListener('keydown', unlockAudio);
+    }
+    document.addEventListener('touchstart', unlockAudio, { once: false, passive: true });
+    document.addEventListener('click', unlockAudio, { once: false });
+    document.addEventListener('keydown', unlockAudio, { once: false });
+
+    // Toca o alarme — tenta tanto o <audio> quanto o Web Audio API
+    function playAlarmSound() {
+        // Tentativa 1: elemento <audio>
+        try {
+            alarmSound.currentTime = 0;
+            const playPromise = alarmSound.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(err => {
+                    console.warn('Falha ao tocar <audio>, tentando Web Audio API:', err);
+                    playViaWebAudio();
+                });
+            }
+        } catch (e) {
+            console.warn('Erro ao tocar <audio>:', e);
+            playViaWebAudio();
+        }
+    }
+
+    // Fallback: Web Audio API
+    function playViaWebAudio() {
+        if (!audioCtx || !audioBuffer) return;
+        try {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const source = audioCtx.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(audioCtx.destination);
+            source.start(0);
+        } catch (e) {
+            console.warn('Erro ao tocar via Web Audio API:', e);
+        }
+    }
 
     // ESTADO DO JOGO
     const state = {
@@ -164,6 +260,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             liveScoreBtn.classList.add('hidden');
         }
+
+        // Rola para o topo ao trocar de tela (importante em telas altas como config)
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // ====== OVERLAY DE TRANSIÇÃO DE TURNO ======
@@ -239,7 +338,6 @@ document.addEventListener('DOMContentLoaded', () => {
             inputEl.value = '';
             renderFn();
         }
-        // Mantém o foco (e o teclado) no input após adicionar
         inputEl.focus();
     }
 
@@ -269,19 +367,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ====== BOTÕES DE ADICIONAR (mantendo o teclado aberto no mobile) ======
-    // Impede que o botão tire o foco do input ANTES do clique ser processado.
-    // No mobile isso evita que o teclado feche.
     ['addPlayerBtn', 'addTeamABtn', 'addTeamBBtn'].forEach(id => {
         const btn = document.getElementById(id);
         if (!btn) return;
-
-        // No desktop e alguns Androids
         btn.addEventListener('mousedown', (e) => e.preventDefault());
-
-        // No iOS Safari / Chrome iOS — touchstart previne o blur
         btn.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
-
-        // Como prevenimos o touchstart, disparamos o click manualmente no touchend
         btn.addEventListener('touchend', (e) => {
             e.preventDefault();
             btn.click();
@@ -300,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addPlayerName(inputs.teamB, state.teamB.players, refreshAllLists);
     });
 
-    // ====== ENTER TAMBÉM ADICIONA (bônus) ======
+    // ====== ENTER TAMBÉM ADICIONA ======
     inputs.player.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -411,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return [first, second];
     }
 
-    // ====== RENDERIZA TELA DE REVELAÇÃO (avança o índice) ======
+    // ====== RENDERIZA TELA DE REVELAÇÃO ======
     function renderRevealScreen() {
         const badgeElem = document.getElementById('roundBadge');
         const wordsBlock = document.getElementById('wordsBlock');
@@ -429,7 +519,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('turnActorName').innerText = state.currentActor;
             document.getElementById('turnTeamSub').innerText = 'Passe o celular para ele(a)';
 
-            // Avança o índice para o PRÓXIMO turno
             state.actorIndex.individual = (state.actorIndex.individual + 1) % state.players.length;
         } else {
             const isTeamA = state.currentTeamTurn === 'A';
@@ -445,7 +534,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('turnActorName').innerText = actorName;
             document.getElementById('turnTeamSub').innerText = `Mímica para ${currentTeam.name}`;
 
-            // Avança o índice dentro da equipe e alterna a equipe
             state.actorIndex[idxKey] = (state.actorIndex[idxKey] + 1) % currentTeam.players.length;
             state.currentTeamTurn = isTeamA ? 'B' : 'A';
         }
@@ -484,7 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showScreen('reveal');
     }
 
-    // ====== FUNÇÃO AUXILIAR: ir para o próximo turno com transição ======
+    // ====== IR PARA O PRÓXIMO TURNO COM TRANSIÇÃO ======
     function goToNextTurn() {
         const nextName = peekNextActor();
         showTransition(nextName, 'Prepare-se!', () => {
@@ -539,20 +627,6 @@ document.addEventListener('DOMContentLoaded', () => {
             timerEl.classList.add('warning');
         } else {
             timerEl.classList.remove('warning');
-        }
-    }
-
-    function playAlarmSound() {
-        try {
-            alarmSound.currentTime = 0;
-            const playPromise = alarmSound.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(err => {
-                    console.warn('Não foi possível tocar o áudio de alarme:', err);
-                });
-            }
-        } catch (e) {
-            console.warn('Erro ao tocar áudio:', e);
         }
     }
 

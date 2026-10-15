@@ -25,30 +25,38 @@ body {
     background-image: 
         radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.6) 0%, transparent 50%),
         radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.5) 0%, transparent 50%),
-        url("data:image/svg+xml,...");
+        url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9bda8' fill-opacity='0.18'%3E%3Cpath d='M50 50v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-42V4h-2v4h-4v2h4v4h2V10h4V8h-4zM8 50v-4H6v4H2v2h4v4h2v-4h4v-2H8zM8 8V4H6v4H2v2h4v4h2V10h4V8H8z'/%3E%3Ccircle cx='20' cy='20' r='1.5'/%3E%3Ccircle cx='60' cy='60' r='1.5'/%3E%3Ccircle cx='20' cy='60' r='1.5'/%3E%3Ccircle cx='60' cy='20' r='1.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     color: var(--texto);
     min-height: 100dvh;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    padding: 4rem 0.85rem 2rem 0.85rem;
+    align-items: center;
+    padding: 4.5rem 1rem 3rem 1rem;
     -webkit-font-smoothing: antialiased;
+}
+
+/* Config é a única tela que pode ser mais alta que a viewport — deixa alinhar ao topo */
+body:has(#configScreen:not(.hidden)) {
+    align-items: flex-start;
 }
 
 .container {
     width: 100%;
     max-width: 440px;
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .card-panel {
     background: #FFFFFF;
     border-radius: 24px;
-    padding: 1.25rem;
+    padding: 1.5rem;
     box-shadow: 0 8px 24px var(--sombra);
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 1.5rem;
     animation: fadeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
