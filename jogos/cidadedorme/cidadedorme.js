@@ -1,4 +1,5 @@
-// Bandu - Cidade Dorme (Party Game Online)
+// Bandu - Cidade Dorme (Party Game)
+// Modo Online (cada um no seu) + Modo Local (1 dispositivo)
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
 import {
@@ -34,10 +35,21 @@ const MIN_PLAYERS = 4;
 const CODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const CODE_LENGTH = 6;
 
+// Quantos assassinos cabem em X jogadores
+function maxAssassinosPara(jogadores) {
+    if (jogadores <= 5) return 1;
+    if (jogadores <= 7) return 2;
+    return 3;
+}
+
 // ============================================================
-// ESTADO LOCAL
+// ESTADO
 // ============================================================
 const state = {
+    // Modo de jogo
+    gameMode: null, // 'local' | 'online'
+
+    // Online
     uid: null,
     playerName: null,
     roomCode: null,
@@ -49,15 +61,35 @@ const state = {
     myVote: null,
     roleConfirmed: false,
     voteTimerInterval: null,
-    voteStartedAt: null,
     pendingAction: null,
-    // lock pra evitar transições duplicadas no host
-    lastTransitionKey: null
+    lastTransitionKey: null,
+    voteLog: {},
+
+    // Local (1 dispositivo)
+    local: {
+        players: [],
+        config: {
+            assassinos: 1,
+            temAnjo: true
+        },
+        // Estado da partida
+        currentRound: 0,
+        fase: 'config', // config | setup | papel | noite | dia | votacao | resultado | fim
+        ordemPassagem: [],
+        passandoIndex: 0,
+        revealed: false,
+        deadIds: [],
+        noite: null,
+        votos: {},
+        votacaoIniciada: null,
+        vencedor: null
+    }
 };
 
 // DOM
 const screens = {
     home: document.getElementById('homeScreen'),
+    configLocal: document.getElementById('localConfigScreen'),
     lobby: document.getElementById('lobbyScreen'),
     role: document.getElementById('roleScreen'),
     night: document.getElementById('nightScreen'),
@@ -72,6 +104,8 @@ const nameModal = document.getElementById('nameModal');
 const nameInput = document.getElementById('nameInput');
 const loadingOverlay = document.getElementById('loadingOverlay');
 const loadingText = document.getElementById('loadingText');
+const investigateModal = document.getElementById('investigateModal');
+const investigateResult = document.getElementById('investigateResult');
 
 // ============================================================
 // LOADING
@@ -80,7 +114,6 @@ function showLoading(text = 'Carregando...') {
     loadingText.innerText = text;
     loadingOverlay.classList.remove('hidden');
 }
-
 function hideLoading() {
     loadingOverlay.classList.add('hidden');
 }
@@ -153,15 +186,12 @@ function getMyPlayer(roomData) {
 onAuthStateChanged(auth, (user) => {
     if (user) {
         state.uid = user.uid;
-        console.log('Anônimo logado:', user.uid);
         if (state.pendingAction) {
             const act = state.pendingAction;
             state.pendingAction = null;
             if (act.type === 'create') doCreateRoom(act.name);
             else if (act.type === 'join') doJoinRoom(act.code, act.name);
         }
-    } else {
-        console.warn('Aguardando autenticação...');
     }
 });
 
@@ -195,22 +225,14 @@ function askName(callback) {
         document.getElementById('confirmNameBtn').removeEventListener('click', onConfirm);
         document.getElementById('cancelNameBtn').removeEventListener('click', onCancel);
     };
-
-    const onKey = (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); onConfirm(); }
-    };
-
+    const onKey = (e) => { if (e.key === 'Enter') { e.preventDefault(); onConfirm(); } };
     const onConfirm = () => {
         const v = nameInput.value.trim();
         if (!v) { nameInput.focus(); return; }
         cleanup();
         callback(v);
     };
-
-    const onCancel = () => {
-        cleanup();
-        callback(null);
-    };
+    const onCancel = () => { cleanup(); callback(null); };
 
     nameInput.addEventListener('keydown', onKey);
     document.getElementById('confirmNameBtn').addEventListener('click', onConfirm);
@@ -218,7 +240,893 @@ function askName(callback) {
 }
 
 // ============================================================
-// CRIAR SALA
+// MENU INICIAL — escolha do modo
+// ============================================================
+document.getElementById('modeLocalBtn').addEventListener('click', () => {
+    state.gameMode = 'local';
+    initLocalGame();
+});
+
+document.getElementById('modeOnlineBtn').addEventListener('click', () => {
+    state.gameMode = 'online';
+    showOnlineMenu();
+});
+
+function showOnlineMenu() {
+    document.getElementById('onlineMenu').classList.remove('hidden');
+    document.getElementById('modeChoice').classList.add('hidden');
+}
+
+function initLocalGame() {
+    // Reseta estado local
+    state.local = {
+        players: [],
+        config: { assassinos: 1, temAnjo: true },
+        currentRound: 0,
+        fase: 'config',
+        ordemPassagem: [],
+        passandoIndex: 0,
+        revealed: false,
+        deadIds: [],
+        noite: null,
+        votos: {},
+        votacaoIniciada: null,
+        vencedor: null
+    };
+    renderLocalConfig();
+    showScreen('configLocal');
+}
+
+// ============================================================
+// MODO LOCAL (1 dispositivo) — CONFIG
+// ============================================================
+function renderLocalConfig() {
+    showScreen('configLocal');
+    const L = state.local;
+
+    const input = document.getElementById('localPlayerInput');
+    const list = document.getElementById('localPlayerList');
+    list.innerHTML = '';
+    L.players.forEach((p, i) => {
+        const li = document.createElement('li');
+        li.className = 'tag-item';
+        li.innerHTML = `<span>${p.nome}</span><button type="button">&times;</button>`;
+        li.querySelector('button').addEventListener('click', () => {
+            L.players.splice(i, 1);
+            renderLocalConfig();
+        });
+        list.appendChild(li);
+    });
+
+    document.getElementById('localPlayerCount').innerText = `${L.players.length} / ${MAX_PLAYERS}`;
+
+    // Chips assassinos — limita pelo número de jogadores
+    const maxAss = maxAssassinosPara(L.players.length);
+    document.querySelectorAll('#localAssassinosGroup .chip-btn').forEach(btn => {
+        const val = parseInt(btn.dataset.value, 10);
+        const permitido = val <= maxAss;
+        btn.disabled = !permitido;
+        btn.style.opacity = permitido ? '1' : '0.35';
+        btn.classList.toggle('active', L.config.assassinos === val);
+    });
+
+    // Chips anjo
+    document.querySelectorAll('#localAnjoGroup .chip-btn').forEach(btn => {
+        const val = btn.dataset.value === 'sim';
+        btn.classList.toggle('active', L.config.temAnjo === val);
+    });
+
+    const startBtn = document.getElementById('localStartBtn');
+    startBtn.disabled = L.players.length < MIN_PLAYERS;
+}
+
+document.getElementById('localAddPlayerBtn').addEventListener('click', () => {
+    const input = document.getElementById('localPlayerInput');
+    const nome = input.value.trim();
+    if (!nome) return;
+    if (state.local.players.some(p => p.nome.toLowerCase() === nome.toLowerCase())) {
+        alert('Já tem alguém com esse nome');
+        return;
+    }
+    if (state.local.players.length >= MAX_PLAYERS) return;
+    state.local.players.push({ nome, vivo: true });
+    input.value = '';
+    renderLocalConfig();
+    input.focus();
+});
+
+document.getElementById('localPlayerInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('localAddPlayerBtn').click();
+    }
+});
+
+document.querySelectorAll('#localAssassinosGroup .chip-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (btn.disabled) return;
+        state.local.config.assassinos = parseInt(btn.dataset.value, 10);
+        renderLocalConfig();
+    });
+});
+
+document.querySelectorAll('#localAnjoGroup .chip-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        state.local.config.temAnjo = btn.dataset.value === 'sim';
+        renderLocalConfig();
+    });
+});
+
+document.getElementById('localStartBtn').addEventListener('click', () => {
+    if (state.local.players.length < MIN_PLAYERS) {
+        alert(`Precisa de pelo menos ${MIN_PLAYERS} jogadores`);
+        return;
+    }
+    startLocalRound();
+});
+
+// ============================================================
+// MODO LOCAL — INICIAR RODADA
+// ============================================================
+function startLocalRound() {
+    const L = state.local;
+    const players = L.players;
+
+    // Sorteia papéis
+    const shuffled = shuffle(players.map((_, i) => i));
+    const numAss = Math.min(L.config.assassinos, maxAssassinosPara(players.length));
+    const assassinoIdx = shuffled.slice(0, numAss);
+    const restantes = shuffled.slice(numAss);
+    const detetiveIdx = restantes[0];
+    let anjoIdx = null;
+    if (L.config.temAnjo && restantes.length > 1) anjoIdx = restantes[1];
+
+    players.forEach((p, i) => {
+        p.vivo = true;
+        if (assassinoIdx.includes(i)) p.papel = 'assassino';
+        else if (i === detetiveIdx) p.papel = 'detetive';
+        else if (i === anjoIdx) p.papel = 'anjo';
+        else p.papel = 'cidadao';
+    });
+
+    L.currentRound = 0;
+    L.deadIds = [];
+    L.votos = {};
+    L.vencedor = null;
+    L.noite = null;
+    L.assassinoMatadorIndex = 0;
+    L.ordemAssassinos = assassinoIdx.map(i => players[i].nome);
+    L.fase = 'papel';
+    L.revealed = false;
+
+    // Ordem de passagem — todos veem o papel
+    L.ordemPassagem = players.map((_, i) => i);
+    L.passandoIndex = 0;
+
+    renderLocalRole();
+}
+
+function renderLocalRole() {
+    showScreen('role');
+    const L = state.local;
+
+    if (L.passandoIndex >= L.ordemPassagem.length) {
+        // Todos viram, começa a noite
+        startLocalNight();
+        return;
+    }
+
+    const idx = L.ordemPassagem[L.passandoIndex];
+    const player = L.players[idx];
+
+    document.getElementById('roleTitle').innerText = player.nome;
+    document.getElementById('roleSubtitle').innerText = 'Passe o celular para ele(a)';
+    document.getElementById('roleDesc').innerText = 'Toque para revelar seu papel.';
+
+    const iconWrap = document.getElementById('roleIconWrap');
+    iconWrap.className = 'role-icon-wrap';
+    const icon = document.getElementById('roleIcon');
+    icon.setAttribute('data-lucide', 'eye-off');
+    if (window.lucide) lucide.createIcons();
+
+    const confirmBtn = document.getElementById('roleConfirmBtn');
+    confirmBtn.innerHTML = '<i data-lucide="eye"></i> Revelar';
+    confirmBtn.classList.remove('hidden');
+
+    // Esconde counter no modo local
+    const counter = document.getElementById('roleCounter');
+    if (counter) counter.classList.add('hidden');
+
+    // Remove listeners antigos clonando
+    const newBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+    newBtn.addEventListener('click', () => {
+        if (!L.revealed) {
+            // Revela o papel
+            L.revealed = true;
+            newBtn.innerHTML = '<i data-lucide="arrow-right"></i> Entendi';
+            document.getElementById('roleDesc').innerText = descricaoPapel(player.papel);
+            icon.setAttribute('data-lucide', iconePapel(player.papel));
+            iconWrap.className = 'role-icon-wrap ' + player.papel;
+            if (window.lucide) lucide.createIcons();
+        } else {
+            // Avança para o próximo
+            L.revealed = false;
+            L.passandoIndex++;
+            renderLocalRole();
+        }
+    });
+}
+
+function descricaoPapel(papel) {
+    const map = {
+        assassino: 'Junto com os outros assassinos (se houver), escolha alguém para eliminar durante a noite.',
+        detetive: 'Escolha alguém para investigar. Você saberá se a pessoa é o assassino — mas só você verá o resultado.',
+        anjo: 'Escolha alguém para proteger. Se essa pessoa for atacada, sobreviverá — e todos saberão.',
+        cidadao: 'Não tem poderes especiais. Observe, discuta e vote com sabedoria durante o dia.'
+    };
+    return map[papel] || map.cidadao;
+}
+function iconePapel(papel) {
+    return { assassino: 'skull', detetive: 'search', anjo: 'shield', cidadao: 'user' }[papel] || 'user';
+}
+function tituloPapel(papel) {
+    return { assassino: 'Assassino', detetive: 'Detetive', anjo: 'Anjo', cidadao: 'Cidadão' }[papel] || 'Cidadão';
+}
+
+// ============================================================
+// MODO LOCAL — NOITE
+// ============================================================
+function startLocalNight() {
+    const L = state.local;
+    L.fase = 'noite';
+    L.votos = {};
+    L.revealed = false;
+
+    // Decide quem é o matador dessa noite
+    const assVivos = L.players.map((p, i) => ({ p, i })).filter(x => x.p.vivo && x.p.papel === 'assassino');
+    const matadorIdx = assVivos.length > 0 ? (L.assassinoMatadorIndex % assVivos.length) : 0;
+    const matador = assVivos[matadorIdx];
+
+    L.noite = {
+        assassinoEscolheu: null,
+        anjoProtegeu: null,
+        detetiveInvestigou: null,
+        matadorNome: matador ? matador.p.nome : null,
+        matadorIdx: matador ? matador.i : -1
+    };
+
+    // Ordem: matador → outros assassinos (sugerir) → detetive → anjo → cidadãos
+    L.ordemNoite = [];
+
+    // Matador
+    if (matador) L.ordemNoite.push({ tipo: 'matador', idx: matador.i });
+
+    // Outros assassinos (sugerir)
+    assVivos.forEach((x, k) => {
+        if (k !== matadorIdx) L.ordemNoite.push({ tipo: 'sugestor', idx: x.i });
+    });
+
+    // Detetive vivo
+    const det = L.players.map((p, i) => ({ p, i })).find(x => x.p.vivo && x.p.papel === 'detetive');
+    if (det) L.ordemNoite.push({ tipo: 'detetive', idx: det.i });
+
+    // Anjo vivo
+    const anjo = L.players.map((p, i) => ({ p, i })).find(x => x.p.vivo && x.p.papel === 'anjo');
+    if (anjo) L.ordemNoite.push({ tipo: 'anjo', idx: anjo.i });
+
+    // Cidadãos vivos
+    L.players.forEach((p, i) => {
+        if (p.vivo && p.papel === 'cidadao') {
+            L.ordemNoite.push({ tipo: 'cidadao', idx: i });
+        }
+    });
+
+    L.noiteIndex = 0;
+    renderLocalNightStep();
+}
+
+function renderLocalNightStep() {
+    const L = state.local;
+    showScreen('night');
+
+    if (L.noiteIndex >= L.ordemNoite.length) {
+        // Fim da noite — resolve
+        resolveLocalNight();
+        return;
+    }
+
+    const step = L.ordemNoite[L.noiteIndex];
+    const player = L.players[step.idx];
+
+    const actionArea = document.getElementById('nightActionArea');
+    const subtitle = document.getElementById('nightSubtitle');
+    const waitingMsg = document.getElementById('waitingMsg');
+    actionArea.innerHTML = '';
+    waitingMsg.classList.add('hidden');
+
+    document.querySelector('.display-title').innerText = `${player.nome}`;
+    subtitle.innerText = `Passe o celular para ${player.nome}`;
+    document.getElementById('nightCounter').classList.add('hidden');
+
+    // Tela inicial: "Sou eu" para ninguém ver escondido
+    if (!L.revealed) {
+        subtitle.innerText = `${player.nome}, toque para continuar`;
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-primary btn-block';
+        btn.innerHTML = '<i data-lucide="eye"></i> Sou eu, mostrar ação';
+        btn.addEventListener('click', () => {
+            L.revealed = true;
+            renderLocalNightStep();
+        });
+        actionArea.appendChild(btn);
+        if (window.lucide) lucide.createIcons();
+        return;
+    }
+
+    // Ação
+    if (step.tipo === 'matador') {
+        subtitle.innerText = 'Escolha quem eliminar';
+        const alvos = L.players.map((p, i) => ({ p, i })).filter(x => x.p.vivo && x.i !== step.idx);
+        renderTargetGrid(actionArea, alvos, (alvo) => {
+            L.noite.assassinoEscolheu = alvo.i;
+            advanceLocalNight();
+        });
+    } else if (step.tipo === 'sugestor') {
+        subtitle.innerText = 'Sugira um alvo para o matador';
+        const alvos = L.players.map((p, i) => ({ p, i })).filter(x =>
+            x.p.vivo && x.i !== step.idx && x.p.nome !== L.noite.matadorNome
+        );
+        renderTargetGrid(actionArea, alvos, (alvo) => {
+            L.noite.sugestao = alvo.p.nome;
+            advanceLocalNight();
+        });
+    } else if (step.tipo === 'detetive') {
+        subtitle.innerText = 'Escolha quem investigar';
+        const alvos = L.players.map((p, i) => ({ p, i })).filter(x => x.p.vivo && x.i !== step.idx);
+        renderTargetGrid(actionArea, alvos, (alvo) => {
+            L.noite.detetiveInvestigou = {
+                detetiveNome: player.nome,
+                alvoNome: alvo.p.nome,
+                resultado: alvo.p.papel === 'assassino' ? 'assassino' : 'inocente'
+            };
+            showInvestigateModal(alvo.p.nome, alvo.p.papel === 'assassino');
+        });
+    } else if (step.tipo === 'anjo') {
+        subtitle.innerText = 'Escolha quem proteger';
+        const alvos = L.players.map((p, i) => ({ p, i })).filter(x => x.p.vivo);
+        renderTargetGrid(actionArea, alvos, (alvo) => {
+            L.noite.anjoProtegeu = alvo.i;
+            advanceLocalNight();
+        });
+    } else if (step.tipo === 'cidadao') {
+        subtitle.innerText = `${player.nome}, complete o desafio`;
+        renderCitizenMinigame(actionArea, () => {
+            advanceLocalNight();
+        });
+    }
+
+    if (window.lucide) lucide.createIcons();
+}
+
+function renderTargetGrid(container, alvos, onPick) {
+    const grid = document.createElement('div');
+    grid.className = 'target-grid';
+    alvos.forEach(alvo => {
+        const btn = document.createElement('button');
+        btn.className = 'target-btn';
+        btn.innerText = alvo.p.nome + (alvo.i === state.local.noite?.matadorIdx && alvo.p.nome !== undefined ? '' : '');
+        btn.addEventListener('click', () => onPick(alvo));
+        grid.appendChild(btn);
+    });
+    container.appendChild(grid);
+}
+
+function advanceLocalNight() {
+    state.local.revealed = false;
+    state.local.noiteIndex++;
+    renderLocalNightStep();
+}
+
+function showInvestigateModal(alvoNome, ehAssassino) {
+    const el = document.getElementById('investigateResult');
+    el.innerHTML = ehAssassino
+        ? `<strong>${alvoNome}</strong> é o <span style="color:#FA5252">ASSASSINO!</span>`
+        : `<strong>${alvoNome}</strong> é inocente.`;
+    document.getElementById('investigateModal').classList.remove('hidden');
+}
+
+document.getElementById('investigateCloseBtn').addEventListener('click', () => {
+    document.getElementById('investigateModal').classList.add('hidden');
+    advanceLocalNight();
+});
+
+// ============================================================
+// MINIGAMES DO CIDADÃO
+// ============================================================
+function renderCitizenMinigame(container, onComplete) {
+    const tipos = ['hold', 'drag', 'sequence'];
+    const tipo = tipos[Math.floor(Math.random() * tipos.length)];
+
+    const wrap = document.createElement('div');
+    wrap.style.display = 'flex';
+    wrap.style.flexDirection = 'column';
+    wrap.style.gap = '1rem';
+    wrap.style.alignItems = 'center';
+    container.appendChild(wrap);
+
+    if (tipo === 'hold') {
+        const info = document.createElement('p');
+        info.className = 'subtitle';
+        info.innerText = 'Segure o botão por 3 segundos';
+        wrap.appendChild(info);
+
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-primary';
+        btn.style.width = '100%';
+        btn.style.padding = '1.25rem';
+        btn.style.position = 'relative';
+        btn.style.overflow = 'hidden';
+        btn.innerHTML = '<span style="position:relative;z-index:1">Segure aqui</span>';
+
+        const bar = document.createElement('div');
+        bar.style.position = 'absolute';
+        bar.style.left = '0';
+        bar.style.top = '0';
+        bar.style.height = '100%';
+        bar.style.width = '0%';
+        bar.style.background = 'rgba(81, 207, 102, 0.6)';
+        bar.style.transition = 'width 0.1s linear';
+        btn.appendChild(bar);
+
+        wrap.appendChild(btn);
+
+        let start = null, rafId = null, done = false;
+        const update = () => {
+            if (!start || done) return;
+            const elapsed = Date.now() - start;
+            const pct = Math.min(100, (elapsed / 3000) * 100);
+            bar.style.width = pct + '%';
+            if (pct >= 100 && !done) {
+                done = true;
+                btn.style.background = 'var(--verde-sucesso)';
+                btn.innerHTML = '<span style="position:relative;z-index:1">Completo!</span>';
+                setTimeout(onComplete, 400);
+                return;
+            }
+            rafId = requestAnimationFrame(update);
+        };
+        const begin = () => { if (!done) { start = Date.now(); update(); } };
+        const stop = () => { if (!done) { start = null; bar.style.width = '0%'; cancelAnimationFrame(rafId); } };
+        btn.addEventListener('mousedown', begin);
+        btn.addEventListener('touchstart', (e) => { e.preventDefault(); begin(); });
+        btn.addEventListener('mouseup', stop);
+        btn.addEventListener('mouseleave', stop);
+        btn.addEventListener('touchend', stop);
+        btn.addEventListener('touchcancel', stop);
+    } else if (tipo === 'drag') {
+        const info = document.createElement('p');
+        info.className = 'subtitle';
+        info.innerText = 'Arraste o círculo até o fim da barra';
+        wrap.appendChild(info);
+
+        const track = document.createElement('div');
+        track.style.width = '100%';
+        track.style.height = '70px';
+        track.style.background = 'var(--bege-escuro)';
+        track.style.borderRadius = '35px';
+        track.style.position = 'relative';
+        track.style.overflow = 'hidden';
+
+        const knob = document.createElement('div');
+        knob.style.width = '60px';
+        knob.style.height = '60px';
+        knob.style.borderRadius = '50%';
+        knob.style.background = 'var(--texto)';
+        knob.style.position = 'absolute';
+        knob.style.top = '5px';
+        knob.style.left = '5px';
+        knob.style.cursor = 'grab';
+        knob.style.touchAction = 'none';
+        knob.style.transition = 'background 0.2s';
+        track.appendChild(knob);
+        wrap.appendChild(track);
+
+        let dragging = false, startX = 0, currentX = 0, maxX = 0;
+        const onDown = (e) => {
+            dragging = true;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            startX = clientX - currentX;
+            maxX = track.offsetWidth - knob.offsetWidth - 10;
+            knob.style.transition = 'none';
+        };
+        const onMove = (e) => {
+            if (!dragging) return;
+            e.preventDefault?.();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            currentX = Math.max(0, Math.min(maxX, clientX - startX));
+            knob.style.left = (currentX + 5) + 'px';
+            if (currentX >= maxX - 2) {
+                dragging = false;
+                knob.style.background = 'var(--verde-sucesso)';
+                setTimeout(onComplete, 300);
+            }
+        };
+        const onUp = () => {
+            if (!dragging) return;
+            dragging = false;
+            currentX = 0;
+            knob.style.transition = 'left 0.3s ease';
+            knob.style.left = '5px';
+            setTimeout(() => { knob.style.transition = ''; }, 350);
+        };
+        knob.addEventListener('mousedown', onDown);
+        knob.addEventListener('touchstart', onDown, { passive: true });
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('mouseup', onUp);
+        document.addEventListener('touchend', onUp);
+    } else {
+        const info = document.createElement('p');
+        info.className = 'subtitle';
+        info.innerText = 'Aperte os números na ordem (1 → 2 → 3 → 4)';
+        wrap.appendChild(info);
+
+        const grid = document.createElement('div');
+        grid.style.display = 'grid';
+        grid.style.gridTemplateColumns = '1fr 1fr';
+        grid.style.gap = '0.5rem';
+        grid.style.width = '100%';
+
+        // Embaralha posições
+        const nums = [1, 2, 3, 4];
+        const posicoes = shuffle(nums);
+        let proximo = 1;
+
+        posicoes.forEach(n => {
+            const btn = document.createElement('button');
+            btn.className = 'target-btn';
+            btn.innerText = n;
+            btn.style.padding = '1rem';
+            btn.style.fontSize = '1.5rem';
+            btn.addEventListener('click', () => {
+                if (n === proximo) {
+                    btn.style.background = 'var(--verde-sucesso)';
+                    btn.style.color = '#FFF';
+                    btn.disabled = true;
+                    proximo++;
+                    if (proximo > 4) {
+                        setTimeout(onComplete, 300);
+                    }
+                } else {
+                    btn.style.background = 'var(--vermelho)';
+                    btn.style.color = '#FFF';
+                    setTimeout(() => {
+                        btn.style.background = '';
+                        btn.style.color = '';
+                    }, 250);
+                }
+            });
+            grid.appendChild(btn);
+        });
+        wrap.appendChild(grid);
+    }
+}
+
+// ============================================================
+// MODO LOCAL — RESOLVE NOITE
+// ============================================================
+function resolveLocalNight() {
+    const L = state.local;
+    const noite = L.noite;
+
+    const vitimaIdx = noite.assassinoEscolheu;
+    const protegida = vitimaIdx !== null && noite.anjoProtegeu === vitimaIdx;
+
+    const eventos = [];
+    if (vitimaIdx !== null && vitimaIdx !== undefined) {
+        const vitima = L.players[vitimaIdx];
+        if (protegida) {
+            eventos.push({ tipo: 'salvo', texto: `Tentaram matar <strong>${vitima.nome}</strong>, mas o anjo protegeu.` });
+        } else {
+            vitima.vivo = false;
+            eventos.push({ tipo: 'morte', texto: `<strong>${vitima.nome}</strong> foi assassinado durante a noite.` });
+        }
+    } else {
+        eventos.push({ tipo: 'info', texto: 'A noite passou em paz. Ninguém foi atacado.' });
+    }
+
+    L.noiteEventos = eventos;
+    L.assassinoMatadorIndex = (L.assassinoMatadorIndex || 0) + 1;
+
+    // Checa fim
+    const vivos = L.players.filter(p => p.vivo);
+    const assVivos = vivos.filter(p => p.papel === 'assassino');
+    const naoAss = vivos.filter(p => p.papel !== 'assassino');
+    if (assVivos.length === 0) {
+        L.vencedor = 'cidade';
+        return renderLocalGameOver();
+    }
+    if (assVivos.length >= naoAss.length) {
+        L.vencedor = 'assassinos';
+        return renderLocalGameOver();
+    }
+
+    // Vai para o dia
+    L.fase = 'dia';
+    renderLocalDay();
+}
+
+// ============================================================
+// MODO LOCAL — DIA
+// ============================================================
+function renderLocalDay() {
+    showScreen('day');
+    const L = state.local;
+
+    const eventsEl = document.getElementById('dayEvents');
+    eventsEl.innerHTML = '';
+    (L.noiteEventos || []).forEach(ev => {
+        const div = document.createElement('div');
+        div.className = 'day-event ' + ev.tipo;
+        div.innerHTML = ev.texto;
+        eventsEl.appendChild(div);
+    });
+
+    // Detetive que investigou vê o resultado novamente
+    if (L.noite?.detetiveInvestigou) {
+        const inv = L.noite.detetiveInvestigou;
+        const div = document.createElement('div');
+        div.className = 'day-event info';
+        div.innerHTML = `<strong>Investigação de ${inv.detetiveNome}:</strong> ${inv.alvoNome} é <strong>${inv.resultado === 'assassino' ? 'o ASSASSINO!' : 'inocente'}</strong>.`;
+        eventsEl.appendChild(div);
+    }
+
+    // Botão para ir à votação — só o "continuar" que passa o celular
+    const toVoteBtn = document.getElementById('toVoteBtn');
+    const waitMsg = document.getElementById('waitVoteMsg');
+    toVoteBtn.classList.remove('hidden');
+    waitMsg.classList.add('hidden');
+    toVoteBtn.innerHTML = '<i data-lucide="vote"></i> Iniciar Votação';
+    toVoteBtn.onclick = () => startLocalVote();
+
+    if (window.lucide) lucide.createIcons();
+}
+
+// ============================================================
+// MODO LOCAL — VOTAÇÃO
+// ============================================================
+function startLocalVote() {
+    const L = state.local;
+    L.fase = 'votacao';
+    L.votos = {};
+    L.votoIndex = 0;
+    L.ordemVoto = L.players.map((p, i) => ({ p, i })).filter(x => x.p.vivo);
+    L.revealed = false;
+    renderLocalVoteStep();
+}
+
+function renderLocalVoteStep() {
+    showScreen('vote');
+    const L = state.local;
+
+    const timerEl = document.getElementById('voteTimer');
+    timerEl.innerText = '';
+
+    if (L.votoIndex >= L.ordemVoto.length) {
+        resolveLocalVote();
+        return;
+    }
+
+    const voter = L.ordemVoto[L.votoIndex];
+    const grid = document.getElementById('voteGrid');
+    grid.innerHTML = '';
+
+    document.querySelector('#voteScreen h2').innerText = `${voter.p.nome} vota`;
+    document.getElementById('voteInstruction').innerText = 'Escolha quem expulsar ou pule';
+
+    const voteStatus = document.getElementById('voteStatus');
+    voteStatus.classList.add('hidden');
+
+    // Alvos vivos (exceto o votante)
+    const alvos = L.players.map((p, i) => ({ p, i })).filter(x => x.p.vivo && x.i !== voter.i);
+    alvos.forEach(alvo => {
+        const btn = document.createElement('button');
+        btn.className = 'vote-btn';
+        btn.innerText = alvo.p.nome;
+        btn.addEventListener('click', () => {
+            L.votos[voter.i] = alvo.i;
+            advanceLocalVote();
+        });
+        grid.appendChild(btn);
+    });
+
+    // Botão de pular voto
+    const skipBtn = document.createElement('button');
+    skipBtn.className = 'vote-btn';
+    skipBtn.style.gridColumn = '1 / -1';
+    skipBtn.style.background = 'var(--bege-escuro)';
+    skipBtn.innerHTML = '<i data-lucide="skip-forward"></i> Pular voto';
+    skipBtn.addEventListener('click', () => {
+        L.votos[voter.i] = 'skip';
+        advanceLocalVote();
+    });
+    grid.appendChild(skipBtn);
+
+    document.getElementById('voteProgress').innerText = `Votando: ${L.votoIndex + 1} / ${L.ordemVoto.length}`;
+
+    if (window.lucide) lucide.createIcons();
+}
+
+function advanceLocalVote() {
+    state.local.votoIndex++;
+    renderLocalVoteStep();
+}
+
+function resolveLocalVote() {
+    const L = state.local;
+    const votos = L.votos || {};
+
+    const contagem = {};
+    Object.values(votos).forEach(v => {
+        if (v === 'skip') return;
+        contagem[v] = (contagem[v] || 0) + 1;
+    });
+
+    let maisVotado = null, max = 0, empate = false;
+    Object.entries(contagem).forEach(([id, c]) => {
+        id = parseInt(id, 10);
+        if (c > max) { max = c; maisVotado = id; empate = false; }
+        else if (c === max) empate = true;
+    });
+    if (empate) maisVotado = null;
+
+    const eventos = [];
+    if (maisVotado !== null) {
+        L.players[maisVotado].vivo = false;
+        eventos.push({
+            tipo: 'morte',
+            texto: `<strong>${L.players[maisVotado].nome}</strong> foi expulso da cidade (era <strong>${L.players[maisVotado].papel}</strong>).`
+        });
+    } else {
+        eventos.push({ tipo: 'info', texto: 'A votação empatou. Ninguém foi expulso.' });
+    }
+
+    // Checa fim
+    const vivos = L.players.filter(p => p.vivo);
+    const assVivos = vivos.filter(p => p.papel === 'assassino');
+    const naoAss = vivos.filter(p => p.papel !== 'assassino');
+    if (assVivos.length === 0) {
+        L.vencedor = 'cidade';
+        L.resultadoRodada = { eventos };
+        return renderLocalGameOver();
+    }
+    if (assVivos.length >= naoAss.length) {
+        L.vencedor = 'assassinos';
+        L.resultadoRodada = { eventos };
+        return renderLocalGameOver();
+    }
+
+    // Vai para resultado e depois próxima noite
+    L.resultadoRodada = { eventos };
+    L.fase = 'resultado';
+    renderLocalRoundResult();
+}
+
+function renderLocalRoundResult() {
+    showScreen('roundResult');
+    const L = state.local;
+    const reveal = document.getElementById('roundResultReveal');
+    reveal.innerHTML = '';
+    (L.resultadoRodada?.eventos || []).forEach(ev => {
+        const div = document.createElement('div');
+        div.className = 'day-event ' + ev.tipo;
+        div.innerHTML = ev.texto;
+        reveal.appendChild(div);
+    });
+
+    const btn = document.getElementById('continueBtn');
+    btn.classList.remove('hidden');
+    const wait = document.getElementById('waitContinueMsg');
+    wait.classList.add('hidden');
+    btn.onclick = () => startLocalNight();
+
+    if (window.lucide) lucide.createIcons();
+}
+
+function renderLocalGameOver() {
+    showScreen('gameOver');
+    const L = state.local;
+    const vencedor = L.vencedor;
+
+    const title = document.getElementById('gameOverTitle');
+    const sub = document.getElementById('gameOverSub');
+    const icon = document.getElementById('gameOverIcon');
+
+    if (vencedor === 'cidade') {
+        title.innerText = 'A cidade venceu!';
+        sub.innerText = 'Todos os assassinos foram expulsos';
+        icon.className = 'result-icon win';
+    } else {
+        title.innerText = 'Os assassinos venceram!';
+        sub.innerText = 'Eles dominaram a cidade';
+        icon.className = 'result-icon';
+    }
+
+    const reveal = document.getElementById('finalReveal');
+    reveal.innerHTML = '';
+    L.players.forEach(p => {
+        const line = document.createElement('div');
+        line.className = 'result-line';
+        line.innerHTML = `
+            <span class="label">${p.nome}</span>
+            <span class="value ${p.papel}">${p.papel}</span>
+        `;
+        reveal.appendChild(line);
+    });
+
+    // No modo local, sempre mostra as ações do fim
+    document.getElementById('gameOverActions').classList.remove('hidden');
+    document.getElementById('spectatorMsg').classList.add('hidden');
+
+    if (window.confetti && vencedor === 'cidade') {
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    }
+    if (window.lucide) lucide.createIcons();
+}
+
+// Botões do fim no modo local
+document.getElementById('rematchBtn').addEventListener('click', async () => {
+    if (state.gameMode === 'local') {
+        startLocalRound();
+    } else if (state.isHost) {
+        showLoading('Preparando nova partida...');
+        try { await startNewRound(); } finally { hideLoading(); }
+    }
+});
+
+document.getElementById('editConfigBtn').addEventListener('click', async () => {
+    if (state.gameMode === 'local') {
+        initLocalGame();
+    } else if (state.isHost) {
+        showLoading('Voltando ao lobby...');
+        try {
+            const jogadoresAtualizados = JSON.parse(JSON.stringify(state.roomData.jogadores));
+            Object.keys(jogadoresAtualizados).forEach(uid => {
+                jogadoresAtualizados[uid].pronto = false;
+                jogadoresAtualizados[uid].viuPapel = false;
+                jogadoresAtualizados[uid].prontoDia = false;
+                jogadoresAtualizados[uid].papel = null;
+                jogadoresAtualizados[uid].vivo = true;
+            });
+            await updateDoc(state.roomRef, {
+                status: 'lobby',
+                jogadores: jogadoresAtualizados,
+                noite: null,
+                votos: null,
+                historico: [],
+                vencedor: null,
+                resultadoRodada: null
+            });
+        } finally { hideLoading(); }
+    }
+});
+
+document.getElementById('closeRoomBtn').addEventListener('click', async () => {
+    if (state.gameMode === 'local') {
+        cleanupAndHome();
+        return;
+    }
+    if (!state.isHost) return;
+    if (!confirm('Encerrar a sala para todos?')) return;
+    showLoading('Encerrando sala...');
+    try { await deleteDoc(state.roomRef); } catch (e) { console.error(e); }
+    hideLoading();
+    cleanupAndHome();
+});
+
+// ============================================================
+// MODO ONLINE — CRIAR / ENTRAR
 // ============================================================
 document.getElementById('createRoomBtn').addEventListener('click', () => {
     askName(async (name) => {
@@ -234,7 +1142,6 @@ async function doCreateRoom(name) {
     showLoading('Criando sala...');
     try {
         state.playerName = name.slice(0, 15);
-
         let code, exists = true, tries = 0;
         while (exists && tries < 10) {
             code = generateRoomCode();
@@ -242,11 +1149,7 @@ async function doCreateRoom(name) {
             exists = check.exists();
             tries++;
         }
-        if (exists) {
-            hideLoading();
-            alert('Não foi possível gerar um código único. Tente de novo.');
-            return;
-        }
+        if (exists) { hideLoading(); alert('Não foi possível gerar um código único.'); return; }
 
         const roomRef = doc(db, 'partidas', code);
         await setDoc(roomRef, {
@@ -254,26 +1157,14 @@ async function doCreateRoom(name) {
             criadorId: state.uid,
             criadoEm: serverTimestamp(),
             status: 'lobby',
-            config: {
-                assassinos: 1,
-                temAnjo: true,
-                tempoVotacao: 60,
-                votoAnonimo: false
-            },
+            config: { assassinos: 1, temAnjo: true, tempoVotacao: 60, votoAnonimo: false },
             jogadores: {
                 [state.uid]: {
-                    nome: state.playerName,
-                    vivo: true,
-                    pronto: false,
-                    papel: null,
-                    viuPapel: false,
-                    prontoDia: false
+                    nome: state.playerName, vivo: true, pronto: false,
+                    papel: null, viuPapel: false, prontoDia: false
                 }
             },
-            noite: null,
-            votos: null,
-            historico: [],
-            vencedor: null
+            noite: null, votos: null, historico: [], vencedor: null
         });
 
         state.roomCode = code;
@@ -288,15 +1179,9 @@ async function doCreateRoom(name) {
     }
 }
 
-// ============================================================
-// ENTRAR EM SALA
-// ============================================================
 document.getElementById('joinRoomBtn').addEventListener('click', () => {
     const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
-    if (code.length !== CODE_LENGTH) {
-        alert('Digite um código de 6 caracteres');
-        return;
-    }
+    if (code.length !== CODE_LENGTH) { alert('Digite um código de 6 caracteres'); return; }
     askName(async (name) => {
         if (!name) return;
         const ok = await ensureAuth();
@@ -310,15 +1195,11 @@ async function doJoinRoom(code, name) {
     showLoading('Entrando na sala...');
     try {
         state.playerName = name.slice(0, 15);
-
         const roomRef = doc(db, 'partidas', code);
         const snap = await getDoc(roomRef);
-
         if (!snap.exists()) { hideLoading(); alert('Sala não encontrada'); return; }
-
         const roomData = snap.data();
         if (roomData.status !== 'lobby') { hideLoading(); alert('A partida já começou'); return; }
-
         const players = getPlayersArray(roomData);
         if (players.length >= MAX_PLAYERS) { hideLoading(); alert('Sala cheia'); return; }
 
@@ -326,19 +1207,14 @@ async function doJoinRoom(code, name) {
         const nomeDuplicado = players.some(p =>
             typeof p.nome === 'string' && p.nome.toLowerCase() === meuNome
         );
-        if (nomeDuplicado) { hideLoading(); alert('Já tem alguém com esse nome na sala'); return; }
+        if (nomeDuplicado) { hideLoading(); alert('Já tem alguém com esse nome'); return; }
 
         await updateDoc(roomRef, {
             [`jogadores.${state.uid}`]: {
-                nome: state.playerName,
-                vivo: true,
-                pronto: false,
-                papel: null,
-                viuPapel: false,
-                prontoDia: false
+                nome: state.playerName, vivo: true, pronto: false,
+                papel: null, viuPapel: false, prontoDia: false
             }
         });
-
         state.roomCode = code;
         state.roomRef = roomRef;
         state.isHost = false;
@@ -352,22 +1228,15 @@ async function doJoinRoom(code, name) {
 }
 
 // ============================================================
-// LISTENER DA SALA
+// LISTENER DA SALA (ONLINE)
 // ============================================================
 function listenToRoom(code) {
     if (state.unsubscribeRoom) state.unsubscribeRoom();
-
     const roomRef = doc(db, 'partidas', code);
     state.roomRef = roomRef;
 
     state.unsubscribeRoom = onSnapshot(roomRef, (snap) => {
-        if (!snap.exists()) {
-            alert('A sala foi encerrada');
-            cleanupAndHome();
-            return;
-        }
-
-        const oldData = state.roomData;
+        if (!snap.exists()) { alert('A sala foi encerrada'); cleanupAndHome(); return; }
         state.roomData = snap.data();
         state.isHost = state.roomData.criadorId === state.uid;
 
@@ -380,17 +1249,13 @@ function listenToRoom(code) {
         else if (status === 'resultado') renderRoundResult();
         else if (status === 'fim') renderGameOver();
 
-        // ---- HOST AVANÇA FASES AUTOMATICAMENTE ----
-        if (state.isHost) {
-            maybeAdvancePhase(status);
-        }
+        if (state.isHost) maybeAdvancePhase(status);
     }, (err) => {
         console.error('Listener error:', err);
         alert('Erro de conexão: ' + err.message);
     });
 }
 
-// Host verifica se pode avançar da fase atual
 async function maybeAdvancePhase(status) {
     const room = state.roomData;
     if (!room) return;
@@ -405,29 +1270,40 @@ async function maybeAdvancePhase(status) {
     } else if (status === 'noite') {
         const ok = await checkNightComplete();
         if (ok) {
-            if (state.lastTransitionKey === 'noite-ok') return;
-            state.lastTransitionKey = 'noite-ok';
+            if (state.lastTransitionKey === 'noite-ok-' + (room.historico?.length || 0)) return;
+            state.lastTransitionKey = 'noite-ok-' + (room.historico?.length || 0);
             await resolveNight();
+        }
+    } else if (status === 'dia') {
+        // Mudança #3: transição automática para votação
+        const players = getPlayersArray(room).filter(p => p.vivo);
+        const todosProntos = players.every(p => p.prontoDia);
+        if (todosProntos && players.length > 0) {
+            if (state.lastTransitionKey === 'dia-' + (room.historico?.length || 0)) return;
+            state.lastTransitionKey = 'dia-' + (room.historico?.length || 0);
+            await updateDoc(state.roomRef, {
+                status: 'votacao',
+                votos: {},
+                votacaoIniciadaEm: Date.now(),
+                votacaoDuracao: room.config.tempoVotacao
+            });
         }
     } else if (status === 'votacao') {
         const vivos = getAlivePlayers(room);
         const votos = room.votos || {};
-        const todosVotaram = vivos.every(p => votos[p.uid]);
+        const todosVotaram = vivos.every(p => votos[p.uid] !== undefined);
         if (todosVotaram && vivos.length > 0) {
-            if (state.lastTransitionKey === 'voto-ok') return;
-            state.lastTransitionKey = 'voto-ok';
+            if (state.lastTransitionKey === 'voto-ok-' + (room.historico?.length || 0)) return;
+            state.lastTransitionKey = 'voto-ok-' + (room.historico?.length || 0);
             await resolveVote();
         }
     }
 }
 
-// Reseta a chave de transição quando muda de fase
-function resetTransitionKey() {
-    state.lastTransitionKey = null;
-}
+function resetTransitionKey() { state.lastTransitionKey = null; }
 
 // ============================================================
-// LOBBY
+// LOBBY (ONLINE)
 // ============================================================
 function renderLobby() {
     showScreen('lobby');
@@ -439,10 +1315,19 @@ function renderLobby() {
     const hostConfig = document.getElementById('hostConfig');
     if (state.isHost) {
         hostConfig.classList.remove('hidden');
-        setChipActive('assassinosGroup', String(room.config.assassinos));
         setChipActive('anjoGroup', room.config.temAnjo ? 'sim' : 'nao');
         setChipActive('tempoGroup', String(room.config.tempoVotacao));
         setChipActive('votoGroup', room.config.votoAnonimo ? 'anonimo' : 'aberto');
+
+        // Mudança #4: chips de assassinos limitados
+        const maxAss = maxAssassinosPara(getPlayersArray(room).length);
+        document.querySelectorAll('#assassinosGroup .chip-btn').forEach(btn => {
+            const val = parseInt(btn.dataset.value, 10);
+            const permitido = val <= maxAss;
+            btn.disabled = !permitido;
+            btn.style.opacity = permitido ? '1' : '0.35';
+            btn.classList.toggle('active', room.config.assassinos === val);
+        });
     } else {
         hostConfig.classList.add('hidden');
     }
@@ -497,7 +1382,7 @@ function setChipActive(groupId, value) {
 ['assassinosGroup', 'anjoGroup', 'tempoGroup', 'votoGroup'].forEach(groupId => {
     document.querySelectorAll(`#${groupId} .chip-btn`).forEach(btn => {
         btn.addEventListener('click', async () => {
-            if (!state.isHost) return;
+            if (!state.isHost || btn.disabled) return;
             const val = btn.dataset.value;
             const config = { ...state.roomData.config };
             if (groupId === 'assassinosGroup') config.assassinos = parseInt(val);
@@ -512,45 +1397,31 @@ function setChipActive(groupId, value) {
 document.getElementById('readyBtn').addEventListener('click', async () => {
     const me = getMyPlayer(state.roomData);
     if (!me) return;
-    await updateDoc(state.roomRef, {
-        [`jogadores.${state.uid}.pronto`]: !me.pronto
-    });
+    await updateDoc(state.roomRef, { [`jogadores.${state.uid}.pronto`]: !me.pronto });
 });
 
 document.getElementById('startGameBtn').addEventListener('click', async () => {
     if (!state.isHost) return;
     const players = getPlayersArray(state.roomData);
-    if (players.length < MIN_PLAYERS) {
-        alert(`Precisa de pelo menos ${MIN_PLAYERS} jogadores`);
-        return;
-    }
+    if (players.length < MIN_PLAYERS) { alert(`Precisa de pelo menos ${MIN_PLAYERS} jogadores`); return; }
     const convidados = players.filter(p => p.uid !== state.uid);
-    if (!convidados.every(p => p.pronto)) {
-        alert('Todos os convidados precisam estar prontos');
-        return;
-    }
+    if (!convidados.every(p => p.pronto)) { alert('Todos precisam estar prontos'); return; }
     showLoading('Iniciando partida...');
-    try {
-        await startNewRound();
-    } finally {
-        hideLoading();
-    }
+    try { await startNewRound(); } finally { hideLoading(); }
 });
 
 // ============================================================
-// NOVA RODADA
+// NOVA RODADA (ONLINE)
 // ============================================================
 async function startNewRound() {
     if (!state.isHost) return;
-
     const players = getPlayersArray(state.roomData);
     const config = state.roomData.config;
 
     const shuffled = shuffle(players.map(p => p.uid));
-    const numAssassinos = Math.min(config.assassinos, Math.floor(players.length / 3));
-    const assassinos = shuffled.slice(0, numAssassinos);
-    const restantes = shuffled.slice(numAssassinos);
-
+    const numAss = Math.min(config.assassinos, maxAssassinosPara(players.length));
+    const assassinos = shuffled.slice(0, numAss);
+    const restantes = shuffled.slice(numAss);
     const detetive = restantes[0];
     let anjo = null;
     if (config.temAnjo && restantes.length > 1) anjo = restantes[1];
@@ -561,20 +1432,13 @@ async function startNewRound() {
         if (assassinos.includes(p.uid)) papel = 'assassino';
         else if (p.uid === detetive) papel = 'detetive';
         else if (p.uid === anjo) papel = 'anjo';
-
         jogadoresAtualizados[p.uid] = {
-            nome: p.nome,
-            vivo: true,
-            pronto: true,
-            papel,
-            viuPapel: false,
-            prontoDia: false
+            nome: p.nome, vivo: true, pronto: true, papel,
+            viuPapel: false, prontoDia: false
         };
     });
 
-    // Ordem de revezamento dos assassinos (embaralhada)
     const ordemAssassinos = shuffle(assassinos);
-
     resetTransitionKey();
     state.myVote = null;
     state.roleConfirmed = false;
@@ -582,10 +1446,7 @@ async function startNewRound() {
     await updateDoc(state.roomRef, {
         status: 'papel',
         jogadores: jogadoresAtualizados,
-        noite: null,
-        votos: {},
-        historico: [],
-        vencedor: null,
+        noite: null, votos: {}, historico: [], vencedor: null,
         resultadoRodada: null,
         assassinoMatadorIndex: 0,
         ordemAssassinos
@@ -593,23 +1454,21 @@ async function startNewRound() {
 }
 
 // ============================================================
-// PAPEL
+// PAPEL (ONLINE)
 // ============================================================
 function renderRole() {
     showScreen('role');
     const me = getMyPlayer(state.roomData);
     if (!me) return;
-
     state.myRole = me.papel;
 
-    const roleInfo = {
-        assassino: { title: 'Assassino', sub: 'Você mata durante a noite', icon: 'skull', desc: 'Junto com os outros assassinos (se houver), escolha alguém para eliminar durante a noite.' },
-        detetive: { title: 'Detetive', sub: 'Você investiga durante a noite', icon: 'search', desc: 'Escolha alguém para investigar. Você saberá se a pessoa é o assassino — mas só você verá o resultado.' },
-        anjo: { title: 'Anjo', sub: 'Você protege durante a noite', icon: 'shield', desc: 'Escolha alguém para proteger. Se essa pessoa for atacada, sobreviverá — e todos saberão que houve uma tentativa frustrada.' },
-        cidadao: { title: 'Cidadão', sub: 'Você é uma pessoa comum', icon: 'user', desc: 'Não tem poderes especiais. Observe, discuta e vote com sabedoria durante o dia.' }
-    };
+    const info = {
+        assassino: { title: 'Assassino', sub: 'Você mata durante a noite', icon: 'skull', desc: descricaoPapel('assassino') },
+        detetive: { title: 'Detetive', sub: 'Você investiga durante a noite', icon: 'search', desc: descricaoPapel('detetive') },
+        anjo: { title: 'Anjo', sub: 'Você protege durante a noite', icon: 'shield', desc: descricaoPapel('anjo') },
+        cidadao: { title: 'Cidadão', sub: 'Você é uma pessoa comum', icon: 'user', desc: descricaoPapel('cidadao') }
+    }[me.papel] || { title: 'Cidadão', sub: '', icon: 'user', desc: descricaoPapel('cidadao') };
 
-    const info = roleInfo[me.papel] || roleInfo.cidadao;
     document.getElementById('roleTitle').innerText = info.title;
     document.getElementById('roleSubtitle').innerText = info.sub;
     document.getElementById('roleDesc').innerText = info.desc;
@@ -619,10 +1478,8 @@ function renderRole() {
     const icon = document.getElementById('roleIcon');
     icon.setAttribute('data-lucide', info.icon);
 
-    // Contador de quantos já viram
     const players = getPlayersArray(state.roomData);
     const viram = players.filter(p => p.viuPapel).length;
-    const total = players.length;
 
     let counter = document.getElementById('roleCounter');
     if (!counter) {
@@ -633,9 +1490,11 @@ function renderRole() {
         const confirmBtn = document.getElementById('roleConfirmBtn');
         confirmBtn.parentNode.insertBefore(counter, confirmBtn);
     }
-    counter.innerText = `Aguardando: ${viram} / ${total} confirmaram`;
+    counter.classList.remove('hidden');
+    counter.innerText = `Aguardando: ${viram} / ${players.length} confirmaram`;
 
     const confirmBtn = document.getElementById('roleConfirmBtn');
+    confirmBtn.innerHTML = '<i data-lucide="eye"></i> Entendi';
     if (me.viuPapel) confirmBtn.classList.add('hidden');
     else confirmBtn.classList.remove('hidden');
 
@@ -643,30 +1502,27 @@ function renderRole() {
 }
 
 document.getElementById('roleConfirmBtn').addEventListener('click', async () => {
+    if (state.gameMode === 'local') return;
     state.roleConfirmed = true;
-    await updateDoc(state.roomRef, {
-        [`jogadores.${state.uid}.viuPapel`]: true
-    });
-    // Não precisa checar — o onSnapshot do host vai avançar
+    await updateDoc(state.roomRef, { [`jogadores.${state.uid}.viuPapel`]: true });
 });
 
 // ============================================================
-// NOITE
+// NOITE (ONLINE)
 // ============================================================
 function renderNight() {
     showScreen('night');
     const me = getMyPlayer(state.roomData);
     if (!me) return;
 
-    const isDead = !me.vivo;
     const actionArea = document.getElementById('nightActionArea');
-    const waitingMsg = document.getElementById('waitingMsg');
     const subtitle = document.getElementById('nightSubtitle');
-
+    const waitingMsg = document.getElementById('waitingMsg');
     actionArea.innerHTML = '';
     waitingMsg.classList.add('hidden');
+    document.querySelector('#nightScreen .display-title').innerText = 'A cidade dorme...';
 
-    if (isDead) {
+    if (!me.vivo) {
         subtitle.innerText = 'Você está morto. Apenas observe.';
         waitingMsg.classList.remove('hidden');
         renderNightCounter();
@@ -676,29 +1532,21 @@ function renderNight() {
     const noite = state.roomData.noite || {};
     const room = state.roomData;
 
-    // Cidadão
     if (me.papel === 'cidadao') {
-        subtitle.innerText = 'A cidade dorme...';
+        subtitle.innerText = 'Complete o desafio para passar a noite';
         if (me.prontoDia) {
             waitingMsg.classList.remove('hidden');
             renderNightCounter();
             return;
         }
-        const btn = document.createElement('button');
-        btn.className = 'btn btn-primary btn-block';
-        btn.innerHTML = '<i data-lucide="eye"></i> Estou pronto';
-        btn.addEventListener('click', async () => {
-            await updateDoc(state.roomRef, {
-                [`jogadores.${state.uid}.prontoDia`]: true
-            });
+        renderCitizenMinigame(actionArea, async () => {
+            await updateDoc(state.roomRef, { [`jogadores.${state.uid}.prontoDia`]: true });
         });
-        actionArea.appendChild(btn);
         renderNightCounter();
         if (window.lucide) lucide.createIcons();
         return;
     }
 
-    // Assassino
     if (me.papel === 'assassino') {
         renderAssassinoActions(actionArea, subtitle, waitingMsg, me);
         renderNightCounter();
@@ -706,12 +1554,19 @@ function renderNight() {
         return;
     }
 
-    // Detetive
     if (me.papel === 'detetive') {
-        const jaAgiu = !!noite.detetiveInvestigou;
-        if (jaAgiu) {
-            subtitle.innerText = 'Ação registrada. Aguardando...';
-            waitingMsg.classList.remove('hidden');
+        if (noite.detetiveInvestigou) {
+            // Já investigou — mostra resultado persistente se for ele
+            if (noite.detetiveInvestigou.detetiveId === state.uid) {
+                subtitle.innerText = 'Você já investigou';
+                const div = document.createElement('div');
+                div.className = 'day-event info';
+                div.innerHTML = `<strong>${noite.detetiveInvestigou.alvoNome}</strong> é <strong>${noite.detetiveInvestigou.resultado === 'assassino' ? 'o ASSASSINO!' : 'inocente'}</strong>.`;
+                actionArea.appendChild(div);
+                waitingMsg.classList.remove('hidden');
+            } else {
+                waitingMsg.classList.remove('hidden');
+            }
             renderNightCounter();
             return;
         }
@@ -730,9 +1585,12 @@ function renderNight() {
                     'noite.detetiveInvestigou': {
                         detetiveId: state.uid,
                         alvoId: alvo.uid,
+                        alvoNome: alvo.nome,
                         resultado
                     }
                 });
+                // Mudança #2: mostra imediatamente
+                showInvestigateModal(alvo.nome, resultado === 'assassino');
             });
             grid.appendChild(btn);
         });
@@ -742,11 +1600,8 @@ function renderNight() {
         return;
     }
 
-    // Anjo
     if (me.papel === 'anjo') {
-        const jaAgiu = !!noite.anjoProtegeu;
-        if (jaAgiu) {
-            subtitle.innerText = 'Ação registrada. Aguardando...';
+        if (noite.anjoProtegeu) {
             waitingMsg.classList.remove('hidden');
             renderNightCounter();
             return;
@@ -761,7 +1616,8 @@ function renderNight() {
             btn.innerText = alvo.uid === state.uid ? 'Você mesmo' : alvo.nome;
             btn.addEventListener('click', async () => {
                 await updateDoc(state.roomRef, {
-                    'noite.anjoProtegeu': alvo.uid
+                    'noite.anjoProtegeu': alvo.uid,
+                    'noite.anjoProtegeuNome': alvo.nome
                 });
             });
             grid.appendChild(btn);
@@ -773,36 +1629,27 @@ function renderNight() {
     }
 }
 
-// Lógica específica dos assassinos com revezamento
 function renderAssassinoActions(actionArea, subtitle, waitingMsg, me) {
     const room = state.roomData;
     const noite = room.noite || {};
-    const config = room.config;
-
-    // Se só tem 1 assassino, é o comportamento clássico
     const ordemAssassinos = room.ordemAssassinos || [];
     const matadorIndex = room.assassinoMatadorIndex || 0;
     const matadorUid = ordemAssassinos[matadorIndex % ordemAssassinos.length];
     const souMatador = matadorUid === state.uid;
-
     const escolhas = noite.assassinoEscolheu || {};
     const sugestoes = noite.assassinoSugeriu || {};
 
-    // Bloco 1: mostra quem é o matador da noite
-    const infoDiv = document.createElement('div');
-    infoDiv.className = 'day-event info';
     if (ordemAssassinos.length > 1) {
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'day-event info';
         infoDiv.innerHTML = souMatador
             ? '<strong>É a sua vez de matar!</strong>'
             : `O matador desta noite é <strong>${room.jogadores[matadorUid]?.nome || '?'}</strong>`;
         actionArea.appendChild(infoDiv);
     }
 
-    // Bloco 2: se sou o matador, mostro os alvos + sugestões recebidas
     if (souMatador) {
         const jaEscolheu = !!escolhas[state.uid];
-
-        // Sugestões dos outros assassinos
         const sugestoesOutros = Object.entries(sugestoes)
             .filter(([uid]) => uid !== state.uid)
             .map(([, alvoId]) => room.jogadores[alvoId]?.nome || '?')
@@ -811,7 +1658,7 @@ function renderAssassinoActions(actionArea, subtitle, waitingMsg, me) {
         if (sugestoesOutros.length > 0 && !jaEscolheu) {
             const sugDiv = document.createElement('div');
             sugDiv.className = 'day-event info';
-            sugDiv.innerHTML = `<strong>Sugestão dos outros assassinos:</strong> ${sugestoesOutros.join(', ')}`;
+            sugDiv.innerHTML = `<strong>Sugestão:</strong> ${sugestoesOutros.join(', ')}`;
             actionArea.appendChild(sugDiv);
         }
 
@@ -820,7 +1667,6 @@ function renderAssassinoActions(actionArea, subtitle, waitingMsg, me) {
             waitingMsg.classList.remove('hidden');
             return;
         }
-
         subtitle.innerText = 'Escolha quem eliminar';
         const alvos = getAlivePlayers(room).filter(p => p.uid !== state.uid);
         const grid = document.createElement('div');
@@ -832,23 +1678,18 @@ function renderAssassinoActions(actionArea, subtitle, waitingMsg, me) {
             btn.addEventListener('click', async () => {
                 const novas = { ...escolhas };
                 novas[state.uid] = alvo.uid;
-                await updateDoc(state.roomRef, {
-                    'noite.assassinoEscolheu': novas
-                });
+                await updateDoc(state.roomRef, { 'noite.assassinoEscolheu': novas });
             });
             grid.appendChild(btn);
         });
         actionArea.appendChild(grid);
     } else {
-        // Sou o "sugestor" — só marco um alvo para o matador ver
         const jaSugeriu = !!sugestoes[state.uid];
-
         if (jaSugeriu) {
-            subtitle.innerText = 'Sugestão enviada. Aguardando o matador...';
+            subtitle.innerText = 'Sugestão enviada. Aguardando...';
             waitingMsg.classList.remove('hidden');
             return;
         }
-
         subtitle.innerText = 'Sugira um alvo para o matador';
         const alvos = getAlivePlayers(room).filter(p => p.uid !== state.uid && p.uid !== matadorUid);
         const grid = document.createElement('div');
@@ -860,9 +1701,7 @@ function renderAssassinoActions(actionArea, subtitle, waitingMsg, me) {
             btn.addEventListener('click', async () => {
                 const novas = { ...sugestoes };
                 novas[state.uid] = alvo.uid;
-                await updateDoc(state.roomRef, {
-                    'noite.assassinoSugeriu': novas
-                });
+                await updateDoc(state.roomRef, { 'noite.assassinoSugeriu': novas });
             });
             grid.appendChild(btn);
         });
@@ -870,31 +1709,24 @@ function renderAssassinoActions(actionArea, subtitle, waitingMsg, me) {
     }
 }
 
-// Contador de "Aguardando X / Y" durante a noite
 function renderNightCounter() {
     const room = state.roomData;
+    if (!room || !room.noite) return;
     const vivos = getAlivePlayers(room);
     const noite = room.noite || {};
+    let feitos = 0, total = 0;
 
-    let feitos = 0;
-    let total = 0;
+    const ordemAssassinos = room.ordemAssassinos || [];
+    const matadorIndex = room.assassinoMatadorIndex || 0;
+    const matadorUid = ordemAssassinos[matadorIndex % ordemAssassinos.length];
 
     vivos.forEach(p => {
         if (p.papel === 'assassino') {
             total++;
-            // Matador escolheu?
-            const ordemAssassinos = room.ordemAssassinos || [];
-            const matadorIndex = room.assassinoMatadorIndex || 0;
-            const matadorUid = ordemAssassinos[matadorIndex % ordemAssassinos.length];
-
             const escolhas = noite.assassinoEscolheu || {};
             const sugestoes = noite.assassinoSugeriu || {};
-
-            if (p.uid === matadorUid) {
-                if (escolhas[p.uid]) feitos++;
-            } else {
-                if (sugestoes[p.uid]) feitos++;
-            }
+            if (p.uid === matadorUid) { if (escolhas[p.uid]) feitos++; }
+            else { if (sugestoes[p.uid]) feitos++; }
         } else if (p.papel === 'detetive') {
             total++;
             if (noite.detetiveInvestigou) feitos++;
@@ -916,36 +1748,32 @@ function renderNightCounter() {
         const waitingMsg = document.getElementById('waitingMsg');
         waitingMsg.parentNode.insertBefore(counter, waitingMsg);
     }
+    counter.classList.remove('hidden');
     counter.innerText = `Aguardando: ${feitos} / ${total}`;
 }
 
-// Verifica se a noite pode terminar
 async function checkNightComplete() {
     if (!state.isHost) return false;
     const snap = await getDoc(state.roomRef);
     if (!snap.exists()) return false;
     const room = snap.data();
-
     const noite = room.noite || {};
     const vivos = getAlivePlayers(room);
 
-    // Assassinos: apenas o matador precisa ter escolhido
     const ordemAssassinos = room.ordemAssassinos || [];
     const matadorIndex = room.assassinoMatadorIndex || 0;
     const matadorUid = ordemAssassinos[matadorIndex % ordemAssassinos.length];
-    const escolhasAssassinos = noite.assassinoEscolheu || {};
-    const assassinoOk = matadorUid ? !!escolhasAssassinos[matadorUid] : true;
+    const escolhas = noite.assassinoEscolheu || {};
+    const assassinoOk = matadorUid ? !!escolhas[matadorUid] : true;
 
-    const detetiveVivo = vivos.find(p => p.papel === 'detetive');
-    const detetiveOk = !detetiveVivo || !!noite.detetiveInvestigou;
-
+    const detVivo = vivos.find(p => p.papel === 'detetive');
+    const detOk = !detVivo || !!noite.detetiveInvestigou;
     const anjoVivo = vivos.find(p => p.papel === 'anjo');
     const anjoOk = !anjoVivo || !!noite.anjoProtegeu;
+    const cidVivos = vivos.filter(p => p.papel === 'cidadao');
+    const cidOk = cidVivos.every(c => c.prontoDia);
 
-    const cidadaosVivos = vivos.filter(p => p.papel === 'cidadao');
-    const cidadaosOk = cidadaosVivos.every(c => c.prontoDia);
-
-    return assassinoOk && detetiveOk && anjoOk && cidadaosOk;
+    return assassinoOk && detOk && anjoOk && cidOk;
 }
 
 async function resolveNight() {
@@ -956,7 +1784,6 @@ async function resolveNight() {
 
     const noite = room.noite || {};
     const escolhas = Object.values(noite.assassinoEscolheu || {});
-
     const contagem = {};
     escolhas.forEach(id => { contagem[id] = (contagem[id] || 0) + 1; });
 
@@ -968,21 +1795,15 @@ async function resolveNight() {
     if (empate) vitimaId = null;
 
     const protegida = vitimaId && noite.anjoProtegeu === vitimaId;
-
     const jogadoresAtualizados = JSON.parse(JSON.stringify(room.jogadores));
     const eventos = [];
 
     if (vitimaId && !protegida) {
         jogadoresAtualizados[vitimaId].vivo = false;
-        eventos.push({
-            tipo: 'morte',
-            texto: `<strong>${jogadoresAtualizados[vitimaId].nome}</strong> foi assassinado durante a noite.`
-        });
+        eventos.push({ tipo: 'morte', texto: `<strong>${jogadoresAtualizados[vitimaId].nome}</strong> foi assassinado durante a noite.` });
     } else if (vitimaId && protegida) {
-        eventos.push({
-            tipo: 'salvo',
-            texto: 'Tentaram matar alguém, mas o anjo protegeu. Ninguém morreu.'
-        });
+        // Mudança #1: mostra o nome do salvo
+        eventos.push({ tipo: 'salvo', texto: `Tentaram matar <strong>${jogadoresAtualizados[vitimaId].nome}</strong>, mas o anjo protegeu.` });
     } else {
         eventos.push({ tipo: 'info', texto: 'A noite passou em paz. Ninguém foi atacado.' });
     }
@@ -991,24 +1812,20 @@ async function resolveNight() {
     if (noite.detetiveInvestigou) {
         investigacao = {
             detetiveId: noite.detetiveInvestigou.detetiveId,
-            alvoNome: jogadoresAtualizados[noite.detetiveInvestigou.alvoId].nome,
+            alvoNome: noite.detetiveInvestigou.alvoNome || jogadoresAtualizados[noite.detetiveInvestigou.alvoId]?.nome || '?',
             resultado: noite.detetiveInvestigou.resultado
         };
     }
 
-    const vivos = Object.entries(jogadoresAtualizados)
-        .filter(([, p]) => p.vivo)
-        .map(([uid, p]) => ({ uid, ...p }));
-    const assassinosVivos = vivos.filter(p => p.papel === 'assassino');
-    const naoAssassinos = vivos.filter(p => p.papel !== 'assassino');
+    const vivos = Object.entries(jogadoresAtualizados).filter(([, p]) => p.vivo).map(([uid, p]) => ({ uid, ...p }));
+    const assVivos = vivos.filter(p => p.papel === 'assassino');
+    const naoAss = vivos.filter(p => p.papel !== 'assassino');
 
     let jogoAcabou = false, vencedor = null;
-    if (assassinosVivos.length === 0) { jogoAcabou = true; vencedor = 'cidade'; }
-    else if (assassinosVivos.length >= naoAssassinos.length) { jogoAcabou = true; vencedor = 'assassinos'; }
+    if (assVivos.length === 0) { jogoAcabou = true; vencedor = 'cidade'; }
+    else if (assVivos.length >= naoAss.length) { jogoAcabou = true; vencedor = 'assassinos'; }
 
-    // Próximo matador (revezamento)
     const proximoMatadorIndex = (room.assassinoMatadorIndex || 0) + 1;
-
     resetTransitionKey();
 
     await updateDoc(state.roomRef, {
@@ -1023,7 +1840,7 @@ async function resolveNight() {
 }
 
 // ============================================================
-// DIA
+// DIA (ONLINE)
 // ============================================================
 function renderDay() {
     showScreen('day');
@@ -1033,7 +1850,6 @@ function renderDay() {
 
     const eventsEl = document.getElementById('dayEvents');
     eventsEl.innerHTML = '';
-
     eventos.forEach(ev => {
         const div = document.createElement('div');
         div.className = 'day-event ' + ev.tipo;
@@ -1052,11 +1868,23 @@ function renderDay() {
         }
     }
 
+    // Mudança #3: botão "Já discutimos" para todos
     const toVoteBtn = document.getElementById('toVoteBtn');
     const waitMsg = document.getElementById('waitVoteMsg');
-    if (state.isHost) {
-        toVoteBtn.classList.remove('hidden');
-        waitMsg.classList.add('hidden');
+    toVoteBtn.classList.remove('hidden');
+    waitMsg.classList.add('hidden');
+
+    if (me && me.vivo) {
+        if (me.prontoDia) {
+            toVoteBtn.innerHTML = '<i data-lucide="hourglass"></i> Aguardando os outros...';
+            toVoteBtn.disabled = true;
+        } else {
+            toVoteBtn.innerHTML = '<i data-lucide="check"></i> Já discutimos';
+            toVoteBtn.disabled = false;
+            toVoteBtn.onclick = async () => {
+                await updateDoc(state.roomRef, { [`jogadores.${state.uid}.prontoDia`]: true });
+            };
+        }
     } else {
         toVoteBtn.classList.add('hidden');
         waitMsg.classList.remove('hidden');
@@ -1065,18 +1893,8 @@ function renderDay() {
     if (window.lucide) lucide.createIcons();
 }
 
-document.getElementById('toVoteBtn').addEventListener('click', async () => {
-    if (!state.isHost) return;
-    await updateDoc(state.roomRef, {
-        status: 'votacao',
-        votos: {},
-        votacaoIniciadaEm: Date.now(),
-        votacaoDuracao: state.roomData.config.tempoVotacao
-    });
-});
-
 // ============================================================
-// VOTAÇÃO
+// VOTAÇÃO (ONLINE)
 // ============================================================
 function renderVote() {
     showScreen('vote');
@@ -1094,6 +1912,7 @@ function renderVote() {
         timerEl.innerText = restante + 's';
         if (restante <= 0) {
             clearInterval(state.voteTimerInterval);
+            if (state.isHost) resolveVote();
         }
     }, 500);
 
@@ -1102,6 +1921,7 @@ function renderVote() {
     const vivos = getAlivePlayers(room);
     const votos = room.votos || {};
 
+    document.querySelector('#voteScreen h2').innerText = 'Votação';
     const instruction = document.getElementById('voteInstruction');
     instruction.innerText = room.config.votoAnonimo
         ? 'Escolha quem expulsar (voto anônimo)'
@@ -1116,7 +1936,7 @@ function renderVote() {
         msg.className = 'waiting-msg';
         msg.innerHTML = '<i data-lucide="eye"></i><span>Você está morto. Apenas observe.</span>';
         grid.appendChild(msg);
-    } else if (myVoteNow) {
+    } else if (myVoteNow !== undefined) {
         voteStatus.classList.remove('hidden');
     } else {
         voteStatus.classList.add('hidden');
@@ -1130,12 +1950,46 @@ function renderVote() {
             });
             grid.appendChild(btn);
         });
+
+        // Mudança #6: botão pular voto
+        const skipBtn = document.createElement('button');
+        skipBtn.className = 'vote-btn';
+        skipBtn.style.gridColumn = '1 / -1';
+        skipBtn.style.background = 'var(--bege-escuro)';
+        skipBtn.innerHTML = '<i data-lucide="skip-forward"></i> Pular voto';
+        skipBtn.addEventListener('click', async () => {
+            state.myVote = 'skip';
+            await updateDoc(state.roomRef, { [`votos.${state.uid}`]: 'skip' });
+        });
+        grid.appendChild(skipBtn);
     }
 
+    // Progresso
     const progressEl = document.getElementById('voteProgress');
-    const votantesVivos = vivos.filter(p => p.vivo && p.uid !== undefined);
-    const jaVotaram = votantesVivos.filter(p => votos[p.uid]).length;
+    const votantesVivos = vivos.filter(p => p.vivo);
+    const jaVotaram = votantesVivos.filter(p => votos[p.uid] !== undefined).length;
     progressEl.innerText = `Aguardando: ${jaVotaram} / ${votantesVivos.length}`;
+
+    // Mudança #5: log de votos no modo aberto
+    let logEl = document.getElementById('voteLog');
+    if (!logEl) {
+        logEl = document.createElement('div');
+        logEl.id = 'voteLog';
+        logEl.className = 'day-events';
+        logEl.style.marginTop = '1rem';
+        progressEl.parentNode.insertBefore(logEl, progressEl.nextSibling);
+    }
+    logEl.innerHTML = '';
+    if (!room.config.votoAnonimo) {
+        Object.entries(votos).forEach(([voterUid, alvo]) => {
+            const voterNome = room.jogadores[voterUid]?.nome || '?';
+            const alvoNome = alvo === 'skip' ? '— (pulou)' : (room.jogadores[alvo]?.nome || '?');
+            const div = document.createElement('div');
+            div.className = 'day-event info';
+            div.innerHTML = `<strong>${voterNome}</strong> votou em <strong>${alvoNome}</strong>`;
+            logEl.appendChild(div);
+        });
+    }
 
     if (window.lucide) lucide.createIcons();
 }
@@ -1149,7 +2003,10 @@ async function resolveVote() {
 
     const votos = room.votos || {};
     const contagem = {};
-    Object.values(votos).forEach(id => { contagem[id] = (contagem[id] || 0) + 1; });
+    Object.values(votos).forEach(v => {
+        if (v === 'skip') return;
+        contagem[v] = (contagem[v] || 0) + 1;
+    });
 
     let maisVotado = null, max = 0, empate = false;
     Object.entries(contagem).forEach(([id, c]) => {
@@ -1160,27 +2017,20 @@ async function resolveVote() {
 
     const jogadoresAtualizados = JSON.parse(JSON.stringify(room.jogadores));
     const eventos = [];
-
     if (maisVotado) {
         jogadoresAtualizados[maisVotado].vivo = false;
-        const papel = jogadoresAtualizados[maisVotado].papel;
-        eventos.push({
-            tipo: 'morte',
-            texto: `<strong>${jogadoresAtualizados[maisVotado].nome}</strong> foi expulso da cidade (era <strong>${papel}</strong>).`
-        });
+        eventos.push({ tipo: 'morte', texto: `<strong>${jogadoresAtualizados[maisVotado].nome}</strong> foi expulso da cidade (era <strong>${jogadoresAtualizados[maisVotado].papel}</strong>).` });
     } else {
         eventos.push({ tipo: 'info', texto: 'A votação empatou. Ninguém foi expulso.' });
     }
 
-    const vivos = Object.entries(jogadoresAtualizados)
-        .filter(([, p]) => p.vivo)
-        .map(([uid, p]) => ({ uid, ...p }));
-    const assassinosVivos = vivos.filter(p => p.papel === 'assassino');
-    const naoAssassinos = vivos.filter(p => p.papel !== 'assassino');
+    const vivos = Object.entries(jogadoresAtualizados).filter(([, p]) => p.vivo).map(([uid, p]) => ({ uid, ...p }));
+    const assVivos = vivos.filter(p => p.papel === 'assassino');
+    const naoAss = vivos.filter(p => p.papel !== 'assassino');
 
     let jogoAcabou = false, vencedor = null;
-    if (assassinosVivos.length === 0) { jogoAcabou = true; vencedor = 'cidade'; }
-    else if (assassinosVivos.length >= naoAssassinos.length) { jogoAcabou = true; vencedor = 'assassinos'; }
+    if (assVivos.length === 0) { jogoAcabou = true; vencedor = 'cidade'; }
+    else if (assVivos.length >= naoAss.length) { jogoAcabou = true; vencedor = 'assassinos'; }
 
     resetTransitionKey();
 
@@ -1193,7 +2043,7 @@ async function resolveVote() {
 }
 
 // ============================================================
-// RESULTADO DA RODADA
+// RESULTADO (ONLINE)
 // ============================================================
 function renderRoundResult() {
     showScreen('roundResult');
@@ -1215,6 +2065,22 @@ function renderRoundResult() {
     if (state.isHost) {
         continueBtn.classList.remove('hidden');
         waitMsg.classList.add('hidden');
+        continueBtn.onclick = async () => {
+            const jogadoresAtualizados = JSON.parse(JSON.stringify(state.roomData.jogadores));
+            Object.keys(jogadoresAtualizados).forEach(uid => {
+                jogadoresAtualizados[uid].prontoDia = false;
+            });
+            const proximoMatadorIndex = state.roomData.assassinoMatadorIndex || 0;
+            resetTransitionKey();
+            await updateDoc(state.roomRef, {
+                status: 'noite',
+                jogadores: jogadoresAtualizados,
+                noite: { assassinoEscolheu: {}, assassinoSugeriu: {}, anjoProtegeu: null, detetiveInvestigou: null },
+                votos: {},
+                resultadoRodada: null,
+                votacaoIniciadaEm: null
+            });
+        };
     } else {
         continueBtn.classList.add('hidden');
         waitMsg.classList.remove('hidden');
@@ -1223,38 +2089,8 @@ function renderRoundResult() {
     if (window.lucide) lucide.createIcons();
 }
 
-document.getElementById('continueBtn').addEventListener('click', async () => {
-    if (!state.isHost) return;
-
-    const vivos = getAlivePlayers(state.roomData);
-
-    const jogadoresAtualizados = JSON.parse(JSON.stringify(state.roomData.jogadores));
-    Object.keys(jogadoresAtualizados).forEach(uid => {
-        jogadoresAtualizados[uid].prontoDia = false;
-    });
-
-    // Próximo matador
-    const proximoMatadorIndex = state.roomData.assassinoMatadorIndex || 0;
-
-    resetTransitionKey();
-
-    await updateDoc(state.roomRef, {
-        status: 'noite',
-        jogadores: jogadoresAtualizados,
-        noite: {
-            assassinoEscolheu: {},
-            assassinoSugeriu: {},
-            anjoProtegeu: null,
-            detetiveInvestigou: null
-        },
-        votos: {},
-        resultadoRodada: null,
-        votacaoIniciadaEm: null
-    });
-});
-
 // ============================================================
-// FIM DE JOGO
+// FIM DE JOGO (ONLINE)
 // ============================================================
 function renderGameOver() {
     showScreen('gameOver');
@@ -1301,60 +2137,28 @@ function renderGameOver() {
     if (window.confetti && vencedor === 'cidade') {
         confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
     }
-
     if (window.lucide) lucide.createIcons();
 }
-
-document.getElementById('rematchBtn').addEventListener('click', async () => {
-    if (!state.isHost) return;
-    showLoading('Preparando nova partida...');
-    try { await startNewRound(); } finally { hideLoading(); }
-});
-
-document.getElementById('editConfigBtn').addEventListener('click', async () => {
-    if (!state.isHost) return;
-    showLoading('Voltando ao lobby...');
-    try {
-        const jogadoresAtualizados = JSON.parse(JSON.stringify(state.roomData.jogadores));
-        Object.keys(jogadoresAtualizados).forEach(uid => {
-            jogadoresAtualizados[uid].pronto = false;
-            jogadoresAtualizados[uid].viuPapel = false;
-            jogadoresAtualizados[uid].prontoDia = false;
-            jogadoresAtualizados[uid].papel = null;
-            jogadoresAtualizados[uid].vivo = true;
-        });
-
-        await updateDoc(state.roomRef, {
-            status: 'lobby',
-            jogadores: jogadoresAtualizados,
-            noite: null,
-            votos: null,
-            historico: [],
-            vencedor: null,
-            resultadoRodada: null
-        });
-    } finally { hideLoading(); }
-});
-
-document.getElementById('closeRoomBtn').addEventListener('click', async () => {
-    if (!state.isHost) return;
-    if (!confirm('Encerrar a sala para todos?')) return;
-    showLoading('Encerrando sala...');
-    try { await deleteDoc(state.roomRef); } catch (e) { console.error(e); }
-    hideLoading();
-    cleanupAndHome();
-});
 
 // ============================================================
 // SAIR
 // ============================================================
 document.getElementById('exitBtn').addEventListener('click', () => {
-    // Se não está em sala, volta para o index
-    if (!state.roomCode) {
+    // Se está na tela de config local ou home, volta para o index
+    if (state.gameMode === 'local' && screens.configLocal.classList.contains('hidden') === false) {
+        cleanupAndHome();
+        return;
+    }
+    if (!state.roomCode && state.gameMode !== 'local') {
         window.location.href = '../../index.html';
         return;
     }
-    // Se está em sala, abre o modal pra confirmar
+    if (state.gameMode === 'local') {
+        if (confirm('Voltar ao menu principal? A partida atual será cancelada.')) {
+            cleanupAndHome();
+        }
+        return;
+    }
     exitModal.classList.remove('hidden');
 });
 
@@ -1382,9 +2186,7 @@ async function leaveRoom() {
                     });
                 }
             } else {
-                await updateDoc(state.roomRef, {
-                    [`jogadores.${state.uid}`]: null
-                });
+                await updateDoc(state.roomRef, { [`jogadores.${state.uid}`]: null });
             }
         }
     } catch (e) { console.error(e); }
@@ -1395,6 +2197,7 @@ function cleanupAndHome() {
     if (state.unsubscribeRoom) { state.unsubscribeRoom(); state.unsubscribeRoom = null; }
     if (state.voteTimerInterval) { clearInterval(state.voteTimerInterval); state.voteTimerInterval = null; }
 
+    state.gameMode = null;
     state.roomCode = null;
     state.roomData = null;
     state.roomRef = null;
@@ -1406,10 +2209,15 @@ function cleanupAndHome() {
 
     exitModal.classList.add('hidden');
     nameModal.classList.add('hidden');
+    investigateModal.classList.add('hidden');
     hideLoading();
 
-    showScreen('home');
+    // Volta para a escolha de modo
+    document.getElementById('modeChoice').classList.remove('hidden');
+    document.getElementById('onlineMenu').classList.add('hidden');
     document.getElementById('joinCodeInput').value = '';
+
+    showScreen('home');
 }
 
 window.addEventListener('beforeunload', () => {
@@ -1418,9 +2226,7 @@ window.addEventListener('beforeunload', () => {
         if (players.length <= 1) {
             deleteDoc(state.roomRef).catch(() => {});
         } else {
-            updateDoc(state.roomRef, {
-                [`jogadores.${state.uid}`]: null
-            }).catch(() => {});
+            updateDoc(state.roomRef, { [`jogadores.${state.uid}`]: null }).catch(() => {});
         }
     }
 });

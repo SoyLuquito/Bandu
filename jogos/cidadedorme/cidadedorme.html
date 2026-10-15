@@ -19,14 +19,25 @@
 
     <main class="container">
 
-        <!-- TELA 1: MENU -->
+        <!-- TELA 1: MENU INICIAL -->
         <section id="homeScreen" class="card-panel">
             <header class="panel-header">
                 <h1>Cidade Dorme</h1>
                 <p>Assassino, detetive e cidadãos</p>
             </header>
 
-            <div class="home-actions">
+            <!-- Escolha do modo -->
+            <div id="modeChoice" class="home-actions">
+                <button type="button" class="btn btn-primary btn-block" id="modeLocalBtn">
+                    <i data-lucide="smartphone"></i> 1 Dispositivo
+                </button>
+                <button type="button" class="btn btn-secondary btn-block" id="modeOnlineBtn">
+                    <i data-lucide="users"></i> Cada um no seu
+                </button>
+            </div>
+
+            <!-- Modo online: criar/entrar -->
+            <div id="onlineMenu" class="home-actions hidden">
                 <button type="button" class="btn btn-primary btn-block" id="createRoomBtn">
                     <i data-lucide="plus-circle"></i> Criar Sala
                 </button>
@@ -37,9 +48,48 @@
                         <i data-lucide="log-in"></i> Entrar
                     </button>
                 </div>
+
+                <p class="home-hint">Crie uma sala e mande o código pros amigos.</p>
+            </div>
+        </section>
+
+        <!-- TELA NOVA: CONFIG LOCAL (1 dispositivo) -->
+        <section id="localConfigScreen" class="card-panel hidden">
+            <header class="panel-header">
+                <h1>Nova Partida</h1>
+                <p>Modo 1 dispositivo</p>
+            </header>
+
+            <div class="form-group">
+                <label class="config-label">Jogadores</label>
+                <div class="input-with-button">
+                    <input type="text" id="localPlayerInput" class="code-input" placeholder="Nome do jogador" maxlength="15" autocomplete="off" style="text-transform:none;letter-spacing:normal;text-align:left">
+                    <button type="button" class="btn btn-secondary" id="localAddPlayerBtn">Adicionar</button>
+                </div>
+                <ul class="tag-list" id="localPlayerList"></ul>
+                <p class="players-header" style="margin-top:0.5rem"><span>Total</span><span id="localPlayerCount">0 / 10</span></p>
             </div>
 
-            <p class="home-hint">Crie uma sala e mande o código pros amigos.</p>
+            <div class="config-group">
+                <label class="config-label">Assassinos</label>
+                <div class="chip-group" id="localAssassinosGroup">
+                    <button type="button" class="chip-btn active" data-value="1">1</button>
+                    <button type="button" class="chip-btn" data-value="2">2</button>
+                    <button type="button" class="chip-btn" data-value="3">3</button>
+                </div>
+            </div>
+
+            <div class="config-group">
+                <label class="config-label">Anjo</label>
+                <div class="chip-group" id="localAnjoGroup">
+                    <button type="button" class="chip-btn active" data-value="sim">Sim</button>
+                    <button type="button" class="chip-btn" data-value="nao">Não</button>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-primary btn-block" id="localStartBtn" disabled>
+                <i data-lucide="play"></i> Iniciar Partida
+            </button>
         </section>
 
         <!-- TELA 2: LOBBY -->
@@ -55,9 +105,9 @@
                     <div class="chip-group" id="assassinosGroup">
                         <button type="button" class="chip-btn active" data-value="1">1</button>
                         <button type="button" class="chip-btn" data-value="2">2</button>
+                        <button type="button" class="chip-btn" data-value="3">3</button>
                     </div>
                 </div>
-
                 <div class="config-group">
                     <label class="config-label">Anjo</label>
                     <div class="chip-group" id="anjoGroup">
@@ -65,7 +115,6 @@
                         <button type="button" class="chip-btn" data-value="nao">Não</button>
                     </div>
                 </div>
-
                 <div class="config-group">
                     <label class="config-label">Tempo de votação</label>
                     <div class="chip-group" id="tempoGroup">
@@ -74,7 +123,6 @@
                         <button type="button" class="chip-btn" data-value="120">120s</button>
                     </div>
                 </div>
-
                 <div class="config-group">
                     <label class="config-label">Voto</label>
                     <div class="chip-group" id="votoGroup">
@@ -144,11 +192,11 @@
             <div class="day-events" id="dayEvents"></div>
 
             <button type="button" class="btn btn-primary btn-block" id="toVoteBtn">
-                <i data-lucide="vote"></i> Ir para Votação
+                <i data-lucide="check"></i> Já discutimos
             </button>
             <div class="waiting-msg hidden" id="waitVoteMsg">
                 <i data-lucide="hourglass"></i>
-                <span>Aguardando o anfitrião...</span>
+                <span>Aguardando os outros...</span>
             </div>
         </section>
 
@@ -172,7 +220,7 @@
             <div class="vote-progress" id="voteProgress"></div>
         </section>
 
-        <!-- TELA 7: RESULTADO DA RODADA -->
+        <!-- TELA 7: RESULTADO -->
         <section id="roundResultScreen" class="card-panel hidden">
             <div class="result-icon" id="roundResultIcon">
                 <i data-lucide="user-x"></i>
@@ -245,7 +293,21 @@
         </div>
     </div>
 
-    <!-- Overlay de loading -->
+    <!-- Modal resultado da investigação -->
+    <div class="modal-overlay hidden" id="investigateModal">
+        <div class="modal-card">
+            <div class="modal-icon" style="background:#EDE5FF;color:#7B2CBF">
+                <i data-lucide="search"></i>
+            </div>
+            <h3>Resultado da investigação</h3>
+            <p id="investigateResult" style="font-size:1.05rem">...</p>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="investigateCloseBtn">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading -->
     <div class="loading-overlay hidden" id="loadingOverlay">
         <div class="loading-card">
             <div class="loading-spinner"></div>
