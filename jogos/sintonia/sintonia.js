@@ -183,16 +183,15 @@ function showScreen(key) {
 }
 
 // ============================================================
-// PONTUAÇÃO — MARGEM BEM MAIS CURTA
+// PONTUAÇÃO — MARGEM BEM CURTA
 // ============================================================
 function pontosPorDistancia(dist) {
     if (dist <= 0.3) return 3;   // certeiro
     if (dist <= 0.6) return 2;   // perto
     if (dist <= 1.0) return 1;   // médio
-    return 0;                     // longe
+    return 0;
 }
 
-// Mestre ganha 1 a menos que o melhor acertador
 function pontosMestre(melhorDistancia) {
     if (melhorDistancia <= 0.3) return 2;
     if (melhorDistancia <= 0.6) return 1;
@@ -226,39 +225,14 @@ function setLiveScoreVisible(visible) {
 }
 
 // ============================================================
-// RENDER DE LINHAS FIXAS (universal — usa só números 0..10)
-// Limpa tudo e redesenha a partir do state. Funciona em qualquer
-// tamanho de tela, sem sobras da rodada anterior.
+// LIMPA LINHAS FIXAS DA TELA DE PALPITE
+// (não mostramos os palpites anteriores para quem está jogando)
 // ============================================================
-function renderPins(container, guesses, labelsMap) {
+function clearPinsAndHideDraggable(container) {
     if (!container) return;
-
-    // 1) Limpa tudo que é linha fixa
     container.querySelectorAll('.fixed-line').forEach(el => el.remove());
-
-    // 2) Esconde SEMPRE a linha arrastável (só aparece quando o palpiteiro clica)
     const dragLine = document.getElementById('draggableLine');
     if (dragLine) dragLine.classList.add('hidden');
-
-    // 3) Redesenha cada palpite a partir do VALOR numérico (0..10)
-    if (!guesses) return;
-    Object.entries(guesses).forEach(([key, pos]) => {
-        const posNum = Number(pos);
-        if (isNaN(posNum)) return;
-
-        // trava entre 0 e 10 pra garantir
-        const clamped = Math.max(0, Math.min(10, posNum));
-
-        const line = document.createElement('div');
-        line.className = 'fixed-line pin-close';
-        line.style.left = (clamped * 10) + '%';
-
-        const label = labelsMap ? labelsMap[key] : key;
-        const inicial = (label || '?').charAt(0).toUpperCase();
-        line.innerHTML = `<span class="line-label">${inicial}</span>`;
-        line.title = label || '';
-        container.appendChild(line);
-    });
 }
 
 // ============================================================
@@ -513,7 +487,6 @@ function renderLocalMasterScreen() {
 
     renderTicks(document.getElementById('masterSpectrumBar'));
 
-    // Esconde a linha do alvo até clicar em revelar
     document.getElementById('masterTargetLine').style.display = 'none';
 
     const newRevealBtn = revealBtn.cloneNode(true);
@@ -572,17 +545,11 @@ function renderLocalGuessScreen() {
     const bar = document.getElementById('guessSpectrumBar');
     renderTicks(bar);
 
-    // Esconde a linha do alvo por padrão
     document.getElementById('guessTargetLine').style.display = 'none';
 
-    // Constrói o labelsMap { nome: nome }
-    const labelsMap = {};
-    Object.keys(L.guesses).forEach(nome => { labelsMap[nome] = nome; });
+    // Limpa qualquer linha fixa e esconde a arrastável
+    clearPinsAndHideDraggable(revealArea);
 
-    // Renderiza linhas fixas dos palpites anteriores
-    renderPins(revealArea, L.guesses, labelsMap);
-
-    // Reseta o label da posição
     updateCoordsLabel(5);
 
     const newReveal = revealBtn.cloneNode(true);
@@ -605,18 +572,15 @@ function initDraggableLine(guesserName) {
     const line = document.getElementById('draggableLine');
     const wrap = line.parentElement;
 
-    // Reset e mostrar só agora
     line.dataset.pos = '5';
     line.style.left = '50%';
     line.classList.remove('hidden');
     updateCoordsLabel(5);
 
-    // Remove listeners antigos clonando
     const newLine = line.cloneNode(true);
     line.parentNode.replaceChild(newLine, line);
     const newLineEl = document.getElementById('draggableLine');
 
-    // Botão confirmar — clonar e ligar novo listener
     const confirmBtn = document.getElementById('guessConfirmBtn');
     const newConfirm = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
@@ -625,13 +589,11 @@ function initDraggableLine(guesserName) {
         if (state.gameMode !== 'local') return;
         const pos = parseFloat(newLineEl.dataset.pos || '5');
         L.guesses[guesserName] = pos;
-        // Esconde a linha arrastável imediatamente
         newLineEl.classList.add('hidden');
         L.guessIndex++;
         renderLocalGuessScreen();
     });
 
-    // Drag handlers
     let dragging = false;
     const onDown = (e) => { dragging = true; e.preventDefault?.(); };
     const onMove = (e) => {
@@ -655,10 +617,8 @@ function initDraggableLine(guesserName) {
     document.addEventListener('mouseup', onUp);
     document.addEventListener('touchend', onUp);
 
-    // Click na barra move a linha — calculado pelo rect ATUAL da barra
     wrap.addEventListener('click', (e) => {
         if (e.target === newLineEl || newLineEl.contains(e.target)) return;
-        // Ignora cliques nas linhas fixas (embora elas tenham pointer-events: none)
         const rect = wrap.getBoundingClientRect();
         let pct = (e.clientX - rect.left) / rect.width;
         pct = Math.max(0, Math.min(1, pct));
@@ -719,7 +679,6 @@ function renderLocalRevealScreen() {
     targetLine.style.display = 'block';
     targetLine.style.left = (target * 10) + '%';
 
-    // Constrói labelsMap pra mostrar "inicial +pts"
     const pinsLayer = document.getElementById('revealPinsLayer');
     pinsLayer.querySelectorAll('.fixed-line').forEach(el => el.remove());
 
@@ -1119,7 +1078,6 @@ function renderOnlineMaster() {
     document.getElementById('themeRight').innerText = room.currentTheme.right;
     renderTicks(document.getElementById('masterSpectrumBar'));
 
-    // Sempre esconde a linha do alvo até o mestre clicar
     document.getElementById('masterTargetLine').style.display = 'none';
 
     if (!euSouMestre) {
@@ -1212,14 +1170,9 @@ function renderOnlineGuess() {
 
     document.getElementById('guessTargetLine').style.display = 'none';
 
-    // labelsMap: uid -> nome
-    const labelsMap = {};
-    Object.keys(room.jogadores).forEach(uid => {
-        labelsMap[uid] = room.jogadores[uid].nome;
-    });
-
+    // Limpa qualquer linha fixa anterior (não mostramos palpites anteriores para quem está jogando)
     const revealArea = document.getElementById('guessRevealArea');
-    renderPins(revealArea, room.guesses, labelsMap);
+    clearPinsAndHideDraggable(revealArea);
 
     updateCoordsLabel(5);
 
@@ -1275,7 +1228,6 @@ function initOnlineDraggableLine() {
     newConfirm.addEventListener('click', async () => {
         if (state.gameMode !== 'online') return;
         const pos = parseFloat(newLineEl.dataset.pos || '5');
-        // Esconde imediatamente
         newLineEl.classList.add('hidden');
         const room = state.online.roomData;
         const guesses = { ...(room.guesses || {}) };
