@@ -103,14 +103,16 @@ body {
 .search-icon {
     position: absolute;
     left: 0.9rem;
-    font-size: 1rem;
-    opacity: 0.6;
+    width: 18px;
+    height: 18px;
+    color: #A89898;
     pointer-events: none;
+    z-index: 1;
 }
 
 .search-input {
     width: 100%;
-    padding: 0.85rem 1rem 0.85rem 2.6rem;
+    padding: 0.85rem 1rem 0.85rem 2.75rem;
     border: 2px solid transparent;
     border-radius: 16px;
     background: #FFFFFF;
@@ -137,7 +139,6 @@ body {
     border: 2px solid transparent;
     border-radius: 16px;
     background: #FFFFFF;
-    font-size: 1.15rem;
     cursor: pointer;
     box-shadow: 0 2px 8px var(--sombra);
     transition: transform 0.15s ease, border-color 0.2s ease, background 0.2s ease;
@@ -160,8 +161,10 @@ body {
 }
 
 .filter-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--texto);
     display: block;
-    line-height: 1;
 }
 
 /* ===== Painel de filtros ===== */
@@ -212,16 +215,19 @@ body {
 }
 
 .filter-chip {
-    padding: 0.45rem 0.85rem;
+    flex: 1;
+    padding: 0.5rem 0.4rem;
     border: 2px solid #EDE9E0;
     border-radius: 999px;
     background: #FFFFFF;
     font-family: 'Outfit', sans-serif;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 700;
     color: #6B5F5F;
     cursor: pointer;
     transition: all 0.2s ease;
+    text-align: center;
+    white-space: nowrap;
 }
 
 .filter-chip:hover {
@@ -283,8 +289,11 @@ body {
     background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 60%);
 }
 
-.card-emoji {
-    font-size: 3.5rem;
+.card-icon {
+    width: 56px;
+    height: 56px;
+    color: #FFFFFF;
+    stroke-width: 2;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
     position: relative;
     z-index: 1;
@@ -381,8 +390,9 @@ body {
     height: 140px;
 }
 
-.modal-content .card-emoji {
-    font-size: 4rem;
+.modal-content .card-icon {
+    width: 68px;
+    height: 68px;
 }
 
 .modal-content .card-title {
@@ -405,10 +415,11 @@ body {
 }
 
 .modal-details .detail-icon {
-    font-size: 1rem;
-    width: 1.5rem;
-    text-align: center;
+    width: 16px;
+    height: 16px;
+    color: #6B5F5F;
     flex-shrink: 0;
+    stroke-width: 2;
 }
 
 .modal-details .card-description {

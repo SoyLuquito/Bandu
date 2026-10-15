@@ -1,7 +1,12 @@
 // Rally - Lobby de Party Games
-// Versão 1.3
+// Versão 1.4
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Inicializa os ícones do Lucide
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+
     const cards = document.querySelectorAll('.game-card');
     const logo = document.getElementById('logo');
     const searchInput = document.getElementById('searchInput');
@@ -17,39 +22,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const GAMES_INFO = {
         'corescomdicas.html': {
             title: 'Cores com Dicas',
-            emoji: '🎨',
+            icon: 'palette',
             bg: 'linear-gradient(135deg, #FF8FA3 0%, #FFC078 100%)',
             players: '1 à 10 jogadores',
-            device: 'Tela compartilhada ou Cada um no seu',
+            device: '1 dispositivo ou Cada um no seu',
             description: 'Dê dicas com palavras para que os outros jogadores acertem a cor correta no tabuleiro. Quanto mais próximo, mais pontos!'
         },
-        'imposto.html': {
+        '/jogos/impostor/impostor.html': {
             title: 'Impostor',
-            emoji: '🕵️',
+            icon: 'user-x',
             bg: 'linear-gradient(135deg, #7BE495 0%, #6EC6FF 100%)',
             players: '4 à 10 jogadores',
-            device: 'Tela compartilhada',
+            device: '1 dispositivo',
             description: 'Todos recebem a mesma palavra, exceto o impostor. Descubra quem é o impostor antes que ele te engane!'
         },
         '/jogos/mimica/mimica.html': {
             title: 'Mímica',
-            emoji: '🤸',
+            icon: 'sparkles',
             bg: 'linear-gradient(135deg, #FFE066 0%, #FF9A8B 100%)',
             players: '4+ jogadores',
-            device: 'Tela compartilhada',
+            device: '1 dispositivo',
             description: 'Faça mímica para que sua equipe adivinhe a palavra ou frase. Sem falar, sem sons, só gestos!'
         },
         'eununca.html': {
             title: 'Eu Nunca',
-            emoji: '🙊',
+            icon: 'message-circle',
             bg: 'linear-gradient(135deg, #C77DFF 0%, #FF7EB9 100%)',
             players: '3+ jogadores',
-            device: 'Tela compartilhada',
+            device: '1 dispositivo',
             description: 'O jogo clássico de revelações! Diga algo que nunca fez e descubra quem já fez. Prepare-se para rir!'
         },
         'espiao.html': {
             title: 'Espião',
-            emoji: '🔍',
+            icon: 'search',
             bg: 'linear-gradient(135deg, #4DD0C8 0%, #7B9EFF 100%)',
             players: '4+ jogadores',
             device: 'Cada um no seu',
@@ -57,18 +62,18 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         'cidadedorme.html': {
             title: 'Cidade Dorme',
-            emoji: '🌙',
+            icon: 'moon',
             bg: 'linear-gradient(135deg, #6A8EEA 0%, #4DD0C8 100%)',
             players: '6+ jogadores',
-            device: 'Tela compartilhada ou Cada um no seu',
+            device: '1 dispositivo ou Cada um no seu',
             description: 'A cidade dorme, mas o assassino está acordado! Descubra quem está matando os cidadãos antes que seja tarde.'
         },
         'sintonia.html': {
             title: 'Sintonia',
-            emoji: '📊',
+            icon: 'activity',
             bg: 'linear-gradient(135deg, #FFB067 0%, #A8E063 100%)',
             players: '2+ jogadores',
-            device: 'Tela compartilhada ou Cada um no seu',
+            device: '1 dispositivo ou Cada um no seu',
             description: 'Dê uma dica para que sua equipe posicione o ponteiro no espectro entre dois opostos. Comunicação é tudo!'
         }
     };
@@ -102,22 +107,27 @@ document.addEventListener('DOMContentLoaded', () => {
         // Monta o HTML do modal
         modalContent.innerHTML = `
             <div class="card-image" style="background: ${info.bg};">
-                <span class="card-emoji">${info.emoji}</span>
+                <i data-lucide="${info.icon}" class="card-icon"></i>
             </div>
             <h2 class="card-title">${info.title}</h2>
             <div class="modal-details">
                 <div class="detail-item">
-                    <span class="detail-icon">👥</span>
+                    <i data-lucide="users" class="detail-icon"></i>
                     <span>${info.players}</span>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-icon">📱</span>
+                    <i data-lucide="smartphone" class="detail-icon"></i>
                     <span>${info.device}</span>
                 </div>
                 <p class="card-description">${info.description}</p>
                 <button class="play-button" id="modalPlayButton">Jogar</button>
             </div>
         `;
+
+        // Renderiza os ícones recém-inseridos
+        if (window.lucide) {
+            lucide.createIcons();
+        }
 
         // Botão de jogar dentro do modal
         document.getElementById('modalPlayButton').addEventListener('click', () => {

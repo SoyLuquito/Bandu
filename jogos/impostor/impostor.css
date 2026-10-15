@@ -1,0 +1,640 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bege: #FBFAF7;
+    --bege-escuro: #F0EDE6;
+    --texto: #2E2626;
+    --texto-suave: #6B5F5F;
+    --sombra: rgba(0, 0, 0, 0.08);
+
+    --verde-impostor: #7BE495;
+    --azul-impostor: #6EC6FF;
+    --vermelho-alerta: #FA5252;
+    --verde-sucesso: #51CF66;
+    --amarelo: #FFE066;
+    --roxo: #B197FC;
+}
+
+body {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bege);
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.6) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.5) 0%, transparent 50%),
+        url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9bda8' fill-opacity='0.18'%3E%3Cpath d='M50 50v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-42V4h-2v4h-4v2h4v4h2V10h4V8h-4zM8 50v-4H6v4H2v2h4v4h2v-4h4v-2H8zM8 8V4H6v4H2v2h4v4h2V10h4V8H8z'/%3E%3Ccircle cx='20' cy='20' r='1.5'/%3E%3Ccircle cx='60' cy='60' r='1.5'/%3E%3Ccircle cx='20' cy='60' r='1.5'/%3E%3Ccircle cx='60' cy='20' r='1.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    color: var(--texto);
+    min-height: 100dvh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 4.5rem 1rem 3rem 1rem;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Config pode ser mais alta que a viewport — alinha ao topo */
+body:has(#configScreen:not(.hidden)) {
+    align-items: flex-start;
+}
+
+.container {
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.card-panel {
+    background: #FFFFFF;
+    border-radius: 24px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 24px var(--sombra);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    animation: fadeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Barra do Topo */
+.top-bar {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.icon-button {
+    pointer-events: auto;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: #FFFFFF;
+    color: var(--texto);
+    box-shadow: 0 4px 12px var(--sombra);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.icon-button:active {
+    transform: scale(0.92);
+}
+
+.icon-button svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* Header */
+.panel-header {
+    text-align: center;
+}
+
+.panel-header h1 {
+    font-size: 2rem;
+    font-weight: 900;
+}
+
+.panel-header p {
+    font-size: 0.9rem;
+    color: var(--texto-suave);
+}
+
+/* Form Groups */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px dashed var(--bege-escuro);
+    margin-bottom: 0;
+}
+
+.form-group:last-of-type {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.form-group + .form-group {
+    padding-top: 0.8rem;
+}
+
+.form-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--texto-suave);
+}
+
+/* Segmented control */
+.segmented-control {
+    display: flex;
+    background: var(--bege-escuro);
+    border-radius: 14px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.segment-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 0.65rem 0.5rem;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--texto-suave);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+.segment-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.segment-btn.active {
+    background: #FFFFFF;
+    color: var(--texto);
+    box-shadow: 0 2px 6px var(--sombra);
+}
+
+/* Inputs */
+.input-with-button {
+    display: flex;
+    gap: 0.4rem;
+    width: 100%;
+}
+
+.input-with-button input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.75rem 0.85rem;
+    border: 2px solid var(--bege-escuro);
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    outline: none;
+}
+
+.input-with-button input:focus, .custom-select:focus {
+    border-color: var(--texto);
+}
+
+.custom-select {
+    width: 100%;
+    padding: 0.8rem 0.85rem;
+    border: 2px solid var(--bege-escuro);
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    outline: none;
+    background: #FFFFFF;
+}
+
+/* Chips */
+.chip-group {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.chip-btn {
+    flex: 1;
+    padding: 0.6rem 0.2rem;
+    border: 2px solid var(--bege-escuro);
+    background: #FFFFFF;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--texto-suave);
+    cursor: pointer;
+}
+
+.chip-btn.active {
+    background: var(--texto);
+    border-color: var(--texto);
+    color: #FFFFFF;
+}
+
+/* Tags */
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    list-style: none;
+}
+
+.tag-item {
+    background: var(--bege-escuro);
+    color: var(--texto);
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.tag-item button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--texto-suave);
+    display: flex;
+}
+
+/* Botões */
+.btn {
+    padding: 0.85rem 1rem;
+    border: none;
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+}
+
+.btn:active {
+    transform: scale(0.97);
+}
+
+.btn-primary { background: var(--texto); color: #FFFFFF; }
+.btn-secondary { background: var(--bege-escuro); color: var(--texto); }
+.btn-success { background: var(--verde-sucesso); color: #FFFFFF; }
+.btn-danger { background: var(--vermelho-alerta); color: #FFFFFF; }
+.btn-block { width: 100%; }
+
+.btn-start {
+    margin-top: 1rem;
+}
+
+/* Reveal — Cartão Secreto */
+.round-badge {
+    align-self: center;
+    background: var(--amarelo);
+    color: var(--texto);
+    font-weight: 800;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.85rem;
+    border-radius: 20px;
+    text-transform: uppercase;
+}
+
+.display-title { font-size: 1.6rem; text-align: center; font-weight: 900; }
+.subtitle { text-align: center; font-size: 0.85rem; color: var(--texto-suave); }
+
+.card-secret {
+    perspective: 1000px;
+    height: 200px;
+    margin: 0.25rem 0;
+    cursor: pointer;
+}
+
+.card-secret-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-style: preserve-3d;
+}
+
+.card-secret.flipped .card-secret-inner {
+    transform: rotateY(180deg);
+}
+
+/* Desativa o clique enquanto está virando */
+.card-secret.animating {
+    pointer-events: none;
+}
+
+.card-front, .card-back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    box-shadow: 0 4px 16px var(--sombra);
+}
+
+.card-front {
+    background: linear-gradient(135deg, var(--verde-impostor) 0%, var(--azul-impostor) 100%);
+    color: #FFFFFF;
+}
+
+.card-front-icon {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 0.5rem;
+    stroke-width: 2;
+}
+
+.card-front p {
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.card-back {
+    background: var(--texto);
+    color: #FFFFFF;
+    transform: rotateY(180deg);
+}
+
+.card-back.is-impostor {
+    background: linear-gradient(135deg, #FA5252 0%, #C92A2A 100%);
+}
+
+.card-back-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: rgba(255, 255, 255, 0.75);
+    margin-bottom: 0.6rem;
+    font-weight: 700;
+}
+
+.card-back h3 {
+    font-size: 1.8rem;
+    font-weight: 900;
+    text-align: center;
+    line-height: 1.15;
+    padding: 0 0.5rem;
+    word-break: break-word;
+}
+
+.card-back h3.is-impostor-text {
+    font-size: 2.2rem;
+    letter-spacing: 0.05em;
+}
+
+.card-back .card-back-hint {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin-top: 0.75rem;
+    font-weight: 400;
+    text-align: center;
+    padding: 0 1rem;
+    line-height: 1.4;
+}
+
+/* Sorteio */
+.sort-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 130px;
+    padding: 1.25rem;
+    background: var(--bege-escuro);
+    border-radius: 20px;
+}
+
+.sort-name {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--texto);
+    text-align: center;
+    line-height: 1.1;
+    transition: transform 0.1s ease;
+}
+
+.sort-name.rolling {
+    color: var(--texto-suave);
+    opacity: 0.7;
+}
+
+.sort-name.picked {
+    color: var(--texto);
+    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.7); }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+/* Playing Screen */
+.playing-icon {
+    align-self: center;
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, var(--verde-impostor) 0%, var(--azul-impostor) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFFFFF;
+}
+
+.playing-icon svg {
+    width: 34px;
+    height: 34px;
+}
+
+.playing-hint {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--texto-suave);
+    line-height: 1.5;
+    padding: 0 0.5rem;
+}
+
+/* Result Screen */
+.result-icon {
+    align-self: center;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFFFFF;
+    background: var(--roxo);
+}
+
+.result-icon svg {
+    width: 36px;
+    height: 36px;
+}
+
+.result-reveal {
+    background: var(--bege-escuro);
+    border-radius: 16px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.result-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--texto-suave);
+}
+
+.result-word {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--texto);
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.result-impostors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    justify-content: center;
+}
+
+.result-impostor-chip {
+    background: var(--vermelho-alerta);
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(46, 38, 38, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 100;
+}
+
+.modal-card {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 1.25rem;
+    max-width: 360px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+}
+
+.modal-buttons { display: flex; gap: 0.5rem; }
+.modal-buttons .btn { flex: 1; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ajustes para telas pequenas */
+@media (max-height: 750px) {
+    body {
+        padding: 3.5rem 0.75rem 1.5rem 0.75rem;
+    }
+
+    .card-panel {
+        padding: 1rem;
+        gap: 1rem;
+        border-radius: 20px;
+    }
+
+    .panel-header h1 {
+        font-size: 1.6rem;
+    }
+
+    .panel-header p {
+        font-size: 0.8rem;
+    }
+
+    .form-group {
+        padding-bottom: 0.65rem;
+        gap: 0.55rem;
+    }
+
+    .form-group + .form-group {
+        padding-top: 0.65rem;
+    }
+
+    .form-label {
+        font-size: 0.7rem;
+    }
+
+    .input-with-button input,
+    .custom-select {
+        padding: 0.65rem 0.75rem;
+        font-size: 1rem;
+    }
+
+    .chip-btn {
+        padding: 0.5rem 0.15rem;
+        font-size: 0.85rem;
+    }
+
+    .btn {
+        padding: 0.75rem 0.9rem;
+        font-size: 0.9rem;
+    }
+
+    .btn-start {
+        margin-top: 0.6rem;
+    }
+
+    .card-secret {
+        height: 170px;
+    }
+
+    .card-back h3 {
+        font-size: 1.5rem;
+    }
+
+    .card-back h3.is-impostor-text {
+        font-size: 1.9rem;
+    }
+
+    .sort-display {
+        min-height: 110px;
+        padding: 1rem;
+    }
+
+    .sort-name {
+        font-size: 1.7rem;
+    }
+}
