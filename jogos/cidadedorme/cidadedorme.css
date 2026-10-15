@@ -453,3 +453,34 @@ body {
     width: 100%;
     margin-bottom: 0.5rem;
 }
+
+/* Botão de pular voto estilizado */
+.vote-skip-btn {
+    grid-column: 1 / -1;
+    padding: 0.75rem 1rem;
+    border: 2px dashed var(--bege-escuro);
+    background: transparent;
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--texto-suave);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    transition: border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+    margin-top: 0.25rem;
+}
+.vote-skip-btn:hover {
+    border-color: var(--texto-suave);
+    color: var(--texto);
+}
+.vote-skip-btn:active {
+    transform: scale(0.97);
+}
+.vote-skip-btn svg {
+    width: 16px;
+    height: 16px;
+}
