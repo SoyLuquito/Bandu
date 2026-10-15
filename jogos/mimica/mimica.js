@@ -188,8 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ====== CÁLCULO DO PRÓXIMO ATOR (SEM AVANÇAR ÍNDICE) ======
-    // Retorna quem VAI jogar no próximo turno, sem alterar o estado.
-    // Usado tanto pela transição quanto pelo placar.
     function peekNextActor() {
         if (state.mode === 'individual') {
             const idx = state.actorIndex.individual;
@@ -241,6 +239,8 @@ document.addEventListener('DOMContentLoaded', () => {
             inputEl.value = '';
             renderFn();
         }
+        // Mantém o foco (e o teclado) no input após adicionar
+        inputEl.focus();
     }
 
     function removePlayerName(index, targetArray, renderFn) {
@@ -268,6 +268,26 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTags(lists.teamB, state.teamB.players, (i) => removePlayerName(i, state.teamB.players, refreshAllLists));
     }
 
+    // ====== BOTÕES DE ADICIONAR (mantendo o teclado aberto no mobile) ======
+    // Impede que o botão tire o foco do input ANTES do clique ser processado.
+    // No mobile isso evita que o teclado feche.
+    ['addPlayerBtn', 'addTeamABtn', 'addTeamBBtn'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+
+        // No desktop e alguns Androids
+        btn.addEventListener('mousedown', (e) => e.preventDefault());
+
+        // No iOS Safari / Chrome iOS — touchstart previne o blur
+        btn.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+
+        // Como prevenimos o touchstart, disparamos o click manualmente no touchend
+        btn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            btn.click();
+        });
+    });
+
     document.getElementById('addPlayerBtn').addEventListener('click', () => {
         addPlayerName(inputs.player, state.players, refreshAllLists);
     });
@@ -278,6 +298,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('addTeamBBtn').addEventListener('click', () => {
         addPlayerName(inputs.teamB, state.teamB.players, refreshAllLists);
+    });
+
+    // ====== ENTER TAMBÉM ADICIONA (bônus) ======
+    inputs.player.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addPlayerName(inputs.player, state.players, refreshAllLists);
+        }
+    });
+
+    inputs.teamA.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addPlayerName(inputs.teamA, state.teamA.players, refreshAllLists);
+        }
+    });
+
+    inputs.teamB.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addPlayerName(inputs.teamB, state.teamB.players, refreshAllLists);
+        }
     });
 
     // EMBARALHAR EQUIPES
@@ -443,10 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ====== FUNÇÃO AUXILIAR: ir para o próximo turno com transição ======
-    // Chamada sempre que o turno atual termina e outro deve começar.
     function goToNextTurn() {
-        // peekNextActor() lê o índice APÓS renderRevealScreen ter avançado,
-        // então retorna exatamente quem vai jogar no próximo turno.
         const nextName = peekNextActor();
         showTransition(nextName, 'Prepare-se!', () => {
             nextTurn();
