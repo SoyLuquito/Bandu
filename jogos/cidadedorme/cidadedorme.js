@@ -46,12 +46,11 @@ function maxAssassinosPara(jogadores) {
 }
 
 // ============================================================
-// ESTADO — mantém local e online SEPARADOS
+// ESTADO
 // ============================================================
 const state = {
-    gameMode: null, // 'local' | 'online'
+    gameMode: null,
 
-    // ---- ONLINE ----
     online: {
         uid: null,
         playerName: null,
@@ -66,17 +65,12 @@ const state = {
         voteTimerInterval: null,
         pendingAction: null,
         lastTransitionKey: null,
-        nightMinigameRenderedFor: null,
-        diaTransitionScheduled: false
+        nightMinigameRenderedFor: null
     },
 
-    // ---- LOCAL ----
     local: {
         players: [],
-        config: {
-            assassinos: 1,
-            temAnjo: true
-        },
+        config: { assassinos: 1, temAnjo: true },
         currentRound: 0,
         fase: 'config',
         ordemPassagem: [],
@@ -96,7 +90,6 @@ const screens = {
     lobby: document.getElementById('lobbyScreen'),
     role: document.getElementById('roleScreen'),
     night: document.getElementById('nightScreen'),
-    day: document.getElementById('dayScreen'),
     vote: document.getElementById('voteScreen'),
     roundResult: document.getElementById('roundResultScreen'),
     gameOver: document.getElementById('gameOverScreen')
@@ -266,7 +259,7 @@ function askName(callback) {
 }
 
 // ============================================================
-// MENU INICIAL — escolha do modo
+// MENU INICIAL
 // ============================================================
 document.getElementById('modeLocalBtn').addEventListener('click', () => {
     state.gameMode = 'local';
@@ -393,7 +386,6 @@ document.getElementById('localStartBtn').addEventListener('click', () => {
     startLocalRound();
 });
 
-// ---- MODO LOCAL: iniciar rodada ----
 function startLocalRound() {
     if (state.gameMode !== 'local') return;
     const L = state.local;
@@ -430,7 +422,6 @@ function startLocalRound() {
     renderLocalRole();
 }
 
-// ---- MODO LOCAL: tela de revelação de papel ----
 function renderLocalRole() {
     if (state.gameMode !== 'local') return;
     showScreen('role');
@@ -444,12 +435,10 @@ function renderLocalRole() {
     const idx = L.ordemPassagem[L.passandoIndex];
     const player = L.players[idx];
 
-    // Nome do jogador no título
     document.getElementById('roleTitle').innerText = player.nome;
     document.getElementById('roleSubtitle').innerText = 'Passe o celular para ele(a)';
     document.getElementById('roleDesc').innerText = 'Toque para revelar seu papel.';
 
-    // Ícone de olho fechado no estado inicial
     const iconWrap = document.getElementById('roleIconWrap');
     iconWrap.className = 'role-icon-wrap';
     const icon = document.getElementById('roleIcon');
@@ -463,22 +452,18 @@ function renderLocalRole() {
     const counter = document.getElementById('roleCounter');
     if (counter) counter.classList.add('hidden');
 
-    // Remove listeners antigos
     const newBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
     newBtn.addEventListener('click', () => {
         if (state.gameMode !== 'local') return;
         if (!L.revealed) {
-            // REVELA o papel
             L.revealed = true;
 
-            // ← MUDANÇA 2: papel em subtítulo, nome do papel embaixo do ícone
             document.getElementById('roleTitle').innerText = player.nome;
             document.getElementById('roleSubtitle').innerText = subtituloPapel(player.papel);
             document.getElementById('roleDesc').innerHTML =
                 `<strong style="display:block;font-size:1.1rem;color:var(--texto);margin-bottom:0.25rem">${tituloPapel(player.papel)}</strong>${descricaoPapel(player.papel)}`;
 
-            // ← MUDANÇA 3: força troca do ícone
             icon.setAttribute('data-lucide', iconePapel(player.papel));
             iconWrap.className = 'role-icon-wrap ' + player.papel;
             if (window.lucide) lucide.createIcons();
@@ -486,7 +471,6 @@ function renderLocalRole() {
             newBtn.innerHTML = '<i data-lucide="arrow-right"></i> Entendi';
             if (window.lucide) lucide.createIcons();
         } else {
-            // Avança para o próximo
             L.revealed = false;
             L.passandoIndex++;
             renderLocalRole();
@@ -496,7 +480,6 @@ function renderLocalRole() {
     if (window.lucide) lucide.createIcons();
 }
 
-// ---- MODO LOCAL: todos viram, alguém aperta para iniciar ----
 function renderLocalReadyToStart() {
     if (state.gameMode !== 'local') return;
     showScreen('role');
@@ -528,7 +511,6 @@ function renderLocalReadyToStart() {
     if (window.lucide) lucide.createIcons();
 }
 
-// ---- MODO LOCAL: noite ----
 function startLocalNight() {
     if (state.gameMode !== 'local') return;
     const L = state.local;
@@ -690,7 +672,6 @@ document.getElementById('investigateCloseBtn').addEventListener('click', () => {
     if (state.gameMode === 'local') advanceLocalNight();
 });
 
-// ---- MINIGAMES DO CIDADÃO ----
 function renderCitizenMinigame(container, onComplete) {
     const tipos = ['hold', 'drag', 'sequence'];
     const tipo = tipos[Math.floor(Math.random() * tipos.length)];
@@ -857,7 +838,6 @@ function renderCitizenMinigame(container, onComplete) {
     }
 }
 
-// ---- MODO LOCAL: resolve a noite ----
 function resolveLocalNight() {
     if (state.gameMode !== 'local') return;
     const L = state.local;
@@ -898,7 +878,6 @@ function resolveLocalNight() {
     renderLocalDay();
 }
 
-// ---- MODO LOCAL: dia (sem info do detetive) ----
 function renderLocalDay() {
     if (state.gameMode !== 'local') return;
     showScreen('day');
@@ -912,9 +891,6 @@ function renderLocalDay() {
         div.innerHTML = ev.texto;
         eventsEl.appendChild(div);
     });
-
-    // ← MUDANÇA 1: NÃO mostra mais "Investigação de X: X é inocente" no dia.
-    // O resultado da investigação já apareceu no modal do detetive.
 
     const toVoteBtn = document.getElementById('toVoteBtn');
     const waitMsg = document.getElementById('waitVoteMsg');
@@ -933,7 +909,6 @@ function renderLocalDay() {
     if (window.lucide) lucide.createIcons();
 }
 
-// ---- MODO LOCAL: votação ----
 function startLocalVote() {
     if (state.gameMode !== 'local') return;
     const L = state.local;
@@ -952,6 +927,10 @@ function renderLocalVoteStep() {
 
     const timerEl = document.getElementById('voteTimer');
     timerEl.innerText = '';
+
+    // Esconde notícias da noite no modo local
+    const newsEl = document.getElementById('nightNews');
+    if (newsEl) newsEl.innerHTML = '';
 
     if (L.votoIndex >= L.ordemVoto.length) {
         resolveLocalVote();
@@ -1124,7 +1103,7 @@ function renderLocalGameOver() {
 }
 
 // ============================================================
-// BOTÕES DE FIM DE JOGO (compartilhados — verificam gameMode)
+// BOTÕES DE FIM (compartilhados)
 // ============================================================
 document.getElementById('rematchBtn').addEventListener('click', async () => {
     if (state.gameMode === 'local') {
@@ -1291,7 +1270,6 @@ function listenToRoom(code) {
     state.online.roomRef = roomRef;
 
     state.online.unsubscribeRoom = onSnapshot(roomRef, (snap) => {
-        // ← SEGURANÇA: se o modo não é mais online, ignora
         if (state.gameMode !== 'online') return;
         if (!snap.exists()) { alert('A sala foi encerrada'); cleanupAndHome(); return; }
         state.online.roomData = snap.data();
@@ -1301,7 +1279,6 @@ function listenToRoom(code) {
         if (status === 'lobby') renderLobby();
         else if (status === 'papel') renderRole();
         else if (status === 'noite') renderNight();
-        else if (status === 'dia') renderDay();
         else if (status === 'votacao') renderVote();
         else if (status === 'resultado') renderRoundResult();
         else if (status === 'fim') renderGameOver();
@@ -1333,25 +1310,6 @@ async function maybeAdvancePhase(status) {
             state.online.lastTransitionKey = key;
             await resolveNight();
         }
-    } else if (status === 'dia') {
-        const players = getPlayersArray(room).filter(p => p.vivo);
-        const todosProntos = players.every(p => p.prontoDia);
-        const diaKey = 'dia-' + (room.historico?.length || 0);
-        if (state.online.lastTransitionKey === diaKey) return;
-
-        const startedAt = room.diaStartedAt || Date.now();
-        const elapsed = (Date.now() - startedAt) / 1000;
-        const tempoEsgotado = elapsed >= 6;
-
-        if (todosProntos || tempoEsgotado) {
-            state.online.lastTransitionKey = diaKey;
-            await updateDoc(state.online.roomRef, {
-                status: 'votacao',
-                votos: {},
-                votacaoIniciadaEm: Date.now(),
-                votacaoDuracao: room.config.tempoVotacao
-            });
-        }
     } else if (status === 'votacao') {
         const vivos = getAlivePlayers(room);
         const votos = room.votos || {};
@@ -1367,7 +1325,7 @@ async function maybeAdvancePhase(status) {
 
 function resetTransitionKey() { state.online.lastTransitionKey = null; }
 
-// ---- LOBBY (ONLINE) ----
+// ---- LOBBY ----
 function renderLobby() {
     if (state.gameMode !== 'online') return;
     showScreen('lobby');
@@ -1474,7 +1432,6 @@ document.getElementById('startGameBtn').addEventListener('click', async () => {
     try { await startNewRound(); } finally { hideLoading(); }
 });
 
-// ---- NOVA RODADA (ONLINE) ----
 async function startNewRound() {
     if (state.gameMode !== 'online' || !state.online.isHost) return;
     const players = getPlayersArray(state.online.roomData);
@@ -1516,7 +1473,6 @@ async function startNewRound() {
     });
 }
 
-// ---- PAPEL (ONLINE) ----
 function renderRole() {
     if (state.gameMode !== 'online') return;
     showScreen('role');
@@ -1562,7 +1518,6 @@ document.getElementById('roleConfirmBtn').addEventListener('click', async () => 
     await updateDoc(state.online.roomRef, { [`jogadores.${state.online.uid}.viuPapel`]: true });
 });
 
-// ---- NOITE (ONLINE) ----
 function renderNight() {
     if (state.gameMode !== 'online') return;
     showScreen('night');
@@ -1849,6 +1804,9 @@ async function checkNightComplete() {
     return assassinoOk && detOk && anjoOk && cidOk;
 }
 
+// ============================================================
+// RESOLVE NOITE — vai DIRETO para votação (sem passar por dia)
+// ============================================================
 async function resolveNight() {
     if (state.gameMode !== 'online') return;
     const snap = await getDoc(state.online.roomRef);
@@ -1892,43 +1850,20 @@ async function resolveNight() {
     const proximoMatadorIndex = (room.assassinoMatadorIndex || 0) + 1;
     resetTransitionKey();
 
+    // ← AQUI: transição DIRETA para votação (sem passar por dia)
     await updateDoc(state.online.roomRef, {
         jogadores: jogadoresAtualizados,
-        status: jogoAcabou ? 'fim' : 'dia',
+        status: jogoAcabou ? 'fim' : 'votacao',
         vencedor: vencedor || null,
         historico: [...(room.historico || []), { rodada: (room.historico || []).length + 1, eventos }],
         assassinoMatadorIndex: proximoMatadorIndex,
-        diaStartedAt: Date.now()
+        // Votação começa JÁ
+        votos: {},
+        votacaoIniciadaEm: Date.now(),
+        votacaoDuracao: room.config.tempoVotacao,
+        // Guarda eventos da noite para exibir no topo da votação
+        noiteEventos: eventos
     });
-}
-
-// ---- DIA (ONLINE) — não mostra investigação do detetive ----
-function renderDay() {
-    if (state.gameMode !== 'online') return;
-    showScreen('day');
-    resetTransitionKey();
-    const room = state.online.roomData;
-    const eventos = room.noite?.eventos || [];
-
-    const eventsEl = document.getElementById('dayEvents');
-    eventsEl.innerHTML = '';
-    eventos.forEach(ev => {
-        const div = document.createElement('div');
-        div.className = 'day-event ' + ev.tipo;
-        div.innerHTML = ev.texto;
-        eventsEl.appendChild(div);
-    });
-
-    // ← MUDANÇA 1: NÃO mostra mais a investigação do detetive no dia.
-    // (Só apareceu pra ele no modal, na hora que investigou.)
-
-    const toVoteBtn = document.getElementById('toVoteBtn');
-    const waitMsg = document.getElementById('waitVoteMsg');
-    toVoteBtn.classList.add('hidden');
-    waitMsg.classList.remove('hidden');
-    waitMsg.innerHTML = '<i data-lucide="hourglass"></i> <span>Discutam! A votação começa em instantes...</span>';
-
-    if (window.lucide) lucide.createIcons();
 }
 
 // ---- VOTAÇÃO (ONLINE) ----
@@ -1937,6 +1872,18 @@ function renderVote() {
     showScreen('vote');
     const room = state.online.roomData;
     const me = getMyPlayer(room);
+
+    // Notícias da noite no topo da votação
+    const newsEl = document.getElementById('nightNews');
+    if (newsEl) {
+        newsEl.innerHTML = '';
+        (room.noiteEventos || room.noite?.eventos || []).forEach(ev => {
+            const div = document.createElement('div');
+            div.className = 'day-event ' + ev.tipo;
+            div.innerHTML = ev.texto;
+            newsEl.appendChild(div);
+        });
+    }
 
     if (state.online.voteTimerInterval) clearInterval(state.online.voteTimerInterval);
     const timerEl = document.getElementById('voteTimer');
@@ -2076,7 +2023,7 @@ async function resolveVote() {
     });
 }
 
-// ---- RESULTADO (ONLINE) ----
+// ---- RESULTADO ----
 function renderRoundResult() {
     if (state.gameMode !== 'online') return;
     showScreen('roundResult');
@@ -2126,7 +2073,7 @@ function renderRoundResult() {
     if (window.lucide) lucide.createIcons();
 }
 
-// ---- FIM DE JOGO (ONLINE) ----
+// ---- FIM DE JOGO ----
 function renderGameOver() {
     if (state.gameMode !== 'online') return;
     showScreen('gameOver');

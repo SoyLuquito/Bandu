@@ -53,7 +53,7 @@
             </div>
         </section>
 
-        <!-- TELA NOVA: CONFIG LOCAL (1 dispositivo) -->
+        <!-- TELA 2: CONFIG LOCAL (1 dispositivo) -->
         <section id="localConfigScreen" class="card-panel hidden">
             <header class="panel-header">
                 <h1>Nova Partida</h1>
@@ -92,7 +92,7 @@
             </button>
         </section>
 
-        <!-- TELA 2: LOBBY -->
+        <!-- TELA 3: LOBBY (ONLINE) -->
         <section id="lobbyScreen" class="card-panel hidden">
             <header class="panel-header">
                 <h1>Sala</h1>
@@ -148,7 +148,7 @@
             </button>
         </section>
 
-        <!-- TELA 3: PAPEL -->
+        <!-- TELA 4: PAPEL -->
         <section id="roleScreen" class="card-panel hidden">
             <div class="round-badge">Seu papel</div>
             <h2 class="display-title" id="roleTitle">...</h2>
@@ -166,7 +166,7 @@
             </button>
         </section>
 
-        <!-- TELA 4: NOITE -->
+        <!-- TELA 5: NOITE -->
         <section id="nightScreen" class="card-panel hidden">
             <div class="night-icon">
                 <i data-lucide="moon"></i>
@@ -182,24 +182,6 @@
             </div>
         </section>
 
-        <!-- TELA 5: DIA -->
-        <section id="dayScreen" class="card-panel hidden">
-            <div class="day-icon">
-                <i data-lucide="sun"></i>
-            </div>
-            <h2 class="display-title">A cidade acorda</h2>
-
-            <div class="day-events" id="dayEvents"></div>
-
-            <button type="button" class="btn btn-primary btn-block" id="toVoteBtn">
-                <i data-lucide="check"></i> Já discutimos
-            </button>
-            <div class="waiting-msg hidden" id="waitVoteMsg">
-                <i data-lucide="hourglass"></i>
-                <span>Discutam! A votação começa em instantes...</span>
-            </div>
-        </section>
-
         <!-- TELA 6: VOTAÇÃO -->
         <section id="voteScreen" class="card-panel hidden">
             <div class="vote-header">
@@ -207,6 +189,8 @@
                 <h2>Votação</h2>
                 <p class="subtitle" id="voteTimer">--</p>
             </div>
+
+            <div class="day-events" id="nightNews" style="margin-bottom: 0.5rem;"></div>
 
             <p class="vote-instruction" id="voteInstruction">Escolha quem expulsar</p>
 
