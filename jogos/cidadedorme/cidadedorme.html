@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cidade Dorme - Bandu</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232E2626' stroke-width='2'%3E%3Cpath d='M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="cidadedorme.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <div class="top-bar">
+        <button class="icon-button" id="exitBtn" aria-label="Sair">
+            <i data-lucide="arrow-left"></i>
+        </button>
+        <div class="room-code-badge hidden" id="roomCodeBadge">
+            <span id="roomCodeText"></span>
+        </div>
+    </div>
+
+    <main class="container">
+
+        <!-- TELA 1: MENU -->
+        <section id="homeScreen" class="card-panel">
+            <header class="panel-header">
+                <h1>Cidade Dorme</h1>
+                <p>Assassino, detetive e cidadãos</p>
+            </header>
+
+            <div class="home-actions">
+                <button type="button" class="btn btn-primary btn-block" id="createRoomBtn">
+                    <i data-lucide="plus-circle"></i> Criar Sala
+                </button>
+
+                <div class="join-box">
+                    <input type="text" id="joinCodeInput" class="code-input" placeholder="CÓDIGO" maxlength="6" autocomplete="off" spellcheck="false">
+                    <button type="button" class="btn btn-secondary" id="joinRoomBtn">
+                        <i data-lucide="log-in"></i> Entrar
+                    </button>
+                </div>
+            </div>
+
+            <p class="home-hint">Crie uma sala e mande o código pros amigos.</p>
+        </section>
+
+        <!-- TELA 2: LOBBY -->
+        <section id="lobbyScreen" class="card-panel hidden">
+            <header class="panel-header">
+                <h1>Sala</h1>
+                <p class="room-code-display" id="lobbyRoomCode">------</p>
+            </header>
+
+            <div class="host-config hidden" id="hostConfig">
+                <div class="config-group">
+                    <label class="config-label">Assassinos</label>
+                    <div class="chip-group" id="assassinosGroup">
+                        <button type="button" class="chip-btn active" data-value="1">1</button>
+                        <button type="button" class="chip-btn" data-value="2">2</button>
+                    </div>
+                </div>
+
+                <div class="config-group">
+                    <label class="config-label">Anjo</label>
+                    <div class="chip-group" id="anjoGroup">
+                        <button type="button" class="chip-btn active" data-value="sim">Sim</button>
+                        <button type="button" class="chip-btn" data-value="nao">Não</button>
+                    </div>
+                </div>
+
+                <div class="config-group">
+                    <label class="config-label">Tempo de votação</label>
+                    <div class="chip-group" id="tempoGroup">
+                        <button type="button" class="chip-btn" data-value="30">30s</button>
+                        <button type="button" class="chip-btn active" data-value="60">60s</button>
+                        <button type="button" class="chip-btn" data-value="120">120s</button>
+                    </div>
+                </div>
+
+                <div class="config-group">
+                    <label class="config-label">Voto</label>
+                    <div class="chip-group" id="votoGroup">
+                        <button type="button" class="chip-btn active" data-value="aberto">Aberto</button>
+                        <button type="button" class="chip-btn" data-value="anonimo">Anônimo</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="players-section">
+                <div class="players-header">
+                    <span>Jogadores</span>
+                    <span id="playerCount">0 / 10</span>
+                </div>
+                <ul class="players-list" id="playersList"></ul>
+            </div>
+
+            <button type="button" class="btn btn-primary btn-block hidden" id="startGameBtn">
+                <i data-lucide="play"></i> Iniciar Partida
+            </button>
+            <button type="button" class="btn btn-secondary btn-block" id="readyBtn">
+                <i data-lucide="check"></i> Estou Pronto
+            </button>
+        </section>
+
+        <!-- TELA 3: PAPEL -->
+        <section id="roleScreen" class="card-panel hidden">
+            <div class="round-badge">Seu papel</div>
+            <h2 class="display-title" id="roleTitle">...</h2>
+            <p class="subtitle" id="roleSubtitle">...</p>
+
+            <div class="role-card">
+                <div class="role-icon-wrap" id="roleIconWrap">
+                    <i data-lucide="user" id="roleIcon"></i>
+                </div>
+                <p class="role-desc" id="roleDesc">...</p>
+            </div>
+
+            <button type="button" class="btn btn-primary btn-block" id="roleConfirmBtn">
+                <i data-lucide="eye"></i> Entendi
+            </button>
+        </section>
+
+        <!-- TELA 4: NOITE -->
+        <section id="nightScreen" class="card-panel hidden">
+            <div class="night-icon">
+                <i data-lucide="moon"></i>
+            </div>
+            <h2 class="display-title">A cidade dorme...</h2>
+            <p class="subtitle" id="nightSubtitle">Sua ação</p>
+
+            <div class="night-action" id="nightActionArea"></div>
+
+            <div class="waiting-msg hidden" id="waitingMsg">
+                <i data-lucide="hourglass"></i>
+                <span>Aguardando os outros...</span>
+            </div>
+        </section>
+
+        <!-- TELA 5: DIA -->
+        <section id="dayScreen" class="card-panel hidden">
+            <div class="day-icon">
+                <i data-lucide="sun"></i>
+            </div>
+            <h2 class="display-title">A cidade acorda</h2>
+
+            <div class="day-events" id="dayEvents"></div>
+
+            <button type="button" class="btn btn-primary btn-block" id="toVoteBtn">
+                <i data-lucide="vote"></i> Ir para Votação
+            </button>
+            <div class="waiting-msg hidden" id="waitVoteMsg">
+                <i data-lucide="hourglass"></i>
+                <span>Aguardando o anfitrião...</span>
+            </div>
+        </section>
+
+        <!-- TELA 6: VOTAÇÃO -->
+        <section id="voteScreen" class="card-panel hidden">
+            <div class="vote-header">
+                <i data-lucide="vote"></i>
+                <h2>Votação</h2>
+                <p class="subtitle" id="voteTimer">--</p>
+            </div>
+
+            <p class="vote-instruction" id="voteInstruction">Escolha quem expulsar</p>
+
+            <div class="vote-grid" id="voteGrid"></div>
+
+            <div class="vote-status hidden" id="voteStatus">
+                <i data-lucide="check-circle"></i>
+                <span>Você votou</span>
+            </div>
+
+            <div class="vote-progress" id="voteProgress"></div>
+        </section>
+
+        <!-- TELA 7: RESULTADO DA RODADA -->
+        <section id="roundResultScreen" class="card-panel hidden">
+            <div class="result-icon" id="roundResultIcon">
+                <i data-lucide="user-x"></i>
+            </div>
+            <h2 class="display-title" id="roundResultTitle">Resultado</h2>
+
+            <div class="round-result-reveal" id="roundResultReveal"></div>
+
+            <button type="button" class="btn btn-primary btn-block" id="continueBtn">
+                <i data-lucide="arrow-right"></i> Continuar
+            </button>
+            <div class="waiting-msg hidden" id="waitContinueMsg">
+                <i data-lucide="hourglass"></i>
+                <span>Aguardando o anfitrião...</span>
+            </div>
+        </section>
+
+        <!-- TELA 8: FIM -->
+        <section id="gameOverScreen" class="card-panel hidden">
+            <div class="result-icon win" id="gameOverIcon">
+                <i data-lucide="trophy"></i>
+            </div>
+            <h2 class="display-title" id="gameOverTitle">Fim!</h2>
+            <p class="subtitle" id="gameOverSub">...</p>
+
+            <div class="final-reveal" id="finalReveal"></div>
+
+            <div class="game-over-actions hidden" id="gameOverActions">
+                <button type="button" class="btn btn-primary btn-block" id="rematchBtn">
+                    <i data-lucide="rotate-ccw"></i> Jogar Novamente
+                </button>
+                <button type="button" class="btn btn-secondary btn-block" id="editConfigBtn">
+                    <i data-lucide="settings"></i> Editar Configurações
+                </button>
+                <button type="button" class="btn btn-danger btn-block" id="closeRoomBtn">
+                    <i data-lucide="log-out"></i> Encerrar Sala
+                </button>
+            </div>
+
+            <div class="spectator-msg hidden" id="spectatorMsg">
+                <i data-lucide="hourglass"></i>
+                <span>Aguardando o anfitrião...</span>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal sair -->
+    <div class="modal-overlay hidden" id="exitModal">
+        <div class="modal-card">
+            <h3>Sair da Sala?</h3>
+            <p>Você será desconectado da partida.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" id="cancelExitBtn">Continuar</button>
+                <button class="btn btn-danger" id="confirmExitBtn">Sair</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal nome -->
+    <div class="modal-overlay hidden" id="nameModal">
+        <div class="modal-card">
+            <h3>Qual seu nome?</h3>
+            <p>Escolha um nome para os outros verem.</p>
+            <input type="text" id="nameInput" class="code-input name-input" placeholder="Seu nome" maxlength="15" autocomplete="off">
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" id="cancelNameBtn">Cancelar</button>
+                <button class="btn btn-primary" id="confirmNameBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="cidadedorme.js"></script>
+</body>
+</html>
