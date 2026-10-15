@@ -30,8 +30,8 @@ body {
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center;
-    padding: 4.5rem 1rem 3rem 1rem; /* Espaço extra na parte superior e inferior para facilitar a rolagem */
+    align-items: flex-start;
+    padding: 4.5rem 1rem 3rem 1rem;
     -webkit-font-smoothing: antialiased;
 }
 
@@ -48,7 +48,7 @@ body {
     box-shadow: 0 8px 24px var(--sombra);
     display: flex;
     flex-direction: column;
-    gap: 1.5rem; /* Maior espaçamento interno entre os elementos */
+    gap: 1.5rem;
     animation: fadeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -108,16 +108,23 @@ body {
     color: var(--texto-suave);
 }
 
-/* Form Groups Afastados */
+/* Form Groups */
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
-    margin-bottom: 0.25rem; /* Maior separação entre blocos de configuração */
+    gap: 0.75rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px dashed var(--bege-escuro);
+    margin-bottom: 0;
 }
 
-.theme-group {
-    margin-bottom: 1.25rem; /* Mais espaço entre o select do tema e o botão de iniciar */
+.form-group:last-of-type {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.form-group + .form-group {
+    padding-top: 0.8rem;
 }
 
 .form-label {
@@ -159,7 +166,7 @@ body {
     box-shadow: 0 2px 6px var(--sombra);
 }
 
-/* Inputs Mobile-Safe */
+/* Inputs */
 .input-with-button {
     display: flex;
     gap: 0.4rem;
@@ -193,13 +200,6 @@ body {
 }
 
 /* Equipes Empilhadas */
-.team-setup-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.3rem;
-}
-
 .teams-container-stacked {
     display: flex;
     flex-direction: column;
@@ -223,6 +223,10 @@ body {
 
 .team-a h3 { color: var(--azul-time); }
 .team-b h3 { color: var(--vermelho-time); }
+
+.shuffle-btn {
+    margin-top: 0.5rem;
+}
 
 /* Chips */
 .chip-group {
@@ -304,6 +308,10 @@ body {
 .btn-small { padding: 0.35rem 0.65rem; font-size: 0.75rem; border-radius: 8px; }
 .btn-block { width: 100%; }
 
+.btn-start {
+    margin-top: 1rem;
+}
+
 /* Cartão Secreto */
 .round-badge {
     align-self: center;
@@ -323,67 +331,83 @@ body {
 .display-title { font-size: 1.6rem; text-align: center; font-weight: 900; }
 .subtitle { text-align: center; font-size: 0.85rem; color: var(--texto-suave); }
 
-.card-secret {
-    perspective: 1000px;
-    height: 160px;
-    margin: 0.25rem 0;
-    cursor: pointer;
+/* Bloco de escolha de palavras */
+.words-block {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    animation: fadeIn 0.4s ease;
 }
 
-.card-secret-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
+.words-pick-header {
     text-align: center;
-    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-    transform-style: preserve-3d;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--texto-suave);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-.card-secret.flipped .card-secret-inner { transform: rotateY(180deg); }
+.word-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
 
-.card-front, .card-back {
-    position: absolute;
-    inset: 0;
-    backface-visibility: hidden;
-    border-radius: 20px;
+.word-choice {
+    background: #FFFFFF;
+    border: 3px solid var(--bege-escuro);
+    border-radius: 18px;
+    padding: 1.1rem 1rem;
+    font-family: inherit;
+    cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
-    box-shadow: 0 4px 16px var(--sombra);
+    gap: 0.35rem;
+    transition: border-color 0.2s ease, transform 0.15s ease, background 0.2s ease;
+    text-align: center;
+    min-height: 88px;
 }
 
-.card-front {
-    background: linear-gradient(135deg, var(--amarelo) 0%, var(--rosa) 100%);
-    transition: background 0.3s ease;
+.word-choice:active {
+    transform: scale(0.98);
 }
 
-/* Cores dinâmicas por equipe no cartão frontal */
-.card-front.bg-team-a {
-    background: linear-gradient(135deg, #4DABF7 0%, #339AF0 100%);
-    color: #FFFFFF;
+.word-choice.selected {
+    border-color: var(--texto);
+    background: #FFFDF5;
 }
 
-.card-front.bg-team-b {
-    background: linear-gradient(135deg, #FF6B8A 0%, #F06595 100%);
-    color: #FFFFFF;
-}
-
-.card-front svg { width: 40px; height: 40px; margin-bottom: 0.4rem; }
-.card-back { background: var(--texto); color: #FFFFFF; transform: rotateY(180deg); }
-
-.word-category {
+.word-choice-category {
     font-size: 0.7rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--amarelo);
-    margin-bottom: 0.4rem;
+    letter-spacing: 0.08em;
+    color: var(--texto-suave);
 }
 
-.card-back h3 { font-size: 1.5rem; font-weight: 900; text-align: center; }
+.word-choice-text {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--texto);
+    line-height: 1.2;
+}
 
-/* Cronômetro e Botões Afastados */
+.skip-btn {
+    background: transparent;
+    color: var(--texto-suave);
+    font-size: 0.85rem;
+    padding: 0.6rem;
+    border: 2px dashed var(--bege-escuro);
+}
+
+.reveal-btn {
+    margin-top: 0.5rem;
+}
+
+/* Cronômetro */
 .action-header {
     text-align: center;
     font-size: 0.9rem;
@@ -405,7 +429,7 @@ body {
 .action-controls {
     display: flex;
     flex-direction: column;
-    gap: 1rem; /* Mais afastados o botão Descobrimos do Não Descobrimos */
+    gap: 1rem;
 }
 
 .guesser-grid {
@@ -414,7 +438,7 @@ body {
     gap: 0.5rem;
 }
 
-/* Placar & Cores de Equipe na Tabela */
+/* Placar */
 .trophy-icon {
     align-self: center;
     width: 70px;
@@ -436,7 +460,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    max-height: 220px;
+    max-height: 260px;
     overflow-y: auto;
 }
 
@@ -445,11 +469,92 @@ body {
     justify-content: space-between;
     font-weight: 700;
     font-size: 0.95rem;
+    padding: 0.35rem 0;
+}
+
+.score-row.next-up {
+    background: var(--amarelo);
+    border-radius: 10px;
+    padding: 0.5rem 0.65rem;
+    margin: 0 -0.15rem;
+    position: relative;
+}
+
+.next-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--texto);
+    background: rgba(255, 255, 255, 0.7);
+    padding: 0.15rem 0.45rem;
+    border-radius: 8px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
 }
 
 .score-team-a { color: var(--azul-time); }
 .score-team-b { color: var(--vermelho-time); }
 
+/* Overlay de transição de turno */
+.transition-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bege);
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.6) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.5) 0%, transparent 50%),
+        url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9bda8' fill-opacity='0.18'%3E%3Cpath d='M50 50v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-42V4h-2v4h-4v2h4v4h2V10h4V8h-4zM8 50v-4H6v4H2v2h4v4h2v-4h4v-2H8zM8 8V4H6v4H2v2h4v4h2V10h4V8H8z'/%3E%3Ccircle cx='20' cy='20' r='1.5'/%3E%3Ccircle cx='60' cy='60' r='1.5'/%3E%3Ccircle cx='20' cy='60' r='1.5'/%3E%3Ccircle cx='60' cy='20' r='1.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    z-index: 200;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+}
+
+.transition-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.transition-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.transition-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--texto-suave);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.25rem;
+}
+
+.transition-name {
+    font-size: 2.4rem;
+    font-weight: 900;
+    color: var(--texto);
+    line-height: 1.1;
+    padding: 0 0.5rem;
+}
+
+.transition-sub {
+    font-size: 0.95rem;
+    color: var(--texto-suave);
+    margin-top: 0.35rem;
+}
+
+/* Modal */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -479,3 +584,7 @@ body {
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.05); } }
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}

@@ -3,20 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mímica - Rally</title>
+    <title>Mímica - Bandu</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232E2626' stroke-width='2'%3E%3Cpath d='M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0'%3E%3C/path%3E%3Cpath d='M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v6'%3E%3C/path%3E%3Cpath d='M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8'%3E%3C/path%3E%3Cpath d='M18 8a2 2 0 0 1 2 2v4a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15'%3E%3C/path%3E%3C/svg%3E">
     <link rel="stylesheet" href="mimica.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 
-    <!-- Barra de navegação fixa do topo -->
     <div class="top-bar">
-        <button class="icon-button exit-btn" id="exitBtn" aria-label="Voltar ao Rally">
+        <button class="icon-button exit-btn" id="exitBtn" aria-label="Voltar ao Bandu">
             <i data-lucide="arrow-left"></i>
         </button>
         <button class="icon-button score-btn hidden" id="liveScoreBtn" aria-label="Ver Placar">
@@ -34,7 +31,6 @@
             </header>
 
             <form id="configForm" onsubmit="return false;">
-                <!-- Modo de Jogo -->
                 <div class="form-group">
                     <label class="form-label">Modo de Jogo</label>
                     <div class="segmented-control">
@@ -47,7 +43,6 @@
                     </div>
                 </div>
 
-                <!-- Adicionar Jogadores (Modo Individual) -->
                 <div id="individualSetup" class="form-group">
                     <label class="form-label">Jogadores</label>
                     <div class="input-with-button">
@@ -57,14 +52,8 @@
                     <ul class="tag-list" id="playerList"></ul>
                 </div>
 
-                <!-- Adicionar Jogadores (Modo Equipes) -->
                 <div id="teamSetup" class="form-group hidden">
-                    <div class="team-setup-header">
-                        <label class="form-label">Divisão de Equipes</label>
-                        <button type="button" class="btn btn-small btn-secondary" id="randomizeTeamsBtn">
-                            <i data-lucide="shuffle"></i> Embaralhar
-                        </button>
-                    </div>
+                    <label class="form-label">Divisão de Equipes</label>
                     
                     <div class="teams-container-stacked">
                         <div class="team-box team-a">
@@ -85,9 +74,12 @@
                             <ul class="tag-list" id="teamBList"></ul>
                         </div>
                     </div>
+
+                    <button type="button" class="btn btn-secondary btn-block shuffle-btn" id="randomizeTeamsBtn">
+                        <i data-lucide="shuffle"></i> Embaralhar Equipes
+                    </button>
                 </div>
 
-                <!-- Limite de Pontuação -->
                 <div class="form-group">
                     <label class="form-label">Meta de Pontos</label>
                     <div class="chip-group" id="scoreLimitGroup">
@@ -99,7 +91,6 @@
                     </div>
                 </div>
 
-                <!-- Tempo por Rodada -->
                 <div class="form-group">
                     <label class="form-label">Tempo por Rodada</label>
                     <div class="chip-group" id="timeLimitGroup">
@@ -109,7 +100,6 @@
                     </div>
                 </div>
 
-                <!-- Tema de Palavras -->
                 <div class="form-group theme-group">
                     <label class="form-label">Tema das Palavras</label>
                     <select id="themeSelect" class="custom-select">
@@ -134,20 +124,31 @@
             <h2 id="turnActorName" class="display-title">Nome do Jogador</h2>
             <p class="subtitle" id="turnTeamSub">Passe o celular para a pessoa sorteada</p>
 
-            <div class="card-secret" id="cardSecret">
-                <div class="card-secret-inner">
-                    <div class="card-front" id="cardFrontElem">
-                        <i data-lucide="eye"></i>
-                        <p>Toque para ver a palavra</p>
-                    </div>
-                    <div class="card-back">
-                        <span class="word-category" id="wordCategory">Categoria</span>
-                        <h3 id="secretWord">PALAVRA</h3>
-                    </div>
+            <div id="wordsBlock" class="words-block hidden">
+                <div class="words-pick-header">
+                    <span>Escolha uma das palavras:</span>
                 </div>
+
+                <div class="word-choices" id="wordChoices">
+                    <button type="button" class="word-choice" data-index="0">
+                        <span class="word-choice-category">Categoria</span>
+                        <span class="word-choice-text">PALAVRA</span>
+                    </button>
+                    <button type="button" class="word-choice" data-index="1">
+                        <span class="word-choice-category">Categoria</span>
+                        <span class="word-choice-text">PALAVRA</span>
+                    </button>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-block hidden" id="startTimerBtn">Iniciar</button>
+                <button type="button" class="btn btn-secondary btn-block skip-btn" id="skipTurnBtn">
+                    <i data-lucide="skip-forward"></i> Pular Vez
+                </button>
             </div>
 
-            <button type="button" class="btn btn-primary btn-block hidden" id="startTimerBtn">Iniciar</button>
+            <button type="button" class="btn btn-primary btn-block reveal-btn" id="revealWordsBtn">
+                <i data-lucide="eye"></i> Revelar Palavras
+            </button>
         </section>
 
 
@@ -192,12 +193,21 @@
                     <i data-lucide="rotate-ccw"></i> Recomeçar Partida
                 </button>
                 <button type="button" class="btn btn-secondary btn-block" id="returnRallyBtn">
-                    <i data-lucide="home"></i> Voltar ao Rally
+                    <i data-lucide="home"></i> Voltar ao Bandu
                 </button>
             </div>
         </section>
 
     </main>
+
+    <!-- Overlay de transição de turno -->
+    <div class="transition-overlay hidden" id="transitionOverlay">
+        <div class="transition-content">
+            <div class="transition-label">A seguir</div>
+            <div class="transition-name" id="transitionName">Nome</div>
+            <div class="transition-sub" id="transitionSub">Prepare-se!</div>
+        </div>
+    </div>
 
     <!-- Modal de Placar em Tempo Real -->
     <div class="modal-overlay hidden" id="scoreModal">
@@ -212,7 +222,7 @@
     <div class="modal-overlay hidden" id="exitModal">
         <div class="modal-card">
             <h3>Cancelar Partida?</h3>
-            <p>Se voltar para o Rally, a partida atual será cancelada.</p>
+            <p>Se voltar para o Bandu, a partida atual será cancelada.</p>
             <div class="modal-buttons">
                 <button class="btn btn-secondary" id="cancelExitBtn">Continuar</button>
                 <button class="btn btn-danger" id="confirmExitBtn">Sair da Partida</button>
