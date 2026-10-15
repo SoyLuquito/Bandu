@@ -442,3 +442,38 @@ body {
     .spectrum-wrap { height: 70px; }
     .spectrum-wrap.big { height: 95px; }
 }
+
+/* ===== Ajustes do bloco de dica do mestre ===== */
+
+/* No modo LOCAL, escondemos o input e o texto "digitada" */
+body.mode-local #masterHintBlock {
+    display: none;
+}
+body.mode-local #masterInstructionText {
+    /* já é o texto padrão */
+}
+
+/* No modo ONLINE, mostramos o input */
+body.mode-online #masterHintBlock {
+    display: block;
+}
+
+/* Espaçamento entre o input de dica e o botão de confirmar */
+.btn-confirm-hint {
+    margin-top: 1.5rem;
+}
+
+/* Mesmo sem o input (modo local), mantém o afastamento do botão */
+#masterRevealArea .btn-confirm-hint {
+    margin-top: 1.5rem;
+}
+
+/* A caixa de dica na tela de palpite (modo local esconde) */
+body.mode-local #guessHintDisplay {
+    display: none;
+}
+
+/* Espaço maior entre o input e o botão de adicionar jogador na config */
+#localConfigScreen .input-with-button {
+    margin-bottom: 0.25rem;
+}

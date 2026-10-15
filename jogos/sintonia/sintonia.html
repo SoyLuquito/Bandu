@@ -127,22 +127,23 @@
                 </div>
 
                 <div class="spectrum-wrap">
-                    <div class="spectrum-bar" id="masterSpectrumBar">
-                        <!-- marcadores 0-10 -->
-                    </div>
+                    <div class="spectrum-bar" id="masterSpectrumBar"></div>
                     <div class="spectrum-target-marker" id="masterTargetMarker" style="display:none">
                         <i data-lucide="target"></i>
                     </div>
                 </div>
 
-                <p class="hint-text">Este é o alvo secreto. Dê uma dica que fique perto dele — mas não óbvia demais!</p>
+                <p class="hint-text" id="masterInstructionText">Dê uma dica em voz alta que fique perto do alvo — mas não óbvia demais!</p>
 
-                <div class="input-with-button" style="margin-top:1rem">
-                    <input type="text" id="masterHintInput" class="code-input" placeholder="Sua dica..." maxlength="30" autocomplete="off" style="text-transform:none;letter-spacing:normal;text-align:left">
+                <!-- Bloco de input (só usado no modo ONLINE) -->
+                <div class="master-hint-block" id="masterHintBlock">
+                    <div class="input-with-button">
+                        <input type="text" id="masterHintInput" class="code-input" placeholder="Sua dica..." maxlength="30" autocomplete="off" style="text-transform:none;letter-spacing:normal;text-align:left">
+                    </div>
                 </div>
 
-                <button type="button" class="btn btn-primary btn-block" id="masterConfirmHintBtn" disabled>
-                    <i data-lucide="arrow-right"></i> Enviar dica
+                <button type="button" class="btn btn-primary btn-block btn-confirm-hint" id="masterConfirmHintBtn">
+                    <i data-lucide="arrow-right"></i> Dica dada — continuar
                 </button>
             </div>
 
@@ -158,7 +159,7 @@
             <p class="subtitle" id="guessSub">Passe o celular para ele(a)</p>
 
             <div id="guessRevealArea" class="hidden">
-                <div class="hint-display">
+                <div class="hint-display" id="guessHintDisplay">
                     <span class="hint-label">Dica do mestre</span>
                     <span class="hint-text-value" id="guessHintText">...</span>
                 </div>
@@ -169,13 +170,10 @@
                 </div>
 
                 <div class="spectrum-wrap">
-                    <div class="spectrum-bar" id="guessSpectrumBar">
-                        <!-- pinos já colocados aparecem aqui -->
-                    </div>
+                    <div class="spectrum-bar" id="guessSpectrumBar"></div>
                     <div class="spectrum-target-marker" id="guessTargetMarker" style="display:none">
                         <i data-lucide="target"></i>
                     </div>
-                    <!-- Pino arrastável -->
                     <div class="draggable-pin" id="draggablePin" style="left:50%">
                         <i data-lucide="map-pin"></i>
                     </div>
@@ -189,7 +187,7 @@
             </div>
 
             <button type="button" class="btn btn-primary btn-block" id="guessRevealBtn">
-                <i data-lucide="eye"></i> Ver o alvo e dar palpite
+                <i data-lucide="eye"></i> Ver o espectro e dar palpite
             </button>
         </section>
 
