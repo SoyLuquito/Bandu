@@ -15,6 +15,9 @@
         <button class="icon-button" id="exitBtn" aria-label="Sair">
             <i data-lucide="arrow-left"></i>
         </button>
+        <button class="icon-button hidden" id="liveScoreBtn" aria-label="Ver Placar">
+            <i data-lucide="bar-chart-2"></i>
+        </button>
     </div>
 
     <main class="container">
@@ -126,16 +129,16 @@
                     <span class="theme-side theme-right" id="themeRight">Quente</span>
                 </div>
 
-                <div class="spectrum-wrap">
+                <div class="spectrum-wrap" id="masterSpectrumWrap">
                     <div class="spectrum-bar" id="masterSpectrumBar"></div>
-                    <div class="spectrum-target-marker" id="masterTargetMarker" style="display:none">
-                        <i data-lucide="target"></i>
+                    <!-- Alvo: linha vertical destacada -->
+                    <div class="spectrum-target-line" id="masterTargetLine" style="display:none">
+                        <span class="target-triangle">▼</span>
                     </div>
                 </div>
 
                 <p class="hint-text" id="masterInstructionText">Dê uma dica em voz alta que fique perto do alvo — mas não óbvia demais!</p>
 
-                <!-- Bloco de input (só usado no modo ONLINE) -->
                 <div class="master-hint-block" id="masterHintBlock">
                     <div class="input-with-button">
                         <input type="text" id="masterHintInput" class="code-input" placeholder="Sua dica..." maxlength="30" autocomplete="off" style="text-transform:none;letter-spacing:normal;text-align:left">
@@ -169,19 +172,21 @@
                     <span class="theme-side theme-right" id="guessThemeRight">Quente</span>
                 </div>
 
-                <div class="spectrum-wrap">
+                <div class="spectrum-wrap" id="guessSpectrumWrap">
                     <div class="spectrum-bar" id="guessSpectrumBar"></div>
-                    <div class="spectrum-target-marker" id="guessTargetMarker" style="display:none">
-                        <i data-lucide="target"></i>
+                    <div class="spectrum-target-line" id="guessTargetLine" style="display:none">
+                        <span class="target-triangle">▼</span>
                     </div>
-                    <div class="draggable-pin" id="draggablePin" style="left:50%">
-                        <i data-lucide="map-pin"></i>
+                    <!-- Linha arrastável -->
+                    <div class="draggable-line" id="draggableLine" style="left:50%">
+                        <span class="line-handle">◆</span>
                     </div>
                 </div>
 
-                <p class="hint-text" id="guessCoords">Posição: 5,0</p>
+                <!-- Indicador de posição logo abaixo da barra -->
+                <p class="hint-text coords-inline" id="guessCoords">Posição: 5,0</p>
 
-                <button type="button" class="btn btn-primary btn-block" id="guessConfirmBtn">
+                <button type="button" class="btn btn-primary btn-block btn-confirm-guess" id="guessConfirmBtn">
                     <i data-lucide="check"></i> Confirmar palpite
                 </button>
             </div>
@@ -202,10 +207,10 @@
                 <span class="theme-side theme-right" id="revealThemeRight">Quente</span>
             </div>
 
-            <div class="spectrum-wrap big">
+            <div class="spectrum-wrap big" id="revealSpectrumWrap">
                 <div class="spectrum-bar" id="revealSpectrumBar"></div>
-                <div class="spectrum-target-marker" id="revealTargetMarker">
-                    <i data-lucide="target"></i>
+                <div class="spectrum-target-line" id="revealTargetLine">
+                    <span class="target-triangle">▼</span>
                 </div>
                 <div id="revealPinsLayer"></div>
             </div>
@@ -250,6 +255,15 @@
         </section>
 
     </main>
+
+    <!-- Modal placar ao vivo -->
+    <div class="modal-overlay hidden" id="scoreModal">
+        <div class="modal-card">
+            <h3>Placar</h3>
+            <div class="final-scoreboard" id="liveScoreContent"></div>
+            <button class="btn btn-primary" id="closeScoreModalBtn">Fechar</button>
+        </div>
+    </div>
 
     <!-- Modal sair -->
     <div class="modal-overlay hidden" id="exitModal">

@@ -39,13 +39,6 @@ const MIN_PLAYERS = 2;
 const CODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const CODE_LENGTH = 6;
 
-const PONTOS_POR_DISTANCIA = {
-    exato: 3,
-    perto: 2,
-    medio: 1,
-    longe: 0
-};
-
 // ============================================================
 // TEMAS DO ESPECTRO
 // ============================================================
@@ -147,6 +140,8 @@ const nameModal = document.getElementById('nameModal');
 const nameInput = document.getElementById('nameInput');
 const loadingOverlay = document.getElementById('loadingOverlay');
 const loadingText = document.getElementById('loadingText');
+const scoreModal = document.getElementById('scoreModal');
+const liveScoreBtn = document.getElementById('liveScoreBtn');
 
 // ============================================================
 // LOADING
@@ -181,17 +176,29 @@ function generateRoomCode() {
 
 function showScreen(key) {
     Object.keys(screens).forEach(k => {
+        if (k === screens[k]) return;
+    });
+    Object.keys(screens).forEach(k => {
         if (k === key) screens[k].classList.remove('hidden');
         else screens[k].classList.add('hidden');
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// Pontuação por distância — MAIS RÍGIDA agora
 function pontosPorDistancia(dist) {
-    if (dist <= 0.5) return 3;
-    if (dist <= 1.5) return 2;
-    if (dist <= 2.5) return 1;
-    return 0;
+    if (dist <= 0.5) return 3;   // certeiro
+    if (dist <= 1.0) return 2;   // perto
+    if (dist <= 1.5) return 1;   // médio
+    return 0;                     // longe
+}
+
+// Pontuação do MESTRE: sempre 1 a menos que quem acertou melhor
+// (2 para certeiro, 1 para perto, 0 para médio ou ninguém acertou)
+function pontosMestre(melhorDistancia) {
+    if (melhorDistancia <= 0.5) return 2;   // alguém acertou certeiro → mestre ganha 2
+    if (melhorDistancia <= 1.0) return 1;   // alguém acertou perto → mestre ganha 1
+    return 0;                                // médio ou ninguém → mestre ganha 0
 }
 
 function renderTicks(bar) {
@@ -204,11 +211,61 @@ function renderTicks(bar) {
     }
 }
 
-// Aplica a classe do modo no <body> (para CSS condicional)
 function applyModeClass(mode) {
     document.body.classList.remove('mode-local', 'mode-online');
     if (mode === 'local') document.body.classList.add('mode-local');
     if (mode === 'online') document.body.classList.add('mode-online');
+}
+
+function updateCoordsLabel(val) {
+    const el = document.getElementById('guessCoords');
+    if (el) el.innerText = `Posição: ${val.toFixed(1)}`;
+}
+
+// Mostra / esconde o botão de placar ao vivo
+function setLiveScoreVisible(visible) {
+    if (visible) liveScoreBtn.classList.remove('hidden');
+    else liveScoreBtn.classList.add('hidden');
+}
+
+// ============================================================
+// PLACAR AO VIVO
+// ============================================================
+liveScoreBtn.addEventListener('click', () => {
+    renderLiveScore();
+    scoreModal.classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
+});
+
+document.getElementById('closeScoreModalBtn').addEventListener('click', () => {
+    scoreModal.classList.add('hidden');
+});
+
+function renderLiveScore() {
+    const content = document.getElementById('liveScoreContent');
+    content.innerHTML = '';
+
+    let players = [];
+    let nextMaster = null;
+
+    if (state.gameMode === 'local') {
+        players = state.local.players;
+        nextMaster = state.local.players[state.local.masterIndex]?.nome || null;
+    } else if (state.gameMode === 'online' && state.online.roomData) {
+        const room = state.online.roomData;
+        players = Object.entries(room.jogadores).map(([uid, p]) => ({ nome: p.nome, pontos: p.pontos || 0, uid }));
+        const masterUid = room.ordemJogadores[room.masterIndex % room.ordemJogadores.length];
+        nextMaster = room.jogadores[masterUid]?.nome || null;
+    }
+
+    const sorted = [...players].sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
+    sorted.forEach(p => {
+        const isNext = p.nome === nextMaster;
+        const row = document.createElement('div');
+        row.className = 'score-row' + (isNext ? ' next-up' : '');
+        row.innerHTML = `<span>${p.nome}${isNext ? ' <span class="next-badge">▶ Próximo mestre</span>' : ''}</span><span>${p.pontos || 0} pts</span>`;
+        content.appendChild(row);
+    });
 }
 
 // ============================================================
@@ -236,7 +293,7 @@ async function ensureAuth() {
         state.online.uid = cred.user.uid;
         return true;
     } catch (e) {
-        alert('Erro de autenticação. Verifique se o login anônimo está ativado no Firebase.');
+        alert('Erro de autenticação.');
         console.error(e);
         return false;
     }
@@ -309,6 +366,7 @@ function initLocalGame() {
     };
     renderLocalConfig();
     showScreen('configLocal');
+    setLiveScoreVisible(false);
 }
 
 function renderLocalConfig() {
@@ -395,12 +453,10 @@ function startLocalRound() {
     L.guessIndex = 0;
     L.fase = 'master';
 
+    setLiveScoreVisible(true);
     renderLocalMasterScreen();
 }
 
-// ============================================================
-// MODO LOCAL — TELA DO MESTRE (SEM INPUT DE DICA)
-// ============================================================
 function renderLocalMasterScreen() {
     if (state.gameMode !== 'local') return;
     showScreen('master');
@@ -416,17 +472,14 @@ function renderLocalMasterScreen() {
     revealArea.classList.add('hidden');
     revealBtn.classList.remove('hidden');
 
-    // Texto explicativo — modo local fala em voz alta
     document.getElementById('masterInstructionText').innerText =
         'Dê uma dica em voz alta que fique perto do alvo — mas não óbvia demais!';
 
-    // Tema nos lados
     document.getElementById('themeLeft').innerText = L.currentTheme.left;
     document.getElementById('themeRight').innerText = L.currentTheme.right;
 
     renderTicks(document.getElementById('masterSpectrumBar'));
 
-    // Botão revelar (clonado para limpar listeners)
     const newRevealBtn = revealBtn.cloneNode(true);
     revealBtn.parentNode.replaceChild(newRevealBtn, revealBtn);
 
@@ -435,21 +488,21 @@ function renderLocalMasterScreen() {
         revealArea.classList.remove('hidden');
         newRevealBtn.classList.add('hidden');
 
-        const marker = document.getElementById('masterTargetMarker');
-        marker.style.display = 'flex';
-        marker.style.left = (L.currentTarget * 10) + '%';
+        // Mostra a linha do alvo
+        const targetLine = document.getElementById('masterTargetLine');
+        targetLine.style.display = 'block';
+        targetLine.style.left = (L.currentTarget * 10) + '%';
 
         if (window.lucide) lucide.createIcons();
     });
 
-    // Botão continuar (clonado) — modo local NÃO tem input, é só continuar
     const newConfirm = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
     newConfirm.innerHTML = '<i data-lucide="arrow-right"></i> Dica dada — continuar';
 
     newConfirm.addEventListener('click', () => {
         if (state.gameMode !== 'local') return;
-        L.currentHint = ''; // dica falada, sem registro escrito
+        L.currentHint = '';
         L.fase = 'guess';
         L.guessIndex = 0;
         renderLocalGuessScreen();
@@ -458,9 +511,6 @@ function renderLocalMasterScreen() {
     if (window.lucide) lucide.createIcons();
 }
 
-// ============================================================
-// MODO LOCAL — TELA DE PALPITE
-// ============================================================
 function renderLocalGuessScreen() {
     if (state.gameMode !== 'local') return;
     showScreen('guess');
@@ -482,28 +532,25 @@ function renderLocalGuessScreen() {
 
     document.getElementById('guessThemeLeft').innerText = L.currentTheme.left;
     document.getElementById('guessThemeRight').innerText = L.currentTheme.right;
-
-    // No modo local a dica é falada, então a caixa de dica fica escondida
-    // (CSS já cuida disso via body.mode-local #guessHintDisplay)
     document.getElementById('guessHintText').innerText = '';
 
     const bar = document.getElementById('guessSpectrumBar');
     renderTicks(bar);
 
-    // Limpa pinos antigos
-    document.querySelectorAll('#guessRevealArea .fixed-pin').forEach(el => el.remove());
+    // Remove linhas fixas antigas
+    revealArea.querySelectorAll('.fixed-line').forEach(el => el.remove());
 
-    // Reposiciona pinos já colocados
+    // Mostra linhas dos palpites já registrados
     Object.entries(L.guesses).forEach(([nome, pos]) => {
-        const pin = document.createElement('div');
-        pin.className = 'fixed-pin pin-close';
-        pin.style.left = (pos * 10) + '%';
-        pin.innerText = nome.charAt(0).toUpperCase();
-        pin.title = nome;
-        revealArea.appendChild(pin);
+        const line = document.createElement('div');
+        line.className = 'fixed-line pin-close';
+        line.style.left = (pos * 10) + '%';
+        line.innerHTML = `<span class="line-label">${nome.charAt(0).toUpperCase()}</span>`;
+        line.title = nome;
+        revealArea.appendChild(line);
     });
 
-    document.getElementById('guessTargetMarker').style.display = 'none';
+    document.getElementById('guessTargetLine').style.display = 'none';
 
     const newReveal = revealBtn.cloneNode(true);
     revealBtn.parentNode.replaceChild(newReveal, revealBtn);
@@ -513,25 +560,25 @@ function renderLocalGuessScreen() {
         revealArea.classList.remove('hidden');
         newReveal.classList.add('hidden');
 
-        initDraggablePin(currentGuesser);
+        initDraggableLine(currentGuesser);
         if (window.lucide) lucide.createIcons();
     });
 
     if (window.lucide) lucide.createIcons();
 }
 
-function initDraggablePin(guesserName) {
+function initDraggableLine(guesserName) {
     const L = state.local;
-    const pin = document.getElementById('draggablePin');
-    const wrap = pin.parentElement;
+    const line = document.getElementById('draggableLine');
+    const wrap = line.parentElement;
 
-    pin.dataset.pos = '5';
-    pin.style.left = '50%';
+    line.dataset.pos = '5';
+    line.style.left = '50%';
     updateCoordsLabel(5);
 
-    const newPin = pin.cloneNode(true);
-    pin.parentNode.replaceChild(newPin, pin);
-    const newPinEl = document.getElementById('draggablePin');
+    const newLine = line.cloneNode(true);
+    line.parentNode.replaceChild(newLine, line);
+    const newLineEl = document.getElementById('draggableLine');
 
     const confirmBtn = document.getElementById('guessConfirmBtn');
     const newConfirm = confirmBtn.cloneNode(true);
@@ -539,7 +586,7 @@ function initDraggablePin(guesserName) {
 
     newConfirm.addEventListener('click', () => {
         if (state.gameMode !== 'local') return;
-        const pos = parseFloat(newPinEl.dataset.pos || '5');
+        const pos = parseFloat(newLineEl.dataset.pos || '5');
         L.guesses[guesserName] = pos;
         L.guessIndex++;
         renderLocalGuessScreen();
@@ -555,39 +602,31 @@ function initDraggablePin(guesserName) {
         let pct = (clientX - rect.left) / rect.width;
         pct = Math.max(0, Math.min(1, pct));
         const val = pct * 10;
-        newPinEl.dataset.pos = val.toFixed(2);
-        newPinEl.style.left = (val * 10) + '%';
+        newLineEl.dataset.pos = val.toFixed(2);
+        newLineEl.style.left = (val * 10) + '%';
         updateCoordsLabel(val);
     };
     const onUp = () => { dragging = false; };
 
-    newPinEl.addEventListener('mousedown', onDown);
-    newPinEl.addEventListener('touchstart', onDown, { passive: false });
+    newLineEl.addEventListener('mousedown', onDown);
+    newLineEl.addEventListener('touchstart', onDown, { passive: false });
     document.addEventListener('mousemove', onMove);
     document.addEventListener('touchmove', onMove, { passive: false });
     document.addEventListener('mouseup', onUp);
     document.addEventListener('touchend', onUp);
 
     wrap.addEventListener('click', (e) => {
-        if (e.target === newPinEl) return;
+        if (e.target === newLineEl || newLineEl.contains(e.target)) return;
         const rect = wrap.getBoundingClientRect();
         let pct = (e.clientX - rect.left) / rect.width;
         pct = Math.max(0, Math.min(1, pct));
         const val = pct * 10;
-        newPinEl.dataset.pos = val.toFixed(2);
-        newPinEl.style.left = (val * 10) + '%';
+        newLineEl.dataset.pos = val.toFixed(2);
+        newLineEl.style.left = (val * 10) + '%';
         updateCoordsLabel(val);
     });
 }
 
-function updateCoordsLabel(val) {
-    const el = document.getElementById('guessCoords');
-    if (el) el.innerText = `Posição: ${val.toFixed(1)}`;
-}
-
-// ============================================================
-// MODO LOCAL — FINALIZAR RODADA
-// ============================================================
 function finalizeLocalRound() {
     if (state.gameMode !== 'local') return;
     const L = state.local;
@@ -595,15 +634,19 @@ function finalizeLocalRound() {
     const masterName = L.currentMaster;
 
     const roundResults = [];
-    let masterPoints = 0;
+    let melhorDist = Infinity;
 
     Object.entries(L.guesses).forEach(([nome, pos]) => {
         const dist = Math.abs(pos - target);
         const pts = pontosPorDistancia(dist);
         roundResults.push({ nome, pos, dist, pts });
-        masterPoints += pts;
+        if (dist < melhorDist) melhorDist = dist;
     });
 
+    // Mestre ganha 1 a menos que quem acertou melhor
+    const masterPoints = melhorDist === Infinity ? 0 : pontosMestre(melhorDist);
+
+    // Aplica pontos
     roundResults.forEach(r => {
         const p = L.players.find(x => x.nome === r.nome);
         if (p) p.pontos += r.pts;
@@ -624,31 +667,30 @@ function renderLocalRevealScreen() {
     const target = L.currentTarget;
 
     document.getElementById('revealThemeTitle').innerText = `${L.currentTheme.left} ↔ ${L.currentTheme.right}`;
-
-    // No modo local, a dica foi falada — mostra "dica falada" no lugar
     document.getElementById('revealHintLine').innerHTML =
-        `Mestre: <strong>${L.currentMaster}</strong> (dica falada em voz alta)`;
+        `Mestre: <strong>${L.currentMaster}</strong> (dica falada)`;
 
     document.getElementById('revealThemeLeft').innerText = L.currentTheme.left;
     document.getElementById('revealThemeRight').innerText = L.currentTheme.right;
 
     renderTicks(document.getElementById('revealSpectrumBar'));
 
-    const targetMarker = document.getElementById('revealTargetMarker');
-    targetMarker.style.display = 'flex';
-    targetMarker.style.left = (target * 10) + '%';
+    // Linha do alvo
+    const targetLine = document.getElementById('revealTargetLine');
+    targetLine.style.display = 'block';
+    targetLine.style.left = (target * 10) + '%';
 
+    // Linhas dos palpites
     const pinsLayer = document.getElementById('revealPinsLayer');
     pinsLayer.innerHTML = '';
     L.lastRoundResults.forEach(r => {
-        const pin = document.createElement('div');
-        const dist = r.dist;
-        const cls = dist <= 0.5 ? 'pin-close' : (dist <= 1.5 ? 'pin-close' : (dist <= 2.5 ? 'pin-med' : 'pin-far'));
-        pin.className = 'fixed-pin ' + cls;
-        pin.style.left = (r.pos * 10) + '%';
-        pin.innerText = r.nome.charAt(0).toUpperCase();
-        pin.title = `${r.nome} (+${r.pts})`;
-        pinsLayer.appendChild(pin);
+        const line = document.createElement('div');
+        const cls = r.dist <= 0.5 ? 'pin-close' : (r.dist <= 1.0 ? 'pin-close' : (r.dist <= 1.5 ? 'pin-med' : 'pin-far'));
+        line.className = 'fixed-line ' + cls;
+        line.style.left = (r.pos * 10) + '%';
+        line.innerHTML = `<span class="line-label">${r.nome.charAt(0).toUpperCase()} +${r.pts}</span>`;
+        line.title = `${r.nome} (+${r.pts})`;
+        pinsLayer.appendChild(line);
     });
 
     const scoresDiv = document.getElementById('roundScores');
@@ -883,17 +925,21 @@ function listenToRoom(code) {
         state.online.isHost = state.online.roomData.criadorId === state.online.uid;
 
         const status = state.online.roomData.status;
-        if (status === 'lobby') renderOnlineLobby();
-        else if (status === 'master') renderOnlineMaster();
-        else if (status === 'guess') renderOnlineGuess();
-        else if (status === 'reveal') renderOnlineReveal();
-        else if (status === 'score') renderOnlineScore();
+        if (status === 'lobby') {
+            renderOnlineLobby();
+            setLiveScoreVisible(false);
+        } else {
+            setLiveScoreVisible(true);
+            if (status === 'master') renderOnlineMaster();
+            else if (status === 'guess') renderOnlineGuess();
+            else if (status === 'reveal') renderOnlineReveal();
+            else if (status === 'score') renderOnlineScore();
+        }
     }, (err) => {
         console.error('Listener error:', err);
     });
 }
 
-// ---- LOBBY ----
 function renderOnlineLobby() {
     if (state.gameMode !== 'online') return;
     showScreen('lobby');
@@ -1010,9 +1056,6 @@ async function startOnlineRound() {
     });
 }
 
-// ============================================================
-// MODO ONLINE — TELA DO MESTRE (COM INPUT DE DICA — BUG CORRIGIDO)
-// ============================================================
 function renderOnlineMaster() {
     if (state.gameMode !== 'online') return;
     showScreen('master');
@@ -1048,19 +1091,16 @@ function renderOnlineMaster() {
 
     document.getElementById('masterSub').innerText = 'Você é o mestre!';
 
-    // Reset de estado dos elementos — IMPORTANTE: sempre resetar aqui
     revealArea.classList.add('hidden');
     revealBtn.classList.remove('hidden');
     revealBtn.disabled = false;
     revealBtn.innerHTML = '<i data-lucide="eye"></i> Revelar alvo secreto';
 
-    // Reset do input e botão ANTES de adicionar listeners
     hintInput.value = '';
     hintInput.disabled = false;
     confirmBtn.disabled = true;
     confirmBtn.innerHTML = '<i data-lucide="arrow-right"></i> Enviar dica';
 
-    // Clone reveal button (limpa listeners antigos)
     const newReveal = revealBtn.cloneNode(true);
     revealBtn.parentNode.replaceChild(newReveal, revealBtn);
 
@@ -1069,26 +1109,22 @@ function renderOnlineMaster() {
         revealArea.classList.remove('hidden');
         newReveal.classList.add('hidden');
 
-        const marker = document.getElementById('masterTargetMarker');
-        marker.style.display = 'flex';
-        marker.style.left = (room.currentTarget * 10) + '%';
+        const targetLine = document.getElementById('masterTargetLine');
+        targetLine.style.display = 'block';
+        targetLine.style.left = (room.currentTarget * 10) + '%';
 
         if (window.lucide) lucide.createIcons();
         hintInput.focus();
     });
 
-    // Clone input (limpa listeners antigos)
     const newInput = hintInput.cloneNode(true);
     hintInput.parentNode.replaceChild(newInput, hintInput);
 
-    // Clone confirm button (limpa listeners antigos)
     const newConfirm = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
 
-    // IMPORTANTE: ligar o listener do input ao NOVO botão confirm
     newInput.addEventListener('input', () => {
-        const v = newInput.value.trim();
-        newConfirm.disabled = v.length < 1;
+        newConfirm.disabled = newInput.value.trim().length < 1;
     });
     newInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !newConfirm.disabled) {
@@ -1097,7 +1133,6 @@ function renderOnlineMaster() {
         }
     });
 
-    // Listener do novo confirm
     newConfirm.addEventListener('click', async () => {
         if (state.gameMode !== 'online') return;
         const v = newInput.value.trim();
@@ -1112,9 +1147,6 @@ function renderOnlineMaster() {
     if (window.lucide) lucide.createIcons();
 }
 
-// ============================================================
-// MODO ONLINE — TELA DE PALPITE
-// ============================================================
 function renderOnlineGuess() {
     if (state.gameMode !== 'online') return;
     showScreen('guess');
@@ -1136,21 +1168,19 @@ function renderOnlineGuess() {
     renderTicks(document.getElementById('guessSpectrumBar'));
 
     const revealArea = document.getElementById('guessRevealArea');
-    // Limpa pinos fixos antigos
-    revealArea.querySelectorAll('.fixed-pin').forEach(el => el.remove());
+    revealArea.querySelectorAll('.fixed-line').forEach(el => el.remove());
 
-    // Pinos dos palpites anteriores
     Object.entries(room.guesses || {}).forEach(([uid, pos]) => {
         const nome = room.jogadores[uid]?.nome || '?';
-        const pin = document.createElement('div');
-        pin.className = 'fixed-pin pin-close';
-        pin.style.left = (pos * 10) + '%';
-        pin.innerText = nome.charAt(0).toUpperCase();
-        pin.title = nome;
-        revealArea.appendChild(pin);
+        const line = document.createElement('div');
+        line.className = 'fixed-line pin-close';
+        line.style.left = (pos * 10) + '%';
+        line.innerHTML = `<span class="line-label">${nome.charAt(0).toUpperCase()}</span>`;
+        line.title = nome;
+        revealArea.appendChild(line);
     });
 
-    document.getElementById('guessTargetMarker').style.display = 'none';
+    document.getElementById('guessTargetLine').style.display = 'none';
 
     const revealBtn = document.getElementById('guessRevealBtn');
 
@@ -1177,24 +1207,24 @@ function renderOnlineGuess() {
         if (state.gameMode !== 'online') return;
         revealArea.classList.remove('hidden');
         newReveal.classList.add('hidden');
-        initOnlineDraggablePin();
+        initOnlineDraggableLine();
         if (window.lucide) lucide.createIcons();
     });
 
     if (window.lucide) lucide.createIcons();
 }
 
-function initOnlineDraggablePin() {
-    const pin = document.getElementById('draggablePin');
-    const wrap = pin.parentElement;
+function initOnlineDraggableLine() {
+    const line = document.getElementById('draggableLine');
+    const wrap = line.parentElement;
 
-    pin.dataset.pos = '5';
-    pin.style.left = '50%';
+    line.dataset.pos = '5';
+    line.style.left = '50%';
     updateCoordsLabel(5);
 
-    const newPin = pin.cloneNode(true);
-    pin.parentNode.replaceChild(newPin, pin);
-    const newPinEl = document.getElementById('draggablePin');
+    const newLine = line.cloneNode(true);
+    line.parentNode.replaceChild(newLine, line);
+    const newLineEl = document.getElementById('draggableLine');
 
     const confirmBtn = document.getElementById('guessConfirmBtn');
     const newConfirm = confirmBtn.cloneNode(true);
@@ -1202,7 +1232,7 @@ function initOnlineDraggablePin() {
 
     newConfirm.addEventListener('click', async () => {
         if (state.gameMode !== 'online') return;
-        const pos = parseFloat(newPinEl.dataset.pos || '5');
+        const pos = parseFloat(newLineEl.dataset.pos || '5');
         const room = state.online.roomData;
         const guesses = { ...(room.guesses || {}) };
         guesses[state.online.uid] = pos;
@@ -1222,27 +1252,27 @@ function initOnlineDraggablePin() {
         let pct = (clientX - rect.left) / rect.width;
         pct = Math.max(0, Math.min(1, pct));
         const val = pct * 10;
-        newPinEl.dataset.pos = val.toFixed(2);
-        newPinEl.style.left = (val * 10) + '%';
+        newLineEl.dataset.pos = val.toFixed(2);
+        newLineEl.style.left = (val * 10) + '%';
         updateCoordsLabel(val);
     };
     const onUp = () => { dragging = false; };
 
-    newPinEl.addEventListener('mousedown', onDown);
-    newPinEl.addEventListener('touchstart', onDown, { passive: false });
+    newLineEl.addEventListener('mousedown', onDown);
+    newLineEl.addEventListener('touchstart', onDown, { passive: false });
     document.addEventListener('mousemove', onMove);
     document.addEventListener('touchmove', onMove, { passive: false });
     document.addEventListener('mouseup', onUp);
     document.addEventListener('touchend', onUp);
 
     wrap.addEventListener('click', (e) => {
-        if (e.target === newPinEl) return;
+        if (e.target === newLineEl || newLineEl.contains(e.target)) return;
         const rect = wrap.getBoundingClientRect();
         let pct = (e.clientX - rect.left) / rect.width;
         pct = Math.max(0, Math.min(1, pct));
         const val = pct * 10;
-        newPinEl.dataset.pos = val.toFixed(2);
-        newPinEl.style.left = (val * 10) + '%';
+        newLineEl.dataset.pos = val.toFixed(2);
+        newLineEl.style.left = (val * 10) + '%';
         updateCoordsLabel(val);
     });
 }
@@ -1256,15 +1286,18 @@ async function finalizeOnlineRound() {
     const masterName = room.jogadores[masterUid]?.nome || '?';
 
     const roundResults = [];
-    let masterPoints = 0;
+    let melhorDist = Infinity;
 
     Object.entries(room.guesses || {}).forEach(([uid, pos]) => {
         const nome = room.jogadores[uid]?.nome || '?';
         const dist = Math.abs(pos - target);
         const pts = pontosPorDistancia(dist);
         roundResults.push({ uid, nome, pos, dist, pts });
-        masterPoints += pts;
+        if (dist < melhorDist) melhorDist = dist;
     });
+
+    // Mestre ganha 1 a menos que quem acertou melhor
+    const masterPoints = melhorDist === Infinity ? 0 : pontosMestre(melhorDist);
 
     const jogadoresAtualizados = JSON.parse(JSON.stringify(room.jogadores));
     roundResults.forEach(r => {
@@ -1299,20 +1332,20 @@ function renderOnlineReveal() {
 
     renderTicks(document.getElementById('revealSpectrumBar'));
 
-    const targetMarker = document.getElementById('revealTargetMarker');
-    targetMarker.style.display = 'flex';
-    targetMarker.style.left = (room.currentTarget * 10) + '%';
+    const targetLine = document.getElementById('revealTargetLine');
+    targetLine.style.display = 'block';
+    targetLine.style.left = (room.currentTarget * 10) + '%';
 
     const pinsLayer = document.getElementById('revealPinsLayer');
     pinsLayer.innerHTML = '';
     (room.lastRoundResults || []).forEach(r => {
-        const pin = document.createElement('div');
-        const cls = r.dist <= 1.5 ? 'pin-close' : (r.dist <= 2.5 ? 'pin-med' : 'pin-far');
-        pin.className = 'fixed-pin ' + cls;
-        pin.style.left = (r.pos * 10) + '%';
-        pin.innerText = r.nome.charAt(0).toUpperCase();
-        pin.title = `${r.nome} (+${r.pts})`;
-        pinsLayer.appendChild(pin);
+        const line = document.createElement('div');
+        const cls = r.dist <= 1.0 ? 'pin-close' : (r.dist <= 1.5 ? 'pin-med' : 'pin-far');
+        line.className = 'fixed-line ' + cls;
+        line.style.left = (r.pos * 10) + '%';
+        line.innerHTML = `<span class="line-label">${r.nome.charAt(0).toUpperCase()} +${r.pts}</span>`;
+        line.title = `${r.nome} (+${r.pts})`;
+        pinsLayer.appendChild(line);
     });
 
     const scoresDiv = document.getElementById('roundScores');
@@ -1502,7 +1535,9 @@ function cleanupAndHome() {
 
     exitModal.classList.add('hidden');
     nameModal.classList.add('hidden');
+    scoreModal.classList.add('hidden');
     hideLoading();
+    setLiveScoreVisible(false);
 
     document.body.classList.remove('mode-local', 'mode-online');
     document.getElementById('modeChoice').classList.remove('hidden');
