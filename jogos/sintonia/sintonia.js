@@ -104,7 +104,7 @@ const state = {
         currentTarget: null,
         currentHint: '',
         currentMaster: null,
-        guesses: {},
+        guesses: {},   // { nome: numero 0..10 }
         guessOrder: [],
         guessIndex: 0,
         fase: 'config'
@@ -176,29 +176,27 @@ function generateRoomCode() {
 
 function showScreen(key) {
     Object.keys(screens).forEach(k => {
-        if (k === screens[k]) return;
-    });
-    Object.keys(screens).forEach(k => {
         if (k === key) screens[k].classList.remove('hidden');
         else screens[k].classList.add('hidden');
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Pontuação por distância — MAIS RÍGIDA agora
+// ============================================================
+// PONTUAÇÃO — MARGEM BEM MAIS CURTA
+// ============================================================
 function pontosPorDistancia(dist) {
-    if (dist <= 0.5) return 3;   // certeiro
-    if (dist <= 1.0) return 2;   // perto
-    if (dist <= 1.5) return 1;   // médio
+    if (dist <= 0.3) return 3;   // certeiro
+    if (dist <= 0.6) return 2;   // perto
+    if (dist <= 1.0) return 1;   // médio
     return 0;                     // longe
 }
 
-// Pontuação do MESTRE: sempre 1 a menos que quem acertou melhor
-// (2 para certeiro, 1 para perto, 0 para médio ou ninguém acertou)
+// Mestre ganha 1 a menos que o melhor acertador
 function pontosMestre(melhorDistancia) {
-    if (melhorDistancia <= 0.5) return 2;   // alguém acertou certeiro → mestre ganha 2
-    if (melhorDistancia <= 1.0) return 1;   // alguém acertou perto → mestre ganha 1
-    return 0;                                // médio ou ninguém → mestre ganha 0
+    if (melhorDistancia <= 0.3) return 2;
+    if (melhorDistancia <= 0.6) return 1;
+    return 0;
 }
 
 function renderTicks(bar) {
@@ -219,13 +217,48 @@ function applyModeClass(mode) {
 
 function updateCoordsLabel(val) {
     const el = document.getElementById('guessCoords');
-    if (el) el.innerText = `Posição: ${val.toFixed(1)}`;
+    if (el) el.innerText = `Posição: ${Number(val).toFixed(1)}`;
 }
 
-// Mostra / esconde o botão de placar ao vivo
 function setLiveScoreVisible(visible) {
     if (visible) liveScoreBtn.classList.remove('hidden');
     else liveScoreBtn.classList.add('hidden');
+}
+
+// ============================================================
+// RENDER DE LINHAS FIXAS (universal — usa só números 0..10)
+// Limpa tudo e redesenha a partir do state. Funciona em qualquer
+// tamanho de tela, sem sobras da rodada anterior.
+// ============================================================
+function renderPins(container, guesses, labelsMap) {
+    if (!container) return;
+
+    // 1) Limpa tudo que é linha fixa
+    container.querySelectorAll('.fixed-line').forEach(el => el.remove());
+
+    // 2) Esconde SEMPRE a linha arrastável (só aparece quando o palpiteiro clica)
+    const dragLine = document.getElementById('draggableLine');
+    if (dragLine) dragLine.classList.add('hidden');
+
+    // 3) Redesenha cada palpite a partir do VALOR numérico (0..10)
+    if (!guesses) return;
+    Object.entries(guesses).forEach(([key, pos]) => {
+        const posNum = Number(pos);
+        if (isNaN(posNum)) return;
+
+        // trava entre 0 e 10 pra garantir
+        const clamped = Math.max(0, Math.min(10, posNum));
+
+        const line = document.createElement('div');
+        line.className = 'fixed-line pin-close';
+        line.style.left = (clamped * 10) + '%';
+
+        const label = labelsMap ? labelsMap[key] : key;
+        const inicial = (label || '?').charAt(0).toUpperCase();
+        line.innerHTML = `<span class="line-label">${inicial}</span>`;
+        line.title = label || '';
+        container.appendChild(line);
+    });
 }
 
 // ============================================================
@@ -480,6 +513,9 @@ function renderLocalMasterScreen() {
 
     renderTicks(document.getElementById('masterSpectrumBar'));
 
+    // Esconde a linha do alvo até clicar em revelar
+    document.getElementById('masterTargetLine').style.display = 'none';
+
     const newRevealBtn = revealBtn.cloneNode(true);
     revealBtn.parentNode.replaceChild(newRevealBtn, revealBtn);
 
@@ -488,7 +524,6 @@ function renderLocalMasterScreen() {
         revealArea.classList.remove('hidden');
         newRevealBtn.classList.add('hidden');
 
-        // Mostra a linha do alvo
         const targetLine = document.getElementById('masterTargetLine');
         targetLine.style.display = 'block';
         targetLine.style.left = (L.currentTarget * 10) + '%';
@@ -537,20 +572,18 @@ function renderLocalGuessScreen() {
     const bar = document.getElementById('guessSpectrumBar');
     renderTicks(bar);
 
-    // Remove linhas fixas antigas
-    revealArea.querySelectorAll('.fixed-line').forEach(el => el.remove());
-
-    // Mostra linhas dos palpites já registrados
-    Object.entries(L.guesses).forEach(([nome, pos]) => {
-        const line = document.createElement('div');
-        line.className = 'fixed-line pin-close';
-        line.style.left = (pos * 10) + '%';
-        line.innerHTML = `<span class="line-label">${nome.charAt(0).toUpperCase()}</span>`;
-        line.title = nome;
-        revealArea.appendChild(line);
-    });
-
+    // Esconde a linha do alvo por padrão
     document.getElementById('guessTargetLine').style.display = 'none';
+
+    // Constrói o labelsMap { nome: nome }
+    const labelsMap = {};
+    Object.keys(L.guesses).forEach(nome => { labelsMap[nome] = nome; });
+
+    // Renderiza linhas fixas dos palpites anteriores
+    renderPins(revealArea, L.guesses, labelsMap);
+
+    // Reseta o label da posição
+    updateCoordsLabel(5);
 
     const newReveal = revealBtn.cloneNode(true);
     revealBtn.parentNode.replaceChild(newReveal, revealBtn);
@@ -572,14 +605,18 @@ function initDraggableLine(guesserName) {
     const line = document.getElementById('draggableLine');
     const wrap = line.parentElement;
 
+    // Reset e mostrar só agora
     line.dataset.pos = '5';
     line.style.left = '50%';
+    line.classList.remove('hidden');
     updateCoordsLabel(5);
 
+    // Remove listeners antigos clonando
     const newLine = line.cloneNode(true);
     line.parentNode.replaceChild(newLine, line);
     const newLineEl = document.getElementById('draggableLine');
 
+    // Botão confirmar — clonar e ligar novo listener
     const confirmBtn = document.getElementById('guessConfirmBtn');
     const newConfirm = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirm, confirmBtn);
@@ -588,10 +625,13 @@ function initDraggableLine(guesserName) {
         if (state.gameMode !== 'local') return;
         const pos = parseFloat(newLineEl.dataset.pos || '5');
         L.guesses[guesserName] = pos;
+        // Esconde a linha arrastável imediatamente
+        newLineEl.classList.add('hidden');
         L.guessIndex++;
         renderLocalGuessScreen();
     });
 
+    // Drag handlers
     let dragging = false;
     const onDown = (e) => { dragging = true; e.preventDefault?.(); };
     const onMove = (e) => {
@@ -615,8 +655,10 @@ function initDraggableLine(guesserName) {
     document.addEventListener('mouseup', onUp);
     document.addEventListener('touchend', onUp);
 
+    // Click na barra move a linha — calculado pelo rect ATUAL da barra
     wrap.addEventListener('click', (e) => {
         if (e.target === newLineEl || newLineEl.contains(e.target)) return;
+        // Ignora cliques nas linhas fixas (embora elas tenham pointer-events: none)
         const rect = wrap.getBoundingClientRect();
         let pct = (e.clientX - rect.left) / rect.width;
         pct = Math.max(0, Math.min(1, pct));
@@ -643,10 +685,8 @@ function finalizeLocalRound() {
         if (dist < melhorDist) melhorDist = dist;
     });
 
-    // Mestre ganha 1 a menos que quem acertou melhor
     const masterPoints = melhorDist === Infinity ? 0 : pontosMestre(melhorDist);
 
-    // Aplica pontos
     roundResults.forEach(r => {
         const p = L.players.find(x => x.nome === r.nome);
         if (p) p.pontos += r.pts;
@@ -675,17 +715,17 @@ function renderLocalRevealScreen() {
 
     renderTicks(document.getElementById('revealSpectrumBar'));
 
-    // Linha do alvo
     const targetLine = document.getElementById('revealTargetLine');
     targetLine.style.display = 'block';
     targetLine.style.left = (target * 10) + '%';
 
-    // Linhas dos palpites
+    // Constrói labelsMap pra mostrar "inicial +pts"
     const pinsLayer = document.getElementById('revealPinsLayer');
-    pinsLayer.innerHTML = '';
+    pinsLayer.querySelectorAll('.fixed-line').forEach(el => el.remove());
+
     L.lastRoundResults.forEach(r => {
         const line = document.createElement('div');
-        const cls = r.dist <= 0.5 ? 'pin-close' : (r.dist <= 1.0 ? 'pin-close' : (r.dist <= 1.5 ? 'pin-med' : 'pin-far'));
+        const cls = r.dist <= 0.3 ? 'pin-close' : (r.dist <= 0.6 ? 'pin-close' : (r.dist <= 1.0 ? 'pin-med' : 'pin-far'));
         line.className = 'fixed-line ' + cls;
         line.style.left = (r.pos * 10) + '%';
         line.innerHTML = `<span class="line-label">${r.nome.charAt(0).toUpperCase()} +${r.pts}</span>`;
@@ -1079,6 +1119,9 @@ function renderOnlineMaster() {
     document.getElementById('themeRight').innerText = room.currentTheme.right;
     renderTicks(document.getElementById('masterSpectrumBar'));
 
+    // Sempre esconde a linha do alvo até o mestre clicar
+    document.getElementById('masterTargetLine').style.display = 'none';
+
     if (!euSouMestre) {
         revealArea.classList.add('hidden');
         revealBtn.classList.remove('hidden');
@@ -1167,20 +1210,18 @@ function renderOnlineGuess() {
     document.getElementById('guessHintText').innerText = `"${room.currentHint}"`;
     renderTicks(document.getElementById('guessSpectrumBar'));
 
-    const revealArea = document.getElementById('guessRevealArea');
-    revealArea.querySelectorAll('.fixed-line').forEach(el => el.remove());
+    document.getElementById('guessTargetLine').style.display = 'none';
 
-    Object.entries(room.guesses || {}).forEach(([uid, pos]) => {
-        const nome = room.jogadores[uid]?.nome || '?';
-        const line = document.createElement('div');
-        line.className = 'fixed-line pin-close';
-        line.style.left = (pos * 10) + '%';
-        line.innerHTML = `<span class="line-label">${nome.charAt(0).toUpperCase()}</span>`;
-        line.title = nome;
-        revealArea.appendChild(line);
+    // labelsMap: uid -> nome
+    const labelsMap = {};
+    Object.keys(room.jogadores).forEach(uid => {
+        labelsMap[uid] = room.jogadores[uid].nome;
     });
 
-    document.getElementById('guessTargetLine').style.display = 'none';
+    const revealArea = document.getElementById('guessRevealArea');
+    renderPins(revealArea, room.guesses, labelsMap);
+
+    updateCoordsLabel(5);
 
     const revealBtn = document.getElementById('guessRevealBtn');
 
@@ -1220,6 +1261,7 @@ function initOnlineDraggableLine() {
 
     line.dataset.pos = '5';
     line.style.left = '50%';
+    line.classList.remove('hidden');
     updateCoordsLabel(5);
 
     const newLine = line.cloneNode(true);
@@ -1233,6 +1275,8 @@ function initOnlineDraggableLine() {
     newConfirm.addEventListener('click', async () => {
         if (state.gameMode !== 'online') return;
         const pos = parseFloat(newLineEl.dataset.pos || '5');
+        // Esconde imediatamente
+        newLineEl.classList.add('hidden');
         const room = state.online.roomData;
         const guesses = { ...(room.guesses || {}) };
         guesses[state.online.uid] = pos;
@@ -1296,7 +1340,6 @@ async function finalizeOnlineRound() {
         if (dist < melhorDist) melhorDist = dist;
     });
 
-    // Mestre ganha 1 a menos que quem acertou melhor
     const masterPoints = melhorDist === Infinity ? 0 : pontosMestre(melhorDist);
 
     const jogadoresAtualizados = JSON.parse(JSON.stringify(room.jogadores));
@@ -1337,10 +1380,11 @@ function renderOnlineReveal() {
     targetLine.style.left = (room.currentTarget * 10) + '%';
 
     const pinsLayer = document.getElementById('revealPinsLayer');
-    pinsLayer.innerHTML = '';
+    pinsLayer.querySelectorAll('.fixed-line').forEach(el => el.remove());
+
     (room.lastRoundResults || []).forEach(r => {
         const line = document.createElement('div');
-        const cls = r.dist <= 1.0 ? 'pin-close' : (r.dist <= 1.5 ? 'pin-med' : 'pin-far');
+        const cls = r.dist <= 0.3 ? 'pin-close' : (r.dist <= 0.6 ? 'pin-close' : (r.dist <= 1.0 ? 'pin-med' : 'pin-far'));
         line.className = 'fixed-line ' + cls;
         line.style.left = (r.pos * 10) + '%';
         line.innerHTML = `<span class="line-label">${r.nome.charAt(0).toUpperCase()} +${r.pts}</span>`;

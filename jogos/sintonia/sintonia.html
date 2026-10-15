@@ -131,7 +131,6 @@
 
                 <div class="spectrum-wrap" id="masterSpectrumWrap">
                     <div class="spectrum-bar" id="masterSpectrumBar"></div>
-                    <!-- Alvo: linha vertical destacada -->
                     <div class="spectrum-target-line" id="masterTargetLine" style="display:none">
                         <span class="target-triangle">▼</span>
                     </div>
@@ -177,13 +176,12 @@
                     <div class="spectrum-target-line" id="guessTargetLine" style="display:none">
                         <span class="target-triangle">▼</span>
                     </div>
-                    <!-- Linha arrastável -->
-                    <div class="draggable-line" id="draggableLine" style="left:50%">
+                    <!-- Linha arrastável: começa escondida, só aparece ao clicar em "Ver dica e palpitar" -->
+                    <div class="draggable-line hidden" id="draggableLine" style="left:50%">
                         <span class="line-handle">◆</span>
                     </div>
                 </div>
 
-                <!-- Indicador de posição logo abaixo da barra -->
                 <p class="hint-text coords-inline" id="guessCoords">Posição: 5,0</p>
 
                 <button type="button" class="btn btn-primary btn-block btn-confirm-guess" id="guessConfirmBtn">
