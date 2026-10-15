@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sintonia - Bandu</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232E2626' stroke-width='2'%3E%3Cpath d='M22 12h-4l-3 9L9 3l-3 9H2'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="sintonia.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <div class="top-bar">
+        <button class="icon-button" id="exitBtn" aria-label="Sair">
+            <i data-lucide="arrow-left"></i>
+        </button>
+    </div>
+
+    <main class="container">
+
+        <!-- ===================== MENU INICIAL ===================== -->
+        <section id="homeScreen" class="card-panel">
+            <header class="panel-header">
+                <h1>Sintonia</h1>
+                <p>Dê dicas no espectro. Acerte o alvo.</p>
+            </header>
+
+            <div id="modeChoice" class="home-actions">
+                <button type="button" class="btn btn-primary btn-block" id="modeLocalBtn">
+                    <i data-lucide="smartphone"></i> 1 Dispositivo
+                </button>
+                <button type="button" class="btn btn-secondary btn-block" id="modeOnlineBtn">
+                    <i data-lucide="users"></i> Cada um no seu
+                </button>
+            </div>
+
+            <div id="onlineMenu" class="home-actions hidden">
+                <button type="button" class="btn btn-primary btn-block" id="createRoomBtn">
+                    <i data-lucide="plus-circle"></i> Criar Sala
+                </button>
+                <div class="join-box">
+                    <input type="text" id="joinCodeInput" class="code-input" placeholder="CÓDIGO" maxlength="6" autocomplete="off" spellcheck="false">
+                    <button type="button" class="btn btn-secondary" id="joinRoomBtn">
+                        <i data-lucide="log-in"></i> Entrar
+                    </button>
+                </div>
+                <p class="home-hint">Crie uma sala e mande o código pros amigos.</p>
+            </div>
+        </section>
+
+        <!-- ===================== CONFIG LOCAL ===================== -->
+        <section id="localConfigScreen" class="card-panel hidden">
+            <header class="panel-header">
+                <h1>Nova Partida</h1>
+                <p>Modo 1 dispositivo</p>
+            </header>
+
+            <div class="form-group">
+                <label class="config-label">Jogadores</label>
+                <div class="input-with-button">
+                    <input type="text" id="localPlayerInput" class="code-input" placeholder="Nome do jogador" maxlength="15" autocomplete="off" style="text-transform:none;letter-spacing:normal;text-align:left">
+                    <button type="button" class="btn btn-secondary" id="localAddPlayerBtn">Adicionar</button>
+                </div>
+                <ul class="tag-list" id="localPlayerList"></ul>
+                <p class="players-header" style="margin-top:0.5rem"><span>Total</span><span id="localPlayerCount">0 / 8</span></p>
+            </div>
+
+            <div class="config-group">
+                <label class="config-label">Meta de pontos</label>
+                <div class="chip-group" id="localScoreGroup">
+                    <button type="button" class="chip-btn active" data-value="30">30</button>
+                    <button type="button" class="chip-btn" data-value="60">60</button>
+                    <button type="button" class="chip-btn" data-value="90">90</button>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-primary btn-block" id="localStartBtn" disabled>
+                <i data-lucide="play"></i> Iniciar Partida
+            </button>
+        </section>
+
+        <!-- ===================== LOBBY (ONLINE) ===================== -->
+        <section id="lobbyScreen" class="card-panel hidden">
+            <header class="panel-header">
+                <h1>Sala</h1>
+                <p class="room-code-display" id="lobbyRoomCode">------</p>
+            </header>
+
+            <div class="host-config hidden" id="hostConfig">
+                <div class="config-group">
+                    <label class="config-label">Meta de pontos</label>
+                    <div class="chip-group" id="onlineScoreGroup">
+                        <button type="button" class="chip-btn active" data-value="30">30</button>
+                        <button type="button" class="chip-btn" data-value="60">60</button>
+                        <button type="button" class="chip-btn" data-value="90">90</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="players-section">
+                <div class="players-header">
+                    <span>Jogadores</span>
+                    <span id="playerCount">0 / 8</span>
+                </div>
+                <ul class="players-list" id="playersList"></ul>
+            </div>
+
+            <button type="button" class="btn btn-primary btn-block hidden" id="startGameBtn">
+                <i data-lucide="play"></i> Iniciar Partida
+            </button>
+            <button type="button" class="btn btn-secondary btn-block" id="readyBtn">
+                <i data-lucide="check"></i> Estou Pronto
+            </button>
+        </section>
+
+        <!-- ===================== TELA 1: MESTRE VÊ O ALVO ===================== -->
+        <section id="masterScreen" class="card-panel hidden">
+            <div class="round-badge">Vez do mestre</div>
+            <h2 class="display-title" id="masterPlayerName">Nome</h2>
+            <p class="subtitle" id="masterSub">Passe o celular para ele(a)</p>
+
+            <div id="masterRevealArea" class="hidden">
+                <div class="spectrum-theme">
+                    <span class="theme-side theme-left" id="themeLeft">Frio</span>
+                    <span class="theme-side theme-right" id="themeRight">Quente</span>
+                </div>
+
+                <div class="spectrum-wrap">
+                    <div class="spectrum-bar" id="masterSpectrumBar">
+                        <!-- marcadores 0-10 -->
+                    </div>
+                    <div class="spectrum-target-marker" id="masterTargetMarker" style="display:none">
+                        <i data-lucide="target"></i>
+                    </div>
+                </div>
+
+                <p class="hint-text">Este é o alvo secreto. Dê uma dica que fique perto dele — mas não óbvia demais!</p>
+
+                <div class="input-with-button" style="margin-top:1rem">
+                    <input type="text" id="masterHintInput" class="code-input" placeholder="Sua dica..." maxlength="30" autocomplete="off" style="text-transform:none;letter-spacing:normal;text-align:left">
+                </div>
+
+                <button type="button" class="btn btn-primary btn-block" id="masterConfirmHintBtn" disabled>
+                    <i data-lucide="arrow-right"></i> Enviar dica
+                </button>
+            </div>
+
+            <button type="button" class="btn btn-primary btn-block" id="masterRevealBtn">
+                <i data-lucide="eye"></i> Revelar alvo secreto
+            </button>
+        </section>
+
+        <!-- ===================== TELA 2: JOGADOR DÁ O PALPITE ===================== -->
+        <section id="guessScreen" class="card-panel hidden">
+            <div class="round-badge">Palpite</div>
+            <h2 class="display-title" id="guessPlayerName">Nome</h2>
+            <p class="subtitle" id="guessSub">Passe o celular para ele(a)</p>
+
+            <div id="guessRevealArea" class="hidden">
+                <div class="hint-display">
+                    <span class="hint-label">Dica do mestre</span>
+                    <span class="hint-text-value" id="guessHintText">...</span>
+                </div>
+
+                <div class="spectrum-theme">
+                    <span class="theme-side theme-left" id="guessThemeLeft">Frio</span>
+                    <span class="theme-side theme-right" id="guessThemeRight">Quente</span>
+                </div>
+
+                <div class="spectrum-wrap">
+                    <div class="spectrum-bar" id="guessSpectrumBar">
+                        <!-- pinos já colocados aparecem aqui -->
+                    </div>
+                    <div class="spectrum-target-marker" id="guessTargetMarker" style="display:none">
+                        <i data-lucide="target"></i>
+                    </div>
+                    <!-- Pino arrastável -->
+                    <div class="draggable-pin" id="draggablePin" style="left:50%">
+                        <i data-lucide="map-pin"></i>
+                    </div>
+                </div>
+
+                <p class="hint-text" id="guessCoords">Posição: 5,0</p>
+
+                <button type="button" class="btn btn-primary btn-block" id="guessConfirmBtn">
+                    <i data-lucide="check"></i> Confirmar palpite
+                </button>
+            </div>
+
+            <button type="button" class="btn btn-primary btn-block" id="guessRevealBtn">
+                <i data-lucide="eye"></i> Ver o alvo e dar palpite
+            </button>
+        </section>
+
+        <!-- ===================== TELA 3: REVELAÇÃO DA RODADA ===================== -->
+        <section id="revealScreen" class="card-panel hidden">
+            <div class="round-badge">Resultado da rodada</div>
+            <h2 class="display-title" id="revealThemeTitle">Frio ↔ Quente</h2>
+            <p class="subtitle" id="revealHintLine">Dica: "..." — <span id="revealMasterName">Nome</span></p>
+
+            <div class="spectrum-theme">
+                <span class="theme-side theme-left" id="revealThemeLeft">Frio</span>
+                <span class="theme-side theme-right" id="revealThemeRight">Quente</span>
+            </div>
+
+            <div class="spectrum-wrap big">
+                <div class="spectrum-bar" id="revealSpectrumBar"></div>
+                <div class="spectrum-target-marker" id="revealTargetMarker">
+                    <i data-lucide="target"></i>
+                </div>
+                <div id="revealPinsLayer"></div>
+            </div>
+
+            <div class="round-scores" id="roundScores"></div>
+
+            <button type="button" class="btn btn-primary btn-block" id="nextRoundBtn">
+                <i data-lucide="arrow-right"></i> Próxima rodada
+            </button>
+            <div class="waiting-msg hidden" id="waitNextRoundMsg">
+                <i data-lucide="hourglass"></i>
+                <span>Aguardando o anfitrião...</span>
+            </div>
+        </section>
+
+        <!-- ===================== TELA 4: PLACAR / FIM ===================== -->
+        <section id="scoreScreen" class="card-panel hidden">
+            <div class="trophy-icon" id="scoreTrophyWrap">
+                <i data-lucide="trophy" id="scoreTrophyIcon"></i>
+            </div>
+            <h2 class="display-title" id="scoreTitle">Placar</h2>
+            <p class="subtitle" id="scoreSubtitle">Continue até alguém atingir a meta</p>
+
+            <div class="final-scoreboard" id="scoreBoard"></div>
+
+            <div class="game-over-actions hidden" id="gameOverActions">
+                <button type="button" class="btn btn-primary btn-block" id="rematchBtn">
+                    <i data-lucide="rotate-ccw"></i> Jogar Novamente
+                </button>
+                <button type="button" class="btn btn-secondary btn-block" id="editConfigBtn">
+                    <i data-lucide="settings"></i> Editar Configurações
+                </button>
+                <button type="button" class="btn btn-danger btn-block" id="closeRoomBtn">
+                    <i data-lucide="log-out"></i> Encerrar Sala
+                </button>
+            </div>
+
+            <div class="spectator-msg hidden" id="spectatorMsg">
+                <i data-lucide="hourglass"></i>
+                <span>Aguardando o anfitrião...</span>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal sair -->
+    <div class="modal-overlay hidden" id="exitModal">
+        <div class="modal-card">
+            <h3>Sair da Sala?</h3>
+            <p>Você será desconectado da partida.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" id="cancelExitBtn">Continuar</button>
+                <button class="btn btn-danger" id="confirmExitBtn">Sair</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal nome -->
+    <div class="modal-overlay hidden" id="nameModal">
+        <div class="modal-card">
+            <h3>Qual seu nome?</h3>
+            <p>Escolha um nome para os outros verem.</p>
+            <input type="text" id="nameInput" class="code-input name-input" placeholder="Seu nome" maxlength="15" autocomplete="off">
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" id="cancelNameBtn">Cancelar</button>
+                <button class="btn btn-primary" id="confirmNameBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <p id="loadingText">Carregando...</p>
+        </div>
+    </div>
+
+    <script type="module" src="sintonia.js"></script>
+</body>
+</html>
