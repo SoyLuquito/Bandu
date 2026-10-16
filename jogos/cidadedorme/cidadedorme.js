@@ -391,32 +391,50 @@ function startLocalRound() {
     const L = state.local;
     const players = L.players;
 
-    const shuffled = shuffle(players.map((_, i) => i));
-    const numAss = Math.min(L.config.assassinos, maxAssassinosPara(players.length));
-    const assassinoIdx = shuffled.slice(0, numAss);
-    const restantes = shuffled.slice(numAss);
-    const detetiveIdx = restantes[0];
-    let anjoIdx = null;
-    if (L.config.temAnjo && restantes.length > 1) anjoIdx = restantes[1];
+    // 1) Embaralha a LISTA de jogadores (não os índices)
+    const playersEmbaralhados = shuffle(players.map((p, i) => ({ p, i })));
 
-    players.forEach((p, i) => {
+    // 2) Distribui papéis com base na ordem embaralhada
+    const numAss = Math.min(L.config.assassinos, maxAssassinosPara(players.length));
+    const assassinosEmbaralhados = playersEmbaralhados.slice(0, numAss);
+    const restantesEmbaralhados = playersEmbaralhados.slice(numAss);
+
+    const detetiveObj = restantesEmbaralhados[0];
+    let anjoObj = null;
+    if (L.config.temAnjo && restantesEmbaralhados.length > 1) {
+        anjoObj = restantesEmbaralhados[1];
+    }
+
+    // 3) Limpa papéis e estados
+    players.forEach(p => {
         p.vivo = true;
-        if (assassinoIdx.includes(i)) p.papel = 'assassino';
-        else if (i === detetiveIdx) p.papel = 'detetive';
-        else if (i === anjoIdx) p.papel = 'anjo';
-        else p.papel = 'cidadao';
+        p.papel = 'cidadao';
     });
 
+    // 4) Aplica os papéis
+    assassinosEmbaralhados.forEach(a => {
+        players[a.i].papel = 'assassino';
+    });
+    if (detetiveObj) {
+        players[detetiveObj.i].papel = 'detetive';
+    }
+    if (anjoObj) {
+        players[anjoObj.i].papel = 'anjo';
+    }
+
+    // 5) Reseta estado da rodada
     L.currentRound = 0;
     L.votos = {};
     L.vencedor = null;
     L.noite = null;
     L.assassinoMatadorIndex = 0;
-    L.ordemAssassinos = assassinoIdx.map(i => players[i].nome);
+    L.ordemAssassinos = assassinosEmbaralhados.map(a => players[a.i].nome);
     L.fase = 'papel';
     L.revealed = false;
 
-    L.ordemPassagem = players.map((_, i) => i);
+    // 6) EMBARALHA TAMBÉM A ORDEM DE REVELAÇÃO DOS PAPÉIS
+    // Assim ninguém adivinha pela posição na roda
+    L.ordemPassagem = shuffle(players.map((_, i) => i));
     L.passandoIndex = 0;
 
     renderLocalRole();
@@ -541,8 +559,11 @@ function startLocalNight() {
     const anjo = L.players.map((p, i) => ({ p, i })).find(x => x.p.vivo && x.p.papel === 'anjo');
     if (anjo) L.ordemNoite.push({ tipo: 'anjo', idx: anjo.i });
 
-    L.players.forEach((p, i) => {
-        if (p.vivo && p.papel === 'cidadao') L.ordemNoite.push({ tipo: 'cidadao', idx: i });
+    const cidadaos = L.players
+        .map((p, i) => ({ p, i }))
+        .filter(x => x.p.vivo && x.p.papel === 'cidadao');
+    shuffle(cidadaos).forEach(x => {
+        L.ordemNoite.push({ tipo: 'cidadao', idx: x.i });
     });
 
     L.noiteIndex = 0;
