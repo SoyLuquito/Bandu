@@ -547,24 +547,41 @@ function startLocalNight() {
         matadorIdx: matador ? matador.i : -1
     };
 
-    L.ordemNoite = [];
-    if (matador) L.ordemNoite.push({ tipo: 'matador', idx: matador.i });
+    // ============================================================
+    // Monta a fila da noite em ORDEM ALEATÓRIA entre poderes
+    // ============================================================
+    const fila = [];
+
+    // 1) Adiciona o matador da noite
+    if (matador) {
+        fila.push({ tipo: 'matador', idx: matador.i });
+    }
+
+    // 2) Adiciona os outros assassinos (que só sugerem)
     assVivos.forEach((x, k) => {
-        if (k !== matadorIdx) L.ordemNoite.push({ tipo: 'sugestor', idx: x.i });
+        if (k !== matadorIdx) fila.push({ tipo: 'sugestor', idx: x.i });
     });
 
+    // 3) Adiciona o detetive vivo (se houver)
     const det = L.players.map((p, i) => ({ p, i })).find(x => x.p.vivo && x.p.papel === 'detetive');
-    if (det) L.ordemNoite.push({ tipo: 'detetive', idx: det.i });
+    if (det) fila.push({ tipo: 'detetive', idx: det.i });
 
+    // 4) Adiciona o anjo vivo (se houver)
     const anjo = L.players.map((p, i) => ({ p, i })).find(x => x.p.vivo && x.p.papel === 'anjo');
-    if (anjo) L.ordemNoite.push({ tipo: 'anjo', idx: anjo.i });
+    if (anjo) fila.push({ tipo: 'anjo', idx: anjo.i });
 
+    // 5) Adiciona os cidadãos vivos
     const cidadaos = L.players
         .map((p, i) => ({ p, i }))
         .filter(x => x.p.vivo && x.p.papel === 'cidadao');
     shuffle(cidadaos).forEach(x => {
-        L.ordemNoite.push({ tipo: 'cidadao', idx: x.i });
+        fila.push({ tipo: 'cidadao', idx: x.i });
     });
+
+    // 6) Embaralha a fila inteira
+    // Isso garante que matador, detetive, anjo e cidadãos podem
+    // aparecer em QUALQUER ordem a cada rodada
+    L.ordemNoite = shuffle(fila);
 
     L.noiteIndex = 0;
     renderLocalNightStep();
