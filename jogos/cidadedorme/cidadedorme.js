@@ -874,39 +874,9 @@ function resolveLocalNight() {
         return renderLocalGameOver();
     }
 
-    L.fase = 'dia';
-    renderLocalDay();
-}
-
-function renderLocalDay() {
-    if (state.gameMode !== 'local') return;
-    showScreen('day');
-    const L = state.local;
-
-    const eventsEl = document.getElementById('dayEvents');
-    eventsEl.innerHTML = '';
-    (L.noiteEventos || []).forEach(ev => {
-        const div = document.createElement('div');
-        div.className = 'day-event ' + ev.tipo;
-        div.innerHTML = ev.texto;
-        eventsEl.appendChild(div);
-    });
-
-    const toVoteBtn = document.getElementById('toVoteBtn');
-    const waitMsg = document.getElementById('waitVoteMsg');
-    toVoteBtn.classList.remove('hidden');
-    waitMsg.classList.add('hidden');
-    toVoteBtn.innerHTML = '<i data-lucide="vote"></i> Iniciar Votação';
-    toVoteBtn.disabled = false;
-
-    const newBtn = toVoteBtn.cloneNode(true);
-    toVoteBtn.parentNode.replaceChild(newBtn, toVoteBtn);
-    newBtn.addEventListener('click', () => {
-        if (state.gameMode !== 'local') return;
-        startLocalVote();
-    });
-
-    if (window.lucide) lucide.createIcons();
+    // Vai DIRETO para votação (não passa mais por tela de dia)
+    L.fase = 'votacao';
+    startLocalVote();
 }
 
 function startLocalVote() {
@@ -928,9 +898,17 @@ function renderLocalVoteStep() {
     const timerEl = document.getElementById('voteTimer');
     timerEl.innerText = '';
 
-    // Esconde notícias da noite no modo local
+    // Mostra notícias da noite no topo da votação (modo local)
     const newsEl = document.getElementById('nightNews');
-    if (newsEl) newsEl.innerHTML = '';
+    if (newsEl) {
+        newsEl.innerHTML = '';
+        (L.noiteEventos || []).forEach(ev => {
+            const div = document.createElement('div');
+            div.className = 'day-event ' + ev.tipo;
+            div.innerHTML = ev.texto;
+            newsEl.appendChild(div);
+        });
+    }
 
     if (L.votoIndex >= L.ordemVoto.length) {
         resolveLocalVote();
