@@ -18,10 +18,20 @@
             <span class="letter-d">L</span>
             <span class="letter-u">Y</span>
         </h1>
-        <p class="tagline">Party games com os amigos</p>
+        <p class="tagline">A graça é jogar junto.</p>
+
+        <p class="intro">
+            Um só lugar, vários jogos para curtir com os amigos.
+            Escolha o seu favorito, reúna a galera e comece a jogar!
+        </p>
     </header>
 
     <main class="main">
+        <!-- Faixa "Anuncie aqui" — topo, perto da barra de pesquisa -->
+        <button type="button" class="ad-banner" data-ad-banner aria-label="Anuncie aqui — ver email de contato">
+            <span class="ad-banner-text">Anuncie aqui</span>
+        </button>
+
         <!-- Barra de pesquisa e filtro -->
         <div class="search-bar">
             <div class="search-input-wrapper">
@@ -164,10 +174,33 @@
             <p>Nenhum jogo encontrado</p>
             <span>Tente ajustar os filtros ou a busca</span>
         </div>
+
+        <!-- Faixa "Anuncie aqui" — rodapé, depois dos jogos -->
+        <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Anuncie aqui — ver email de contato">
+            <span class="ad-banner-text">Anuncie aqui</span>
+        </button>
     </main>
 
     <footer class="footer">
-        <p>© Rally 2026</p>
+        <p class="footer-text">Desenvolvido por Luca de Sousa</p>
+        <p class="footer-credit">
+            <a href="https://instagram.com/luq_ito" target="_blank" rel="noopener" class="footer-link">
+                <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                </svg>
+                @luq_ito
+            </a>
+            <span class="footer-sep">|</span>
+            <a href="https://x.com/soyluquito" target="_blank" rel="noopener" class="footer-link">
+                <svg class="footer-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+                @soyluquito
+            </a>
+        </p>
+        <p class="footer-copyright">© Rally 2026</p>
     </footer>
 
     <!-- Overlay + Modal para o card expandido -->
@@ -175,6 +208,24 @@
     <div class="card-modal" id="cardModal">
         <button class="modal-close" id="modalClose" aria-label="Fechar">✕</button>
         <div class="modal-content" id="modalContent"></div>
+    </div>
+
+    <!-- Modal "Anuncie aqui" -->
+    <div class="ad-overlay" id="adOverlay"></div>
+    <div class="ad-modal" id="adModal" role="dialog" aria-modal="true" aria-labelledby="adModalTitle">
+        <button class="ad-modal-close" id="adModalClose" aria-label="Fechar">✕</button>
+        <h3 class="ad-modal-title" id="adModalTitle">Anuncie aqui</h3>
+        <p class="ad-modal-desc">
+            Quer divulgar sua marca para quem joga com os amigos?
+            Entre em contato pelo e-mail abaixo:
+        </p>
+        <div class="ad-email-box">
+            <span class="ad-email-text" id="adEmailText">contato.rallybr@gmail.com</span>
+            <button type="button" class="ad-copy-btn" id="adCopyBtn" aria-label="Copiar e-mail">
+                Copiar
+            </button>
+        </div>
+        <p class="ad-copied-msg" id="adCopiedMsg">E-mail copiado!</p>
     </div>
 
     <script src="index.js"></script>

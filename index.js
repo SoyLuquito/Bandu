@@ -1,5 +1,5 @@
 // Rally - Lobby de Party Games
-// Versão 1.4
+// Versão 1.7
 
 document.addEventListener('DOMContentLoaded', () => {
     // Inicializa os ícones do Lucide
@@ -17,6 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalContent = document.getElementById('modalContent');
     const modalClose = document.getElementById('modalClose');
     const noResults = document.getElementById('noResults');
+
+    // Elementos do modal "Anuncie aqui"
+    const adBanners = document.querySelectorAll('[data-ad-banner]');
+    const adOverlay = document.getElementById('adOverlay');
+    const adModal = document.getElementById('adModal');
+    const adModalClose = document.getElementById('adModalClose');
+    const adEmailText = document.getElementById('adEmailText');
+    const adCopyBtn = document.getElementById('adCopyBtn');
+    const adCopiedMsg = document.getElementById('adCopiedMsg');
 
     // ===== Banco de dados dos jogos (info que só aparece no modal) =====
     const GAMES_INFO = {
@@ -52,8 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
             device: '1 dispositivo',
             description: 'O jogo clássico de revelações! Diga algo que nunca fez e descubra quem já fez. Prepare-se para rir!'
         },
-        '/jogos/espiao/espiao.html': {
-            title: 'Espião',
+        '/jogos/codinomes/codinomes.html': {
+            title: 'Codinomes',
             icon: 'search',
             bg: 'linear-gradient(135deg, #4DD0C8 0%, #7B9EFF 100%)',
             players: '4+ jogadores',
@@ -97,14 +106,13 @@ document.addEventListener('DOMContentLoaded', () => {
         setInterval(triggerWave, 8000);
     }, 3000);
 
-    // ===== Modal =====
+    // ===== Modal de jogo =====
     function openModal(card) {
         const gameUrl = card.dataset.game;
         const info = GAMES_INFO[gameUrl];
 
         if (!info) return;
 
-        // Monta o HTML do modal
         modalContent.innerHTML = `
             <div class="card-image" style="background: ${info.bg};">
                 <i data-lucide="${info.icon}" class="card-icon"></i>
@@ -124,12 +132,10 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        // Renderiza os ícones recém-inseridos
         if (window.lucide) {
             lucide.createIcons();
         }
 
-        // Botão de jogar dentro do modal
         document.getElementById('modalPlayButton').addEventListener('click', () => {
             window.location.href = gameUrl;
         });
@@ -145,19 +151,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = '';
     }
 
-    // ===== Clique nos cards =====
     cards.forEach(card => {
         card.addEventListener('click', () => {
             openModal(card);
         });
     });
 
-    // Fecha o modal
     modalClose.addEventListener('click', closeModal);
     overlay.addEventListener('click', closeModal);
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeModal();
-    });
 
     // ===== Painel de filtros =====
     filterButton.addEventListener('click', () => {
@@ -169,10 +170,10 @@ document.addEventListener('DOMContentLoaded', () => {
         chip.addEventListener('click', () => {
             const group = chip.closest('.filter-options');
             const filterType = group.dataset.filter;
-            
+
             group.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
             chip.classList.add('active');
-            
+
             filters[filterType] = chip.dataset.value;
             applyFilters();
         });
@@ -181,7 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===== Busca =====
     searchInput.addEventListener('input', applyFilters);
 
-    // ===== Aplicar filtros e busca =====
     function applyFilters() {
         const searchTerm = searchInput.value.trim().toLowerCase();
         let visibleCount = 0;
@@ -214,6 +214,72 @@ document.addEventListener('DOMContentLoaded', () => {
 
         noResults.style.display = visibleCount === 0 ? 'block' : 'none';
     }
+
+    // ===== Modal "Anuncie aqui" (funciona nos dois botões) =====
+    function openAdModal() {
+        adOverlay.classList.add('open');
+        adModal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeAdModal() {
+        adOverlay.classList.remove('open');
+        adModal.classList.remove('open');
+        document.body.style.overflow = '';
+        // Reset do estado do botão copiar
+        adCopyBtn.textContent = 'Copiar';
+        adCopyBtn.classList.remove('copied');
+        adCopiedMsg.classList.remove('show');
+    }
+
+    adBanners.forEach(btn => btn.addEventListener('click', openAdModal));
+    adModalClose.addEventListener('click', closeAdModal);
+    adOverlay.addEventListener('click', closeAdModal);
+
+    // Botão copiar e-mail
+    adCopyBtn.addEventListener('click', async () => {
+        const email = adEmailText.textContent.trim();
+        try {
+            await navigator.clipboard.writeText(email);
+            adCopyBtn.textContent = 'Copiado!';
+            adCopyBtn.classList.add('copied');
+            adCopiedMsg.classList.add('show');
+            setTimeout(() => {
+                adCopyBtn.textContent = 'Copiar';
+                adCopyBtn.classList.remove('copied');
+                adCopiedMsg.classList.remove('show');
+            }, 2200);
+        } catch (err) {
+            // Fallback para navegadores sem clipboard API
+            const textArea = document.createElement('textarea');
+            textArea.value = email;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                adCopyBtn.textContent = 'Copiado!';
+                adCopyBtn.classList.add('copied');
+                adCopiedMsg.classList.add('show');
+                setTimeout(() => {
+                    adCopyBtn.textContent = 'Copiar';
+                    adCopyBtn.classList.remove('copied');
+                    adCopiedMsg.classList.remove('show');
+                }, 2200);
+            } catch (e) {
+                adCopiedMsg.textContent = 'Não foi possível copiar. Selecione manualmente.';
+                adCopiedMsg.classList.add('show');
+            }
+            document.body.removeChild(textArea);
+        }
+    });
+
+    // ===== Fecha modais com Esc =====
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeModal();
+            closeAdModal();
+        }
+    });
 
     console.log('🎉 Rally carregado com sucesso!');
 });
