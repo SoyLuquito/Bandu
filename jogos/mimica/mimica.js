@@ -1,4 +1,4 @@
-// Bandu - Mímica (Party Game)
+// Rally - Mímica (Party Game)
 
 document.addEventListener('DOMContentLoaded', () => {
     if (window.lucide) {
@@ -100,16 +100,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================
     const ALARM_SRC = '../../sons/ringtone1.mp3';
 
-    // Elemento <audio> tradicional (funciona na maioria dos casos)
     const alarmSound = new Audio(ALARM_SRC);
     alarmSound.preload = 'auto';
     alarmSound.volume = 1.0;
 
-    // Web Audio API (fallback mais robusto para mobile)
     let audioCtx = null;
     let audioBuffer = null;
 
-    // Tenta carregar o buffer via fetch para o Web Audio API
     async function loadAudioBuffer() {
         try {
             const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -124,13 +121,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     loadAudioBuffer();
 
-    // Destrava o áudio no primeiro gesto do usuário (obrigatório no iOS/Android)
     let audioUnlocked = false;
     function unlockAudio() {
         if (audioUnlocked) return;
         audioUnlocked = true;
 
-        // 1. Destrava o elemento <audio>
         alarmSound.muted = true;
         const p = alarmSound.play();
         if (p && p.then) {
@@ -147,12 +142,10 @@ document.addEventListener('DOMContentLoaded', () => {
             alarmSound.muted = false;
         }
 
-        // 2. Destrava o AudioContext (se existir)
         if (audioCtx && audioCtx.state === 'suspended') {
             audioCtx.resume();
         }
 
-        // Remove os listeners — só precisa destravar uma vez
         document.removeEventListener('touchstart', unlockAudio);
         document.removeEventListener('click', unlockAudio);
         document.removeEventListener('keydown', unlockAudio);
@@ -161,9 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', unlockAudio, { once: false });
     document.addEventListener('keydown', unlockAudio, { once: false });
 
-    // Toca o alarme — tenta tanto o <audio> quanto o Web Audio API
     function playAlarmSound() {
-        // Tentativa 1: elemento <audio>
         try {
             alarmSound.currentTime = 0;
             const playPromise = alarmSound.play();
@@ -179,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Fallback: Web Audio API
     function playViaWebAudio() {
         if (!audioCtx || !audioBuffer) return;
         try {
@@ -203,18 +193,18 @@ document.addEventListener('DOMContentLoaded', () => {
         teamB: { name: 'Equipe Vermelha', players: [], score: 0 },
         targetScore: 30,
         timeLimit: 45,
-        selectedTheme: 'geral',
-        
+        selectedThemes: new Set(),
+
         usedWords: new Set(),
         currentWordChoices: [],
         selectedWord: null,
         actorIndex: { individual: 0, teamA: 0, teamB: 0 },
         currentTeamTurn: 'A',
         currentActor: null,
-        
+
         timerId: null,
         timeLeft: 0,
-        
+
         isTransitioning: false
     };
 
@@ -239,11 +229,12 @@ document.addEventListener('DOMContentLoaded', () => {
         teamB: document.getElementById('teamBList')
     };
 
-    const liveScoreBtn = document.getElementById('liveScoreBtn');
     const scoreModal = document.getElementById('scoreModal');
     const transitionOverlay = document.getElementById('transitionOverlay');
     const transitionName = document.getElementById('transitionName');
     const transitionSub = document.getElementById('transitionSub');
+    const rulesIndividual = document.getElementById('rulesIndividual');
+    const rulesTeam = document.getElementById('rulesTeam');
 
     // NAVEGAÇÃO
     function showScreen(screenKey) {
@@ -255,17 +246,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        if (['reveal', 'action', 'guesser'].includes(screenKey)) {
-            liveScoreBtn.classList.remove('hidden');
-        } else {
-            liveScoreBtn.classList.add('hidden');
-        }
+        // Placar só aparece durante o jogo (reveal, action, guesser)
+        const inGame = ['reveal', 'action', 'guesser'].includes(screenKey);
+        document.querySelectorAll('.score-btn').forEach(btn => {
+            btn.classList.toggle('hidden', !inGame);
+        });
 
-        // Rola para o topo ao trocar de tela (importante em telas altas como config)
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // ====== OVERLAY DE TRANSIÇÃO DE TURNO ======
+    // ====== OVERLAY DE TRANSIÇÃO ======
     function showTransition(actorName, subMessage, callback) {
         if (state.isTransitioning) return;
         state.isTransitioning = true;
@@ -286,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1500);
     }
 
-    // ====== CÁLCULO DO PRÓXIMO ATOR (SEM AVANÇAR ÍNDICE) ======
+    // ====== PRÓXIMO ATOR (SEM AVANÇAR) ======
     function peekNextActor() {
         if (state.mode === 'individual') {
             const idx = state.actorIndex.individual;
@@ -299,19 +289,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // MODO DE JOGO
+    // MODO DE JOGO (troca descrição + setup)
     document.querySelectorAll('.segment-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
+
             state.mode = btn.dataset.mode;
+
             if (state.mode === 'individual') {
                 document.getElementById('individualSetup').classList.remove('hidden');
                 document.getElementById('teamSetup').classList.add('hidden');
+                rulesIndividual.classList.remove('hidden');
+                rulesTeam.classList.add('hidden');
             } else {
                 document.getElementById('individualSetup').classList.add('hidden');
                 document.getElementById('teamSetup').classList.remove('hidden');
+                rulesIndividual.classList.add('hidden');
+                rulesTeam.classList.remove('hidden');
             }
         });
     });
@@ -329,6 +324,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     setupChipGroup('scoreLimitGroup', 'targetScore');
     setupChipGroup('timeLimitGroup', 'timeLimit');
+
+    // ====== TEMAS (seleção múltipla) ======
+    document.querySelectorAll('.theme-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const theme = btn.dataset.theme;
+            if (state.selectedThemes.has(theme)) {
+                state.selectedThemes.delete(theme);
+                btn.classList.remove('active');
+            } else {
+                state.selectedThemes.add(theme);
+                btn.classList.add('active');
+            }
+        });
+    });
 
     // JOGADORES
     function addPlayerName(inputEl, targetArray, renderFn) {
@@ -366,7 +375,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTags(lists.teamB, state.teamB.players, (i) => removePlayerName(i, state.teamB.players, refreshAllLists));
     }
 
-    // ====== BOTÕES DE ADICIONAR (mantendo o teclado aberto no mobile) ======
     ['addPlayerBtn', 'addTeamABtn', 'addTeamBBtn'].forEach(id => {
         const btn = document.getElementById(id);
         if (!btn) return;
@@ -390,7 +398,6 @@ document.addEventListener('DOMContentLoaded', () => {
         addPlayerName(inputs.teamB, state.teamB.players, refreshAllLists);
     });
 
-    // ====== ENTER TAMBÉM ADICIONA ======
     inputs.player.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -419,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Adicione pelo menos 2 jogadores para embaralhar!');
             return;
         }
-        
+
         for (let i = all.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [all[i], all[j]] = [all[j], all[i]];
@@ -428,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isOdd = all.length % 2 !== 0;
         const extraToTeamA = isOdd ? Math.random() < 0.5 : false;
         const mid = Math.floor(all.length / 2) + (extraToTeamA ? 1 : 0);
-        
+
         state.teamA.players = all.slice(0, mid);
         state.teamB.players = all.slice(mid);
 
@@ -437,7 +444,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // INICIAR JOGO
     document.getElementById('startGameBtn').addEventListener('click', () => {
-        state.selectedTheme = document.getElementById('themeSelect').value;
+        if (state.selectedThemes.size === 0) {
+            alert('Selecione pelo menos um tema!');
+            return;
+        }
 
         if (state.mode === 'individual') {
             if (state.players.length < 2) {
@@ -462,32 +472,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ====== PALAVRAS ======
-    function getWordPool() {
-        if (state.selectedTheme === 'geral') {
-            const categories = Object.keys(WORDS_DATABASE);
-            const randomCat = categories[Math.floor(Math.random() * categories.length)];
-            return { pool: WORDS_DATABASE[randomCat], cat: randomCat.toUpperCase() };
-        }
-        return { 
-            pool: WORDS_DATABASE[state.selectedTheme] || [], 
-            cat: state.selectedTheme.toUpperCase() 
-        };
+    function getRandomCategoryFromSelected() {
+        const cats = Array.from(state.selectedThemes);
+        return cats[Math.floor(Math.random() * cats.length)];
     }
 
     function pickSingleWord() {
-        const { pool, cat } = getWordPool();
+        const cat = getRandomCategoryFromSelected();
+        const pool = WORDS_DATABASE[cat] || [];
         const available = pool.filter(w => !state.usedWords.has(w));
-        
+
         if (available.length === 0) {
             state.usedWords.clear();
             const w = pool[Math.floor(Math.random() * pool.length)];
             state.usedWords.add(w);
-            return { word: w, cat };
+            return { word: w, cat: cat.toUpperCase() };
         }
 
         const chosen = available[Math.floor(Math.random() * available.length)];
         state.usedWords.add(chosen);
-        return { word: chosen, cat };
+        return { word: chosen, cat: cat.toUpperCase() };
     }
 
     function pickTwoDistinctWords() {
@@ -501,7 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return [first, second];
     }
 
-    // ====== RENDERIZA TELA DE REVELAÇÃO ======
+    // ====== REVELAÇÃO ======
     function renderRevealScreen() {
         const badgeElem = document.getElementById('roundBadge');
         const wordsBlock = document.getElementById('wordsBlock');
@@ -514,7 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.mode === 'individual') {
             const actorObj = state.players[state.actorIndex.individual];
             state.currentActor = actorObj.name;
-            
+
             badgeElem.innerText = 'Vez de...';
             document.getElementById('turnActorName').innerText = state.currentActor;
             document.getElementById('turnTeamSub').innerText = 'Passe o celular para ele(a)';
@@ -524,7 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isTeamA = state.currentTeamTurn === 'A';
             const currentTeam = isTeamA ? state.teamA : state.teamB;
             const idxKey = isTeamA ? 'teamA' : 'teamB';
-            
+
             const actorName = currentTeam.players[state.actorIndex[idxKey]];
             state.currentActor = actorName;
 
@@ -564,7 +568,6 @@ document.addEventListener('DOMContentLoaded', () => {
         state.selectedWord = null;
     }
 
-    // ====== TURNO ======
     function nextTurn() {
         state.currentWordChoices = pickTwoDistinctWords();
         state.selectedWord = null;
@@ -572,7 +575,6 @@ document.addEventListener('DOMContentLoaded', () => {
         showScreen('reveal');
     }
 
-    // ====== IR PARA O PRÓXIMO TURNO COM TRANSIÇÃO ======
     function goToNextTurn() {
         const nextName = peekNextActor();
         showTransition(nextName, 'Prepare-se!', () => {
@@ -580,7 +582,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ====== BOTÃO REVELAR PALAVRAS ======
+    // REVELAR PALAVRAS
     document.getElementById('revealWordsBtn').addEventListener('click', () => {
         const wordsBlock = document.getElementById('wordsBlock');
         const revealBtn = document.getElementById('revealWordsBtn');
@@ -589,19 +591,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.lucide) lucide.createIcons();
     });
 
-    // ====== PULAR VEZ ======
+    // PULAR VEZ
     document.getElementById('skipTurnBtn').addEventListener('click', () => {
         clearInterval(state.timerId);
         goToNextTurn();
     });
 
-    // ====== CRONÔMETRO ======
+    // CRONÔMETRO
     document.getElementById('startTimerBtn').addEventListener('click', () => {
         if (!state.selectedWord) return;
 
         showScreen('action');
         document.getElementById('actingInfo').innerHTML = `Mímica: <strong>${state.currentActor}</strong>`;
-        
+
         document.getElementById('successBtn').classList.remove('hidden');
         document.getElementById('failBtn').classList.add('hidden');
 
@@ -684,8 +686,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ====== PLACAR AO VIVO ======
-    liveScoreBtn.addEventListener('click', () => {
+    // ====== PLACAR AO VIVO (vários botões) ======
+    function openScoreModal() {
         const content = document.getElementById('liveScoreContent');
         content.innerHTML = '';
 
@@ -723,13 +725,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         scoreModal.classList.remove('hidden');
+    }
+
+    document.querySelectorAll('.score-btn').forEach(btn => {
+        btn.addEventListener('click', openScoreModal);
     });
 
     document.getElementById('closeScoreModalBtn').addEventListener('click', () => {
         scoreModal.classList.add('hidden');
     });
 
-    // ====== VITÓRIA ======
+    // VITÓRIA
     function triggerVictory(winnerTitle) {
         showScreen('winner');
         document.getElementById('winnerName').innerText = winnerTitle;
@@ -760,14 +766,84 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('restartGameBtn').addEventListener('click', () => showScreen('config'));
     document.getElementById('returnRallyBtn').addEventListener('click', () => window.location.href = '../../index.html');
 
-    // ====== SAIR ======
-    const exitBtn = document.getElementById('exitBtn');
+    // ====== SAIR (qualquer botão com data-exit-btn) ======
     const exitModal = document.getElementById('exitModal');
 
-    exitBtn.addEventListener('click', () => exitModal.classList.remove('hidden'));
-    document.getElementById('cancelExitBtn').addEventListener('click', () => exitModal.classList.add('hidden'));
+    document.querySelectorAll('[data-exit-btn]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            exitModal.classList.remove('hidden');
+        });
+    });
+
+    document.getElementById('cancelExitBtn').addEventListener('click', () => {
+        exitModal.classList.add('hidden');
+    });
+
     document.getElementById('confirmExitBtn').addEventListener('click', () => {
         clearInterval(state.timerId);
         window.location.href = '../../index.html';
     });
+
+    // ====== MODAL "Anuncie aqui" ======
+    const adBanners = document.querySelectorAll('[data-ad-banner]');
+    const adOverlay = document.getElementById('adOverlay');
+    const adModal = document.getElementById('adModal');
+    const adModalClose = document.getElementById('adModalClose');
+    const adEmailText = document.getElementById('adEmailText');
+    const adCopyBtn = document.getElementById('adCopyBtn');
+    const adCopiedMsg = document.getElementById('adCopiedMsg');
+
+    function openAdModal() {
+        adOverlay.classList.add('open');
+        adModal.classList.add('open');
+    }
+
+    function closeAdModal() {
+        adOverlay.classList.remove('open');
+        adModal.classList.remove('open');
+        adCopyBtn.textContent = 'Copiar';
+        adCopyBtn.classList.remove('copied');
+        adCopiedMsg.classList.remove('show');
+    }
+
+    adBanners.forEach(btn => btn.addEventListener('click', openAdModal));
+    adModalClose.addEventListener('click', closeAdModal);
+    adOverlay.addEventListener('click', closeAdModal);
+
+    adCopyBtn.addEventListener('click', async () => {
+        const email = adEmailText.textContent.trim();
+        try {
+            await navigator.clipboard.writeText(email);
+            adCopyBtn.textContent = 'Copiado!';
+            adCopyBtn.classList.add('copied');
+            adCopiedMsg.classList.add('show');
+            setTimeout(() => {
+                adCopyBtn.textContent = 'Copiar';
+                adCopyBtn.classList.remove('copied');
+                adCopiedMsg.classList.remove('show');
+            }, 2200);
+        } catch (err) {
+            const textArea = document.createElement('textarea');
+            textArea.value = email;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                adCopyBtn.textContent = 'Copiado!';
+                adCopyBtn.classList.add('copied');
+                adCopiedMsg.classList.add('show');
+                setTimeout(() => {
+                    adCopyBtn.textContent = 'Copiar';
+                    adCopyBtn.classList.remove('copied');
+                    adCopiedMsg.classList.remove('show');
+                }, 2200);
+            } catch (e) {
+                adCopiedMsg.textContent = 'Não foi possível copiar.';
+                adCopiedMsg.classList.add('show');
+            }
+            document.body.removeChild(textArea);
+        }
+    });
+
+    console.log('🎉 Mímica carregada com sucesso!');
 });

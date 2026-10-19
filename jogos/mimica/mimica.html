@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mímica - Bandu</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232E2626' stroke-width='2'%3E%3Cpath d='M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0'%3E%3C/path%3E%3Cpath d='M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v6'%3E%3C/path%3E%3Cpath d='M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8'%3E%3C/path%3E%3Cpath d='M18 8a2 2 0 0 1 2 2v4a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15'%3E%3C/path%3E%3C/svg%3E">
+    <title>Mímica - Rally</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23FBFAF7'/%3E%3Ctext x='50' y='50' text-anchor='middle' dominant-baseline='central' font-family='Outfit, Arial, sans-serif' font-weight='900' font-size='78' fill='%23FF6B8A'%3ER%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="mimica.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -12,190 +12,266 @@
 </head>
 <body>
 
-    <div class="top-bar">
-        <button class="icon-button exit-btn" id="exitBtn" aria-label="Voltar ao Bandu">
-            <i data-lucide="arrow-left"></i>
-        </button>
-        <button class="icon-button score-btn hidden" id="liveScoreBtn" aria-label="Ver Placar">
-            <i data-lucide="bar-chart-2"></i>
-        </button>
-    </div>
-
     <main class="container">
-        
+
         <!-- ================= FASE 1: CONFIGURAÇÃO ================= -->
-        <section id="configScreen" class="card-panel">
-            <header class="panel-header">
-                <h1>Mímica</h1>
-                <p>Party Game de Adivinhação</p>
-            </header>
+        <section id="configScreen" class="screen-wrap">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Anuncie aqui — ver email de contato">
+                    <span class="ad-banner-text">Anuncie aqui</span>
+                </button>
+                <button class="icon-button score-btn hidden" id="liveScoreBtn" aria-label="Ver Placar">
+                    <i data-lucide="bar-chart-2"></i>
+                </button>
+            </div>
 
-            <form id="configForm" onsubmit="return false;">
-                <div class="form-group">
-                    <label class="form-label">Modo de Jogo</label>
-                    <div class="segmented-control">
-                        <button type="button" class="segment-btn active" data-mode="individual">
-                            <i data-lucide="user"></i> Geral
-                        </button>
-                        <button type="button" class="segment-btn" data-mode="team">
-                            <i data-lucide="users"></i> Equipes
-                        </button>
-                    </div>
+            <div class="card-panel">
+                <header class="panel-header">
+                    <h1>Mímica</h1>
+                </header>
+
+                <div class="panel-divider"></div>
+
+                <div class="panel-rules">
+                    <h2 class="panel-subtitle">Como jogar?</h2>
+                    <p class="panel-desc" id="rulesIndividual">
+                        Um jogador <strong>sorteia</strong> e escolhe entre duas palavras. Ele deve representá-la
+                        usando apenas <strong>gestos</strong>, sem falar ou fazer sons. Os outros precisam
+                        <strong>adivinhar</strong> antes que o <strong>tempo acabe</strong>! Quem acertar ganha
+                        <strong>3 pontos</strong>, e o mímico ganha <strong>2 pontos extras</strong> se alguém acertar.
+                    </p>
+                    <p class="panel-desc hidden" id="rulesTeam">
+                        Um jogador <strong>sorteia</strong> e escolhe entre duas palavras. Ele deve representá-la
+                        usando apenas <strong>gestos</strong>, sem falar ou fazer sons. <strong>Sua equipe</strong>
+                        precisa adivinhar antes que o <strong>tempo acabe</strong>! Se acertar, a equipe ganha
+                        <strong>3 pontos</strong>.
+                    </p>
                 </div>
 
-                <div id="individualSetup" class="form-group">
-                    <label class="form-label">Jogadores</label>
-                    <div class="input-with-button">
-                        <input type="text" id="playerInput" placeholder="Nome do jogador..." maxlength="15">
-                        <button type="button" class="btn btn-secondary" id="addPlayerBtn">Adicionar</button>
-                    </div>
-                    <ul class="tag-list" id="playerList"></ul>
-                </div>
+                <div class="panel-divider"></div>
 
-                <div id="teamSetup" class="form-group hidden">
-                    <label class="form-label">Divisão de Equipes</label>
-                    
-                    <div class="teams-container-stacked">
-                        <div class="team-box team-a">
-                            <h3>Equipe Azul</h3>
-                            <div class="input-with-button">
-                                <input type="text" id="teamAInput" placeholder="Nome na azul..." maxlength="15">
-                                <button type="button" class="btn btn-secondary" id="addTeamABtn">+</button>
+                <form id="configForm" onsubmit="return false;">
+                    <div class="form-group">
+                        <label class="form-label">Modo de Jogo</label>
+                        <div class="segmented-control">
+                            <button type="button" class="segment-btn active" data-mode="individual">
+                                <i data-lucide="user"></i> Geral
+                            </button>
+                            <button type="button" class="segment-btn" data-mode="team">
+                                <i data-lucide="users"></i> Equipes
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="individualSetup" class="form-group">
+                        <label class="form-label">Jogadores</label>
+                        <div class="input-with-button">
+                            <input type="text" id="playerInput" placeholder="Nome do jogador..." maxlength="15">
+                            <button type="button" class="btn btn-secondary" id="addPlayerBtn">Adicionar</button>
+                        </div>
+                        <ul class="tag-list" id="playerList"></ul>
+                    </div>
+
+                    <div id="teamSetup" class="form-group hidden">
+                        <label class="form-label">Divisão de Equipes</label>
+
+                        <div class="teams-container-stacked">
+                            <div class="team-box team-a">
+                                <h3>Equipe Azul</h3>
+                                <div class="input-with-button">
+                                    <input type="text" id="teamAInput" placeholder="Nome na azul..." maxlength="15">
+                                    <button type="button" class="btn btn-secondary" id="addTeamABtn">+</button>
+                                </div>
+                                <ul class="tag-list" id="teamAList"></ul>
                             </div>
-                            <ul class="tag-list" id="teamAList"></ul>
+
+                            <div class="team-box team-b">
+                                <h3>Equipe Vermelha</h3>
+                                <div class="input-with-button">
+                                    <input type="text" id="teamBInput" placeholder="Nome na vermelha..." maxlength="15">
+                                    <button type="button" class="btn btn-secondary" id="addTeamBBtn">+</button>
+                                </div>
+                                <ul class="tag-list" id="teamBList"></ul>
+                            </div>
                         </div>
 
-                        <div class="team-box team-b">
-                            <h3>Equipe Vermelha</h3>
-                            <div class="input-with-button">
-                                <input type="text" id="teamBInput" placeholder="Nome na vermelha..." maxlength="15">
-                                <button type="button" class="btn btn-secondary" id="addTeamBBtn">+</button>
-                            </div>
-                            <ul class="tag-list" id="teamBList"></ul>
+                        <button type="button" class="btn btn-secondary btn-block shuffle-btn" id="randomizeTeamsBtn">
+                            <i data-lucide="shuffle"></i> Embaralhar Equipes
+                        </button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Meta de Pontos</label>
+                        <div class="chip-group" id="scoreLimitGroup">
+                            <button type="button" class="chip-btn active" data-value="30">30</button>
+                            <button type="button" class="chip-btn" data-value="45">45</button>
+                            <button type="button" class="chip-btn" data-value="60">60</button>
+                            <button type="button" class="chip-btn" data-value="75">75</button>
+                            <button type="button" class="chip-btn" data-value="90">90</button>
                         </div>
                     </div>
 
-                    <button type="button" class="btn btn-secondary btn-block shuffle-btn" id="randomizeTeamsBtn">
-                        <i data-lucide="shuffle"></i> Embaralhar Equipes
-                    </button>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Meta de Pontos</label>
-                    <div class="chip-group" id="scoreLimitGroup">
-                        <button type="button" class="chip-btn active" data-value="30">30</button>
-                        <button type="button" class="chip-btn" data-value="45">45</button>
-                        <button type="button" class="chip-btn" data-value="60">60</button>
-                        <button type="button" class="chip-btn" data-value="75">75</button>
-                        <button type="button" class="chip-btn" data-value="90">90</button>
+                    <div class="form-group">
+                        <label class="form-label">Tempo por Rodada</label>
+                        <div class="chip-group" id="timeLimitGroup">
+                            <button type="button" class="chip-btn" data-value="30">30 seg</button>
+                            <button type="button" class="chip-btn active" data-value="45">45 seg</button>
+                            <button type="button" class="chip-btn" data-value="60">60 seg</button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label class="form-label">Tempo por Rodada</label>
-                    <div class="chip-group" id="timeLimitGroup">
-                        <button type="button" class="chip-btn" data-value="30">30 seg</button>
-                        <button type="button" class="chip-btn active" data-value="45">45 seg</button>
-                        <button type="button" class="chip-btn" data-value="60">60 seg</button>
+                    <div class="form-group">
+                        <label class="form-label">Temas das Palavras</label>
+                        <div class="theme-grid" id="themeGrid">
+                            <button type="button" class="theme-toggle" data-theme="animais">Animais</button>
+                            <button type="button" class="theme-toggle" data-theme="verbos">Verbos &amp; Ações</button>
+                            <button type="button" class="theme-toggle" data-theme="profissoes">Profissões</button>
+                            <button type="button" class="theme-toggle" data-theme="objetos">Objetos</button>
+                            <button type="button" class="theme-toggle" data-theme="comidas">Comidas</button>
+                            <button type="button" class="theme-toggle" data-theme="filmes">Filmes &amp; Séries</button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group theme-group">
-                    <label class="form-label">Tema das Palavras</label>
-                    <select id="themeSelect" class="custom-select">
-                        <option value="geral">Geral (Todas as categorias)</option>
-                        <option value="animais">Animais</option>
-                        <option value="verbos">Verbos & Ações</option>
-                        <option value="profissoes">Profissões</option>
-                        <option value="objetos">Objetos</option>
-                        <option value="comidas">Comidas</option>
-                        <option value="filmes">Filmes & Séries</option>
-                    </select>
-                </div>
-
-                <button type="button" class="btn btn-primary btn-block btn-start" id="startGameBtn">Iniciar Jogo</button>
-            </form>
+                    <button type="button" class="btn btn-primary btn-block btn-start" id="startGameBtn">Iniciar Jogo</button>
+                </form>
+            </div>
         </section>
 
 
         <!-- ================= FASE 2: REVELAÇÃO DO JOGADOR ================= -->
-        <section id="revealScreen" class="card-panel hidden">
-            <div class="round-badge" id="roundBadge">Vez de...</div>
-            <h2 id="turnActorName" class="display-title">Nome do Jogador</h2>
-            <p class="subtitle" id="turnTeamSub">Passe o celular para a pessoa sorteada</p>
-
-            <div id="wordsBlock" class="words-block hidden">
-                <div class="words-pick-header">
-                    <span>Escolha uma das palavras:</span>
-                </div>
-
-                <div class="word-choices" id="wordChoices">
-                    <button type="button" class="word-choice" data-index="0">
-                        <span class="word-choice-category">Categoria</span>
-                        <span class="word-choice-text">PALAVRA</span>
-                    </button>
-                    <button type="button" class="word-choice" data-index="1">
-                        <span class="word-choice-category">Categoria</span>
-                        <span class="word-choice-text">PALAVRA</span>
-                    </button>
-                </div>
-
-                <button type="button" class="btn btn-primary btn-block hidden" id="startTimerBtn">Iniciar</button>
-                <button type="button" class="btn btn-secondary btn-block skip-btn" id="skipTurnBtn">
-                    <i data-lucide="skip-forward"></i> Pular Vez
+        <section id="revealScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Anuncie aqui — ver email de contato">
+                    <span class="ad-banner-text">Anuncie aqui</span>
+                </button>
+                <button class="icon-button score-btn hidden" id="liveScoreBtnReveal" aria-label="Ver Placar">
+                    <i data-lucide="bar-chart-2"></i>
                 </button>
             </div>
 
-            <button type="button" class="btn btn-primary btn-block reveal-btn" id="revealWordsBtn">
-                <i data-lucide="eye"></i> Revelar Palavras
-            </button>
+            <div class="card-panel">
+                <div class="round-badge" id="roundBadge">Vez de...</div>
+                <h2 id="turnActorName" class="display-title">Nome do Jogador</h2>
+                <p class="subtitle" id="turnTeamSub">Passe o celular para a pessoa sorteada</p>
+
+                <div id="wordsBlock" class="words-block hidden">
+                    <div class="words-pick-header">
+                        <span>Escolha uma das palavras:</span>
+                    </div>
+
+                    <div class="word-choices" id="wordChoices">
+                        <button type="button" class="word-choice" data-index="0">
+                            <span class="word-choice-category">Categoria</span>
+                            <span class="word-choice-text">PALAVRA</span>
+                        </button>
+                        <button type="button" class="word-choice" data-index="1">
+                            <span class="word-choice-category">Categoria</span>
+                            <span class="word-choice-text">PALAVRA</span>
+                        </button>
+                    </div>
+
+                    <button type="button" class="btn btn-primary btn-block hidden" id="startTimerBtn">Iniciar</button>
+                    <button type="button" class="btn btn-secondary btn-block skip-btn" id="skipTurnBtn">
+                        <i data-lucide="skip-forward"></i> Pular Vez
+                    </button>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-block reveal-btn" id="revealWordsBtn">
+                    <i data-lucide="eye"></i> Revelar Palavras
+                </button>
+            </div>
         </section>
 
 
         <!-- ================= FASE 3: PARTIDA E CRONÔMETRO ================= -->
-        <section id="actionScreen" class="card-panel hidden">
-            <div class="action-header">
-                <span id="actingInfo">Fazendo mímica: <strong>Nome</strong></span>
+        <section id="actionScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Anuncie aqui — ver email de contato">
+                    <span class="ad-banner-text">Anuncie aqui</span>
+                </button>
+                <button class="icon-button score-btn hidden" id="liveScoreBtnAction" aria-label="Ver Placar">
+                    <i data-lucide="bar-chart-2"></i>
+                </button>
             </div>
 
-            <div class="timer-display" id="timerDisplay">00</div>
+            <div class="card-panel">
+                <div class="action-header">
+                    <span id="actingInfo">Fazendo mímica: <strong>Nome</strong></span>
+                </div>
 
-            <div class="action-controls">
-                <button type="button" class="btn btn-success btn-block" id="successBtn">
-                    <i data-lucide="check-circle-2"></i> DESCOBRIMOS!
-                </button>
-                <button type="button" class="btn btn-danger btn-block hidden" id="failBtn">
-                    <i data-lucide="x-circle"></i> NÃO DESCOBRIMOS...
-                </button>
+                <div class="timer-display" id="timerDisplay">00</div>
+
+                <div class="action-controls">
+                    <button type="button" class="btn btn-success btn-block" id="successBtn">
+                        <i data-lucide="check-circle-2"></i> DESCOBRIMOS!
+                    </button>
+                    <button type="button" class="btn btn-danger btn-block hidden" id="failBtn">
+                        <i data-lucide="x-circle"></i> NÃO DESCOBRIMOS...
+                    </button>
+                </div>
             </div>
         </section>
 
 
         <!-- ================= FASE 4: SELEÇÃO DE QUEM DESCOBRIU (GERAL) ================= -->
-        <section id="guesserScreen" class="card-panel hidden">
-            <h2 class="guesser-title">Quem descobriu?</h2>
-            <p class="subtitle">Selecione quem acertou</p>
-            <p class="subtitle">(+3 pts adivinhador, +2 pts mímico)</p>
-            <div id="guesserList" class="guesser-grid"></div>
+        <section id="guesserScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Anuncie aqui — ver email de contato">
+                    <span class="ad-banner-text">Anuncie aqui</span>
+                </button>
+                <button class="icon-button score-btn hidden" id="liveScoreBtnGuesser" aria-label="Ver Placar">
+                    <i data-lucide="bar-chart-2"></i>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <h2 class="guesser-title">Quem descobriu?</h2>
+                <p class="subtitle">Selecione quem acertou</p>
+                <p class="subtitle">(+3 pts adivinhador, +2 pts mímico)</p>
+                <div id="guesserList" class="guesser-grid"></div>
+            </div>
         </section>
 
 
         <!-- ================= FASE 5: VENCEU ================= -->
-        <section id="winnerScreen" class="card-panel hidden">
-            <div class="trophy-icon">
-                <i data-lucide="trophy"></i>
+        <section id="winnerScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Anuncie aqui — ver email de contato">
+                    <span class="ad-banner-text">Anuncie aqui</span>
+                </button>
             </div>
-            <p class="subtitle">Temos um vencedor!</p>
-            <h1 id="winnerName" class="winner-title">Nome Vencedor</h1>
-            <div id="finalScoreboard" class="final-scoreboard"></div>
 
-            <div class="winner-actions">
-                <button type="button" class="btn btn-primary btn-block" id="restartGameBtn">
-                    <i data-lucide="rotate-ccw"></i> Recomeçar Partida
-                </button>
-                <button type="button" class="btn btn-secondary btn-block" id="returnRallyBtn">
-                    <i data-lucide="home"></i> Voltar ao Bandu
-                </button>
+            <div class="card-panel">
+                <div class="trophy-icon">
+                    <i data-lucide="trophy"></i>
+                </div>
+                <p class="subtitle">Temos um vencedor!</p>
+                <h1 id="winnerName" class="winner-title">Nome Vencedor</h1>
+                <div id="finalScoreboard" class="final-scoreboard"></div>
+
+                <div class="winner-actions">
+                    <button type="button" class="btn btn-primary btn-block" id="restartGameBtn">
+                        <i data-lucide="rotate-ccw"></i> Recomeçar Partida
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-block" id="returnRallyBtn">
+                        <i data-lucide="home"></i> Voltar à Rally
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -223,12 +299,30 @@
     <div class="modal-overlay hidden" id="exitModal">
         <div class="modal-card">
             <h3>Cancelar Partida?</h3>
-            <p>Se voltar para o Bandu, a partida atual será cancelada.</p>
+            <p>Se voltar à Rally, a partida atual será cancelada.</p>
             <div class="modal-buttons">
                 <button class="btn btn-secondary" id="cancelExitBtn">Continuar</button>
                 <button class="btn btn-danger" id="confirmExitBtn">Sair da Partida</button>
             </div>
         </div>
+    </div>
+
+    <!-- Modal "Anuncie aqui" -->
+    <div class="ad-overlay" id="adOverlay"></div>
+    <div class="ad-modal" id="adModal" role="dialog" aria-modal="true" aria-labelledby="adModalTitle">
+        <button class="ad-modal-close" id="adModalClose" aria-label="Fechar">✕</button>
+        <h3 class="ad-modal-title" id="adModalTitle">ANUNCIE AQUI</h3>
+        <p class="ad-modal-desc">
+            Quer divulgar sua marca para quem joga com os amigos?
+            Entre em contato pelo e-mail abaixo:
+        </p>
+        <div class="ad-email-box">
+            <span class="ad-email-text" id="adEmailText">contato.rallybr@gmail.com</span>
+            <button type="button" class="ad-copy-btn" id="adCopyBtn" aria-label="Copiar e-mail">
+                Copiar
+            </button>
+        </div>
+        <p class="ad-copied-msg" id="adCopiedMsg">E-mail copiado!</p>
     </div>
 
     <script src="mimica.js"></script>
