@@ -1,4 +1,4 @@
-// Bandu - Impostor (Party Game)
+// Rally - Impostor (Party Game)
 
 document.addEventListener('DOMContentLoaded', () => {
     if (window.lucide) {
@@ -73,8 +73,16 @@ document.addEventListener('DOMContentLoaded', () => {
             "Filme Infantil": ["Harry Potter", "Toy Story", "Frozen", "Moana", "Encanto", "Detona Ralph", "Coraline", "Stranger Things", "Up - Altas Aventuras"],
             "Filme antigo": ["O Poderoso Chefão", "Titanic", "Star Wars", "Matrix", "De Volta para o Futuro", "Tubarão", "O Rei Leão", "Chaves", "A Família Addams", "Ghostbusters", "O Iluminado"],
         },
-        geral: {
-            "Esporte": ["Boliche", "Basquete", "Futebol", "Surfar", "Esquiar", "Patinar", "Queimada", "Vôlei", "Natação", "Atletismo", "Olimpiadas", "Copa do mundo"],
+        futebol: {
+            "Jogador brasileiro": ["Pelé", "Neymar", "Ronaldo Fenômeno", "Ronaldinho Gaúcho", "Romário", "Kaká", "Rivaldo", "Zico", "Sócrates", "Garrincha", "Roberto Carlos", "Cafu", "Dida", "Bebeto", "Adriano Imperador", "Juninho Pernambucano", "Santos Marcos", "Rogério Ceni", "Taffarel", "Casemiro", "Vinícius Júnior", "Rodrygo", "Raphinha", "Richarlison", "Endrick", "Gabriel Jesus", "Bruno Guimarães", "Alisson", "Ederson", "Thiago Silva", "Marquinhos", "Lucas Paquetá", "Philippe Coutinho", "Hulk", "Denílson", "Éder Militão", "Gabriel Martinelli"],
+            "Jogador sul-americano": ["Lionel Messi", "Diego Maradona", "Ángel Di María", "Lautaro Martínez", "Julián Álvarez", "Sergio Agüero", "Enzo Fernández", "Rodrigo De Paul", "Paulo Dybala", "Luis Suárez", "Edinson Cavani", "Federico Valverde", "Darwin Núñez", "James Rodríguez", "Luis Díaz", "Carlos Valderrama", "Arturo Vidal", "Paolo Guerrero", "Carlos Tévez"],
+            "Jogador europeu": ["Cristiano Ronaldo", "Zinedine Zidane", "Kylian Mbappé", "Thierry Henry", "Karim Benzema", "Antoine Griezmann", "Olivier Giroud", "Xavi", "Andrés Iniesta", "Sergio Ramos", "Iker Casillas", "Carles Puyol", "Lamine Yamal", "Rodri", "David Beckham", "Harry Kane", "Jude Bellingham", "Bukayo Saka", "Phil Foden", "Franz Beckenbauer", "Toni Kroos", "Manuel Neuer", "Jamal Musiala", "Paolo Maldini", "Gianluigi Buffon", "Johan Cruyff", "Ruud Gullit", "Virgil van Dijk", "Luka Modrić", "Gareth Bale", "Zlatan Ibrahimović", "Erling Haaland", "Robert Lewandowski", "Eusébio", "Rafael Leão", "Petr Čech", "Kevin De Bruyne", "Eden Hazard", "Romelu Lukaku", "Clarence Seedorf"],
+            "Time brasileiro": ["Corinthians", "Palmeiras", "São Paulo", "Santos", "Flamengo", "Fluminense", "Botafogo", "Vasco da Gama", "Grêmio", "Internacional", "Atlético Mineiro", "Cruzeiro", "Bahia", "Vitória", "Sport Recife", "Fortaleza", "Ceará", "Athletico Paranaense", "Coritiba", "Goiás", "Cuiabá", "Red Bull Bragantino", "América Mineiro", "Chapecoense", "Ponte Preta", "Guarani", "Portuguesa", "Juventude", "Avaí", "Náutico", "Santa Cruz", "Paysandu", "Remo", "Atlético Goianiense", "Criciúma", "Mirassol", "São Bernardo", "Ituano", "Novorizontino", "Ferroviária"],
+            "Time europeu": ["Real Madrid", "Barcelona", "Atlético de Madrid", "Manchester United", "Manchester City", "Liverpool", "Arsenal", "Chelsea", "Tottenham", "Bayern de Munique", "Borussia Dortmund", "Bayer Leverkusen", "RB Leipzig", "Juventus", "Milan", "Inter de Milão", "Napoli", "Roma", "Lazio", "Paris Saint-Germain", "Olympique de Marseille", "Lyon", "Monaco", "Ajax", "Benfica", "Porto", "Sporting", "Celtic", "Rangers", "Galatasaray", "Fenerbahçe", "Real Sociedad", "Olympiacos"],
+            "Seleção": ["Brasil", "Argentina", "Uruguai", "Colômbia", "Chile", "Paraguai", "Peru", "Bolívia", "México", "Estados Unidos", "Inglaterra", "França", "Alemanha", "Espanha", "Portugal", "Itália", "Holanda", "Bélgica", "Croácia", "Dinamarca", "Noruega", "Japão", "Coreia do Sul", "Austrália", "Arábia Saudita", "Marrocos", "Egito", "Costa do Marfim", "África do Sul", "Catar", "Turquia", "País de Gales"],
+            "Técnico de futebol": ["Carlo Ancelotti", "Pep Guardiola", "José Mourinho", "Jürgen Klopp", "Abel Ferreira", "Dorival Júnior", "Tite", "Felipão", "Pofexô Luxemburgo", "Zagallo", "Fernando Diniz", "Rogério Ceni", "Renato Gaúcho", "Jorge Jesus", "Mano Menezes", "Zinedine Zidane", "Diego Simeone", "Luis Enrique"],
+            "Posição do futebol": ["Goleiro", "Zagueiro", "Lateral-direito", "Lateral-esquerdo", "Ala", "Primeiro volante", "Segundo volante", "Meia central", "Meia ofensivo", "Armador", "Ponta-direita", "Ponta-esquerda", "Centroavante", "Segundo atacante", "Falso nove"],
+            "Campeonatos e competições": ["Copa do Mundo", "Copa América", "Eurocopa", "Liga dos Campeões", "Liga Europa", "Conference League", "Libertadores", "Copa Sul-Americana", "Brasileirão", "Copa do Brasil", "Supercopa do Brasil", "Mundial de Clubes", "Intercontinental", "Recopa Sul-Americana", "Premier League", "La Liga", "Serie A italiana", "Bundesliga", "Ligue 1", "Eredivisie", "Copa da Inglaterra", "Copa do Rei", "Jogos Olímpicos", "Mundial Sub-20", "Copinha"],
         },
     };
 
@@ -92,13 +100,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ============================================================
-    // ESTADO DO JOGO
+    // ESTADO DO JOGO — temas começam TODOS desselecionados
     // ============================================================
     const state = {
         players: [],
         impostorCount: 1,
         impostorMode: 'blind',
-        selectedTheme: 'geral',
+        selectedThemes: new Set(),
 
         currentWord: null,
         impostorNames: [],
@@ -214,11 +222,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ============================================================
+    // CONFIGURAÇÃO — TEMAS (seleção múltipla)
+    // ============================================================
+    document.querySelectorAll('.theme-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const theme = btn.dataset.theme;
+            if (state.selectedThemes.has(theme)) {
+                state.selectedThemes.delete(theme);
+                btn.classList.remove('active');
+            } else {
+                state.selectedThemes.add(theme);
+                btn.classList.add('active');
+            }
+        });
+    });
+
+    // ============================================================
     // INICIAR PARTIDA
     // ============================================================
     document.getElementById('startGameBtn').addEventListener('click', () => {
-        state.selectedTheme = document.getElementById('themeSelect').value;
-
         if (state.players.length < 3) {
             alert('Adicione pelo menos 3 jogadores!');
             return;
@@ -226,6 +248,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (state.impostorCount >= state.players.length) {
             alert('O número de impostores deve ser menor que o número de jogadores!');
+            return;
+        }
+
+        if (state.selectedThemes.size === 0) {
+            alert('Selecione pelo menos um tema!');
             return;
         }
 
@@ -240,9 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================
     function getWordsForTheme() {
         const result = [];
-        const cats = state.selectedTheme === 'geral'
-            ? Object.keys(HINT_GROUPS)
-            : [state.selectedTheme];
+        const cats = Array.from(state.selectedThemes);
 
         cats.forEach(cat => {
             const groups = HINT_GROUPS[cat];
@@ -277,7 +302,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // SETUP DE NOVA RODADA
     // ============================================================
     function setupNewRound() {
-        // Reset de flags de transição (evita travamento ao iniciar nova rodada)
         state.isTransitioning = false;
         state.isRolling = false;
 
@@ -295,7 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ============================================================
-    // TELA DE REVELAÇÃO — preenche o conteúdo do card
+    // TELA DE REVELAÇÃO
     // ============================================================
     function renderRevealScreen() {
         const actorName = state.revealOrder[state.revealIndex];
@@ -306,7 +330,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ? 'Última pessoa a ver!'
             : 'Passe o celular para ele(a)';
 
-        // Garante que o card esteja SEMPRE de frente ao renderizar
         const cardSecret = document.getElementById('cardSecret');
         cardSecret.classList.remove('flipped', 'animating');
 
@@ -315,7 +338,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const cardBack = document.querySelector('#cardSecret .card-back');
         const nextBtn = document.getElementById('nextPlayerBtn');
 
-        // Remove dica antiga se houver
         const oldHint = cardBack.querySelector('.card-back-hint');
         if (oldHint) oldHint.remove();
 
@@ -353,7 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // CARD — clique para revelar
     // ============================================================
     const cardSecret = document.getElementById('cardSecret');
-    const CARD_FLIP_MS = 600; // duração da animação (bate com o CSS)
+    const CARD_FLIP_MS = 600;
 
     cardSecret.addEventListener('click', () => {
         if (cardSecret.classList.contains('flipped')) return;
@@ -364,23 +386,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ============================================================
-    // BOTÃO "PASSAR" — reseta o card ANTES de trocar de jogador
+    // BOTÃO "PASSAR"
     // ============================================================
     document.getElementById('nextPlayerBtn').addEventListener('click', () => {
         if (state.isTransitioning) return;
         state.isTransitioning = true;
 
-        // 1) Esconde o botão imediatamente (evita duplo clique)
         document.getElementById('nextPlayerBtn').classList.add('hidden');
-
-        // 2) Desvira o card — a animação roda para voltar à frente neutra
         cardSecret.classList.remove('flipped');
-
-        // 3) Bloqueia cliques durante a animação
         cardSecret.classList.add('animating');
 
-        // 4) Espera a animação de virar de volta terminar ANTES de
-        //    atualizar o conteúdo e o nome do próximo jogador.
         setTimeout(() => {
             state.revealIndex++;
 
@@ -388,7 +403,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 state.isTransitioning = false;
                 startSortScreen();
             } else {
-                // Agora sim, atualiza conteúdo e nome — card já está de frente
                 renderRevealScreen();
                 cardSecret.classList.remove('animating');
                 state.isTransitioning = false;
@@ -495,11 +509,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ============================================================
-    // SAIR
+    // SAIR — dois botões (config e resultado)
     // ============================================================
-    document.getElementById('exitBtn').addEventListener('click', () => {
-        exitModal.classList.remove('hidden');
-    });
+    function bindExitButton(id) {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.addEventListener('click', () => {
+                exitModal.classList.remove('hidden');
+            });
+        }
+    }
+    bindExitButton('exitBtn');
+    bindExitButton('exitBtnResult');
 
     document.getElementById('cancelExitBtn').addEventListener('click', () => {
         exitModal.classList.add('hidden');
@@ -507,6 +528,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('confirmExitBtn').addEventListener('click', () => {
         window.location.href = '../../index.html';
+    });
+
+    // ============================================================
+    // MODAL "Anuncie aqui"
+    // ============================================================
+    const adBanners = document.querySelectorAll('[data-ad-banner]');
+    const adOverlay = document.getElementById('adOverlay');
+    const adModal = document.getElementById('adModal');
+    const adModalClose = document.getElementById('adModalClose');
+    const adEmailText = document.getElementById('adEmailText');
+    const adCopyBtn = document.getElementById('adCopyBtn');
+    const adCopiedMsg = document.getElementById('adCopiedMsg');
+
+    function openAdModal() {
+        adOverlay.classList.add('open');
+        adModal.classList.add('open');
+    }
+
+    function closeAdModal() {
+        adOverlay.classList.remove('open');
+        adModal.classList.remove('open');
+        adCopyBtn.textContent = 'Copiar';
+        adCopyBtn.classList.remove('copied');
+        adCopiedMsg.classList.remove('show');
+    }
+
+    adBanners.forEach(btn => btn.addEventListener('click', openAdModal));
+    adModalClose.addEventListener('click', closeAdModal);
+    adOverlay.addEventListener('click', closeAdModal);
+
+    adCopyBtn.addEventListener('click', async () => {
+        const email = adEmailText.textContent.trim();
+        try {
+            await navigator.clipboard.writeText(email);
+            adCopyBtn.textContent = 'Copiado!';
+            adCopyBtn.classList.add('copied');
+            adCopiedMsg.classList.add('show');
+            setTimeout(() => {
+                adCopyBtn.textContent = 'Copiar';
+                adCopyBtn.classList.remove('copied');
+                adCopiedMsg.classList.remove('show');
+            }, 2200);
+        } catch (err) {
+            const textArea = document.createElement('textarea');
+            textArea.value = email;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                adCopyBtn.textContent = 'Copiado!';
+                adCopyBtn.classList.add('copied');
+                adCopiedMsg.classList.add('show');
+                setTimeout(() => {
+                    adCopyBtn.textContent = 'Copiar';
+                    adCopyBtn.classList.remove('copied');
+                    adCopiedMsg.classList.remove('show');
+                }, 2200);
+            } catch (e) {
+                adCopiedMsg.textContent = 'Não foi possível copiar.';
+                adCopiedMsg.classList.add('show');
+            }
+            document.body.removeChild(textArea);
+        }
     });
 
     console.log('🎉 Impostor carregado com sucesso!');

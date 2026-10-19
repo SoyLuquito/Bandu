@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Impostor - Bandu</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232E2626' stroke-width='2'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='8.5' cy='7' r='4'/%3E%3Cline x1='17' y1='11' x2='22' y2='11'/%3E%3Cline x1='19.5' y1='8.5' x2='19.5' y2='13.5'/%3E%3C/svg%3E">
+    <title>Impostor - Rally</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23FBFAF7'/%3E%3Ctext x='50' y='50' text-anchor='middle' dominant-baseline='central' font-family='Outfit, Arial, sans-serif' font-weight='900' font-size='78' fill='%23FF6B8A'%3ER%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="impostor.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -12,66 +12,90 @@
 </head>
 <body>
 
-    <div class="top-bar">
-        <button class="icon-button exit-btn" id="exitBtn" aria-label="Voltar ao Bandu">
-            <i data-lucide="arrow-left"></i>
-        </button>
-    </div>
-
     <main class="container">
 
         <!-- ================= FASE 1: CONFIGURAÇÃO ================= -->
-        <section id="configScreen" class="card-panel">
-            <header class="panel-header">
-                <h1>Impostor</h1>
-                <p>Descubra quem não sabe a palavra</p>
-            </header>
+        <section id="configScreen" class="screen-wrap">
+            <!-- Topo relativo à janela (não à viewport) -->
+            <div class="top-bar">
+                <button class="icon-button exit-btn" id="exitBtn" aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Anuncie aqui — ver email de contato">
+                    <span class="ad-banner-text">Anuncie aqui</span>
+                </button>
+            </div>
 
-            <form id="configForm" onsubmit="return false;">
-                <div class="form-group">
-                    <label class="form-label">Jogadores</label>
-                    <div class="input-with-button">
-                        <input type="text" id="playerInput" placeholder="Nome do jogador..." maxlength="15">
-                        <button type="button" class="btn btn-secondary" id="addPlayerBtn">Adicionar</button>
+            <div class="card-panel">
+                <header class="panel-header">
+                    <h1>IMPOSTOR</h1>
+                </header>
+
+                <div class="panel-divider"></div>
+
+                <div class="panel-rules">
+                    <h2 class="panel-subtitle">Como jogar?</h2>
+                    <p class="panel-desc">
+                        Uma <strong>palavra secreta</strong> é revelada a todos, menos ao
+                        <strong>impostor</strong>. Cada jogador dá uma dica relacionada à palavra
+                        <strong>sem entregá-la diretamente</strong>. O impostor deve disfarçar e
+                        tentar não levantar suspeitas!
+                    </p>
+                    <p class="panel-desc">
+                        Depois, todos votam em quem acreditam ser o impostor.
+                        Os <strong>jogadores</strong> vencem se acertarem o impostor, e
+                        o <strong>impostor</strong> vence se enganar a maioria.
+                    </p>
+                </div>
+
+                <div class="panel-divider"></div>
+
+                <form id="configForm" onsubmit="return false;">
+                    <div class="form-group">
+                        <label class="form-label">Jogadores</label>
+                        <div class="input-with-button">
+                            <input type="text" id="playerInput" placeholder="Nome do jogador..." maxlength="15">
+                            <button type="button" class="btn btn-secondary" id="addPlayerBtn">Adicionar</button>
+                        </div>
+                        <ul class="tag-list" id="playerList"></ul>
                     </div>
-                    <ul class="tag-list" id="playerList"></ul>
-                </div>
 
-                <div class="form-group">
-                    <label class="form-label">Quantos impostores?</label>
-                    <div class="chip-group" id="impostorCountGroup">
-                        <button type="button" class="chip-btn active" data-value="1">1</button>
-                        <button type="button" class="chip-btn" data-value="2">2</button>
-                        <button type="button" class="chip-btn" data-value="3">3</button>
+                    <div class="form-group">
+                        <label class="form-label">Quantos impostores?</label>
+                        <div class="chip-group" id="impostorCountGroup">
+                            <button type="button" class="chip-btn active" data-value="1">1</button>
+                            <button type="button" class="chip-btn" data-value="2">2</button>
+                            <button type="button" class="chip-btn" data-value="3">3</button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label class="form-label">Impostor recebe...</label>
-                    <div class="segmented-control">
-                        <button type="button" class="segment-btn active" data-mode="blind">
-                            <i data-lucide="eye-off"></i> Sem dica
-                        </button>
-                        <button type="button" class="segment-btn" data-mode="hint">
-                            <i data-lucide="lightbulb"></i> Com dica
-                        </button>
+                    <div class="form-group">
+                        <label class="form-label">Impostor recebe...</label>
+                        <div class="segmented-control">
+                            <button type="button" class="segment-btn active" data-mode="blind">
+                                <i data-lucide="eye-off"></i> Sem dica
+                            </button>
+                            <button type="button" class="segment-btn" data-mode="hint">
+                                <i data-lucide="lightbulb"></i> Com dica
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label class="form-label">Tema das Palavras</label>
-                    <select id="themeSelect" class="custom-select">
-                        <option value="geral">Geral (Todas as categorias)</option>
-                        <option value="animais">Animais</option>
-                        <option value="profissoes">Profissões</option>
-                        <option value="objetos">Objetos</option>
-                        <option value="comidas">Comidas</option>
-                        <option value="filmes">Filmes & Séries</option>
-                    </select>
-                </div>
+                    <div class="form-group">
+                        <label class="form-label">Temas das Palavras</label>
+                        <div class="theme-grid" id="themeGrid">
+                            <button type="button" class="theme-toggle" data-theme="animais">Animais</button>
+                            <button type="button" class="theme-toggle" data-theme="profissoes">Profissões</button>
+                            <button type="button" class="theme-toggle" data-theme="objetos">Objetos</button>
+                            <button type="button" class="theme-toggle" data-theme="comidas">Comidas</button>
+                            <button type="button" class="theme-toggle" data-theme="filmes">Filmes &amp; Séries</button>
+                            <button type="button" class="theme-toggle" data-theme="futebol">Futebol</button>
+                        </div>
+                    </div>
 
-                <button type="button" class="btn btn-primary btn-block btn-start" id="startGameBtn">Iniciar Partida</button>
-            </form>
+                    <button type="button" class="btn btn-primary btn-block btn-start" id="startGameBtn">Iniciar Partida</button>
+                </form>
+            </div>
         </section>
 
 
@@ -134,26 +158,37 @@
 
 
         <!-- ================= FASE 5: RESULTADO DA RODADA ================= -->
-        <section id="resultScreen" class="card-panel hidden">
-            <div class="result-icon" id="resultIcon">
-                <i data-lucide="help-circle"></i>
-            </div>
-            <h2 class="display-title" id="resultTitle">E aí, ganharam?</h2>
-            <p class="subtitle" id="resultSub">Confira quem era o impostor</p>
-
-            <div class="result-reveal">
-                <p class="result-label">A palavra era</p>
-                <h3 class="result-word" id="resultWord">PALAVRA</h3>
-                <p class="result-label" id="resultImpostorLabel">O impostor era</p>
-                <div class="result-impostors" id="resultImpostors"></div>
+        <section id="resultScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" id="exitBtnResult" aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Anuncie aqui — ver email de contato">
+                    <span class="ad-banner-text">Anuncie aqui</span>
+                </button>
             </div>
 
-            <button type="button" class="btn btn-primary btn-block" id="nextRoundBtn">
-                <i data-lucide="rotate-ccw"></i> Próxima Rodada
-            </button>
-            <button type="button" class="btn btn-secondary btn-block" id="backToConfigBtn">
-                <i data-lucide="settings"></i> Ajustar Configurações
-            </button>
+            <div class="card-panel">
+                <div class="result-icon" id="resultIcon">
+                    <i data-lucide="help-circle"></i>
+                </div>
+                <h2 class="display-title" id="resultTitle">E aí, ganharam?</h2>
+                <p class="subtitle" id="resultSub">Confira quem era o impostor</p>
+
+                <div class="result-reveal">
+                    <p class="result-label">A palavra era</p>
+                    <h3 class="result-word" id="resultWord">PALAVRA</h3>
+                    <p class="result-label" id="resultImpostorLabel">O impostor era</p>
+                    <div class="result-impostors" id="resultImpostors"></div>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-block" id="nextRoundBtn">
+                    <i data-lucide="rotate-ccw"></i> Próxima Rodada
+                </button>
+                <button type="button" class="btn btn-secondary btn-block" id="backToConfigBtn">
+                    <i data-lucide="settings"></i> Ajustar Configurações
+                </button>
+            </div>
         </section>
 
     </main>
@@ -162,12 +197,30 @@
     <div class="modal-overlay hidden" id="exitModal">
         <div class="modal-card">
             <h3>Cancelar Partida?</h3>
-            <p>Se voltar ao Bandu, a partida atual será cancelada.</p>
+            <p>Se voltar à Rally, a partida atual será cancelada.</p>
             <div class="modal-buttons">
                 <button class="btn btn-secondary" id="cancelExitBtn">Continuar</button>
                 <button class="btn btn-danger" id="confirmExitBtn">Sair da Partida</button>
             </div>
         </div>
+    </div>
+
+    <!-- Modal "Anuncie aqui" -->
+    <div class="ad-overlay" id="adOverlay"></div>
+    <div class="ad-modal" id="adModal" role="dialog" aria-modal="true" aria-labelledby="adModalTitle">
+        <button class="ad-modal-close" id="adModalClose" aria-label="Fechar">✕</button>
+        <h3 class="ad-modal-title" id="adModalTitle">ANUNCIE AQUI</h3>
+        <p class="ad-modal-desc">
+            Quer divulgar sua marca para quem joga com os amigos?
+            Entre em contato pelo e-mail abaixo:
+        </p>
+        <div class="ad-email-box">
+            <span class="ad-email-text" id="adEmailText">contato.rallybr@gmail.com</span>
+            <button type="button" class="ad-copy-btn" id="adCopyBtn" aria-label="Copiar e-mail">
+                Copiar
+            </button>
+        </div>
+        <p class="ad-copied-msg" id="adCopiedMsg">E-mail copiado!</p>
     </div>
 
     <script src="impostor.js"></script>
