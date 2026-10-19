@@ -1,5 +1,5 @@
 // Rally - Lobby de Party Games
-// Versão 1.9
+// Versão 2.1
 
 document.addEventListener('DOMContentLoaded', () => {
     // Inicializa os ícones do Lucide
@@ -36,6 +36,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const adPixText = document.getElementById('adPixText');
     const adCopyPixBtn = document.getElementById('adCopyPixBtn');
     const adCopiedPixMsg = document.getElementById('adCopiedPixMsg');
+
+    // ===== Degradê fixo entre cards: laranja → vermelho → rosa → roxo → azul → turquesa → verde → amarelo =====
+    const CARD_GRADIENTS = [
+        'linear-gradient(135deg, #FFC078 0%, #FF8FA3 100%)', // 1: laranja → rosa
+        'linear-gradient(135deg, #FF8FA3 0%, #FF5757 100%)', // 2: rosa → vermelho
+        'linear-gradient(135deg, #FF5757 0%, #FF7EB9 100%)', // 3: vermelho → rosa
+        'linear-gradient(135deg, #FF7EB9 0%, #C77DFF 100%)', // 4: rosa → roxo
+        'linear-gradient(135deg, #C77DFF 0%, #7B9EFF 100%)', // 5: roxo → azul
+        'linear-gradient(135deg, #7B9EFF 0%, #4DD0C8 100%)', // 6: azul → turquesa
+        'linear-gradient(135deg, #4DD0C8 0%, #A8E063 100%)', // 7: turquesa → verde
+        'linear-gradient(135deg, #A8E063 0%, #FFD43B 100%)'  // 8: verde → amarelo
+    ];
+
+    // Aplica gradiente fixo por índice (ciclando se houver mais cards que cores)
+    cards.forEach((card, i) => {
+        const bg = CARD_GRADIENTS[i % CARD_GRADIENTS.length];
+        card.dataset.bg = bg;
+        const img = card.querySelector('.card-image');
+        if (img) img.style.background = bg;
+    });
 
     // ===== Banco de dados dos jogos (info que só aparece no modal) =====
     const GAMES_INFO = {
@@ -94,6 +114,14 @@ document.addEventListener('DOMContentLoaded', () => {
             players: '2+ jogadores',
             device: '1 dispositivo ou Cada um no seu',
             description: 'Dê uma dica para que sua equipe posicione o ponteiro no espectro entre dois opostos. Comunicação é tudo!'
+        },
+        '/jogos/meupar/meupar.html': {
+            title: 'Quem é meu par?',
+            icon: 'users',
+            bg: 'linear-gradient(135deg, #B197FC 0%, #FF9A8B 100%)',
+            players: '5+ jogadores',
+            device: '1 dispositivo',
+            description: 'Cada jogador recebe uma palavra secreta. Duas pessoas recebem a mesma palavra (formam uma dupla), e uma é o impostor — que não sabe a palavra de ninguém. Através de dicas relacionadas, vocês precisam descobrir quem é a sua dupla, sem cair na armadilha do impostor. Dependendo do número de jogadores, pode haver mais de um impostor!'
         }
     };
 
@@ -106,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===== Animação de ondinha do logo + letras levitáveis =====
     const logoLetters = logo.querySelectorAll('[data-letter]');
 
-    // Clique em cada letra alterna o estado "levantada"
     logoLetters.forEach(letter => {
         letter.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -115,7 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function triggerWave() {
-        // Antes de iniciar a onda, abaixa todas as letras levantadas
         logoLetters.forEach(letter => letter.classList.remove('lifted'));
 
         logo.classList.add('waving');
@@ -136,8 +162,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!info) return;
 
+        const bg = card.dataset.bg || info.bg;
+
         modalContent.innerHTML = `
-            <div class="card-image" style="background: ${info.bg};">
+            <div class="card-image" style="background: ${bg};">
                 <i data-lucide="${info.icon}" class="card-icon"></i>
             </div>
             <h2 class="card-title">${info.title}</h2>
@@ -250,7 +278,6 @@ document.addEventListener('DOMContentLoaded', () => {
         adModal.classList.remove('open');
         document.body.style.overflow = '';
 
-        // Reseta abas para "Anuncie"
         adTabs.forEach(t => {
             const active = t.dataset.adTab === 'advertise';
             t.classList.toggle('active', active);
@@ -260,7 +287,6 @@ document.addEventListener('DOMContentLoaded', () => {
             p.classList.toggle('hidden', p.dataset.adPanel !== 'advertise');
         });
 
-        // Reseta estados de cópia
         adCopyBtn.textContent = 'Copiar';
         adCopyBtn.classList.remove('copied');
         adCopiedMsg.classList.remove('show');
