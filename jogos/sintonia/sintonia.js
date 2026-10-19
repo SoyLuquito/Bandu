@@ -1,4 +1,4 @@
-// Bandu - Sintonia (Wavelength-like)
+// Rally - Sintonia (Wavelength-like)
 // Modo 1 dispositivo + Modo Online (Firebase)
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
@@ -104,7 +104,7 @@ const state = {
         currentTarget: null,
         currentHint: '',
         currentMaster: null,
-        guesses: {},   // { nome: numero 0..10 }
+        guesses: {},
         guessOrder: [],
         guessIndex: 0,
         fase: 'config'
@@ -141,7 +141,6 @@ const nameInput = document.getElementById('nameInput');
 const loadingOverlay = document.getElementById('loadingOverlay');
 const loadingText = document.getElementById('loadingText');
 const scoreModal = document.getElementById('scoreModal');
-const liveScoreBtn = document.getElementById('liveScoreBtn');
 
 // ============================================================
 // LOADING
@@ -179,16 +178,23 @@ function showScreen(key) {
         if (k === key) screens[k].classList.remove('hidden');
         else screens[k].classList.add('hidden');
     });
+
+    // Placar só aparece durante o jogo
+    const inGame = ['master', 'guess', 'reveal'].includes(key);
+    document.querySelectorAll('.score-btn').forEach(btn => {
+        btn.classList.toggle('hidden', !inGame);
+    });
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ============================================================
-// PONTUAÇÃO — MARGEM BEM CURTA
+// PONTUAÇÃO
 // ============================================================
 function pontosPorDistancia(dist) {
-    if (dist <= 0.3) return 3;   // certeiro
-    if (dist <= 0.6) return 2;   // perto
-    if (dist <= 1.0) return 1;   // médio
+    if (dist <= 0.3) return 3;
+    if (dist <= 0.6) return 2;
+    if (dist <= 1.0) return 1;
     return 0;
 }
 
@@ -219,15 +225,6 @@ function updateCoordsLabel(val) {
     if (el) el.innerText = `Posição: ${Number(val).toFixed(1)}`;
 }
 
-function setLiveScoreVisible(visible) {
-    if (visible) liveScoreBtn.classList.remove('hidden');
-    else liveScoreBtn.classList.add('hidden');
-}
-
-// ============================================================
-// LIMPA LINHAS FIXAS DA TELA DE PALPITE
-// (não mostramos os palpites anteriores para quem está jogando)
-// ============================================================
 function clearPinsAndHideDraggable(container) {
     if (!container) return;
     container.querySelectorAll('.fixed-line').forEach(el => el.remove());
@@ -236,12 +233,16 @@ function clearPinsAndHideDraggable(container) {
 }
 
 // ============================================================
-// PLACAR AO VIVO
+// PLACAR AO VIVO (todos os botões .score-btn)
 // ============================================================
-liveScoreBtn.addEventListener('click', () => {
+function openScoreModal() {
     renderLiveScore();
     scoreModal.classList.remove('hidden');
     if (window.lucide) lucide.createIcons();
+}
+
+document.querySelectorAll('.score-btn').forEach(btn => {
+    btn.addEventListener('click', openScoreModal);
 });
 
 document.getElementById('closeScoreModalBtn').addEventListener('click', () => {
@@ -351,11 +352,8 @@ document.getElementById('modeOnlineBtn').addEventListener('click', () => {
 });
 
 // ============================================================
+// MODO LOCAL
 // ============================================================
-// ============== MODO LOCAL (1 DISPOSITIVO) ==================
-// ============================================================
-// ============================================================
-
 function initLocalGame() {
     if (state.gameMode !== 'local') return;
     state.local = {
@@ -373,7 +371,6 @@ function initLocalGame() {
     };
     renderLocalConfig();
     showScreen('configLocal');
-    setLiveScoreVisible(false);
 }
 
 function renderLocalConfig() {
@@ -460,7 +457,6 @@ function startLocalRound() {
     L.guessIndex = 0;
     L.fase = 'master';
 
-    setLiveScoreVisible(true);
     renderLocalMasterScreen();
 }
 
@@ -547,7 +543,6 @@ function renderLocalGuessScreen() {
 
     document.getElementById('guessTargetLine').style.display = 'none';
 
-    // Limpa qualquer linha fixa e esconde a arrastável
     clearPinsAndHideDraggable(revealArea);
 
     updateCoordsLabel(5);
@@ -792,11 +787,8 @@ document.getElementById('closeRoomBtn').addEventListener('click', () => {
 });
 
 // ============================================================
+// MODO ONLINE
 // ============================================================
-// ================= MODO ONLINE (FIREBASE) ===================
-// ============================================================
-// ============================================================
-
 document.getElementById('createRoomBtn').addEventListener('click', () => {
     if (state.gameMode !== 'online') return;
     askName(async (name) => {
@@ -926,9 +918,7 @@ function listenToRoom(code) {
         const status = state.online.roomData.status;
         if (status === 'lobby') {
             renderOnlineLobby();
-            setLiveScoreVisible(false);
         } else {
-            setLiveScoreVisible(true);
             if (status === 'master') renderOnlineMaster();
             else if (status === 'guess') renderOnlineGuess();
             else if (status === 'reveal') renderOnlineReveal();
@@ -1170,7 +1160,6 @@ function renderOnlineGuess() {
 
     document.getElementById('guessTargetLine').style.display = 'none';
 
-    // Limpa qualquer linha fixa anterior (não mostramos palpites anteriores para quem está jogando)
     const revealArea = document.getElementById('guessRevealArea');
     clearPinsAndHideDraggable(revealArea);
 
@@ -1472,20 +1461,22 @@ document.getElementById('closeRoomBtn').addEventListener('click', async () => {
 // ============================================================
 // SAIR
 // ============================================================
-document.getElementById('exitBtn').addEventListener('click', () => {
-    if (state.gameMode === 'local') {
-        if (confirm('Voltar ao menu principal?')) cleanupAndHome();
-        return;
-    }
-    if (state.gameMode === 'online' && !state.online.roomCode) {
+document.querySelectorAll('[data-exit-btn]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (state.gameMode === 'local') {
+            if (confirm('Voltar ao menu principal?')) cleanupAndHome();
+            return;
+        }
+        if (state.gameMode === 'online' && !state.online.roomCode) {
+            window.location.href = '../../index.html';
+            return;
+        }
+        if (state.gameMode === 'online' && state.online.roomCode) {
+            exitModal.classList.remove('hidden');
+            return;
+        }
         window.location.href = '../../index.html';
-        return;
-    }
-    if (state.gameMode === 'online' && state.online.roomCode) {
-        exitModal.classList.remove('hidden');
-        return;
-    }
-    window.location.href = '../../index.html';
+    });
 });
 
 document.getElementById('cancelExitBtn').addEventListener('click', () => {
@@ -1533,7 +1524,6 @@ function cleanupAndHome() {
     nameModal.classList.add('hidden');
     scoreModal.classList.add('hidden');
     hideLoading();
-    setLiveScoreVisible(false);
 
     document.body.classList.remove('mode-local', 'mode-online');
     document.getElementById('modeChoice').classList.remove('hidden');
@@ -1554,6 +1544,119 @@ window.addEventListener('beforeunload', () => {
                 [`jogadores.${state.online.uid}`]: null
             }).catch(() => {});
         }
+    }
+});
+
+// ============================================================
+// MODAL "Apoie ou anuncie aqui"
+// ============================================================
+const adBanners = document.querySelectorAll('[data-ad-banner]');
+const adOverlay = document.getElementById('adOverlay');
+const adModal = document.getElementById('adModal');
+const adModalClose = document.getElementById('adModalClose');
+
+const adTabs = document.querySelectorAll('.ad-tab');
+const adPanels = document.querySelectorAll('.ad-tab-panel');
+
+const adEmailText = document.getElementById('adEmailText');
+const adCopyBtn = document.getElementById('adCopyBtn');
+const adCopiedMsg = document.getElementById('adCopiedMsg');
+
+const adPixText = document.getElementById('adPixText');
+const adCopyPixBtn = document.getElementById('adCopyPixBtn');
+const adCopiedPixMsg = document.getElementById('adCopiedPixMsg');
+
+function openAdModal() {
+    adOverlay.classList.add('open');
+    adModal.classList.add('open');
+}
+
+function closeAdModal() {
+    adOverlay.classList.remove('open');
+    adModal.classList.remove('open');
+
+    adTabs.forEach(t => {
+        const active = t.dataset.adTab === 'advertise';
+        t.classList.toggle('active', active);
+        t.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    adPanels.forEach(p => {
+        p.classList.toggle('hidden', p.dataset.adPanel !== 'advertise');
+    });
+
+    adCopyBtn.textContent = 'Copiar';
+    adCopyBtn.classList.remove('copied');
+    adCopiedMsg.classList.remove('show');
+    adCopyPixBtn.textContent = 'Copiar chave';
+    adCopyPixBtn.classList.remove('copied');
+    adCopiedPixMsg.classList.remove('show');
+}
+
+adBanners.forEach(btn => btn.addEventListener('click', openAdModal));
+adModalClose.addEventListener('click', closeAdModal);
+adOverlay.addEventListener('click', closeAdModal);
+
+adTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        adTabs.forEach(t => {
+            const active = t === tab;
+            t.classList.toggle('active', active);
+            t.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        adPanels.forEach(p => {
+            p.classList.toggle('hidden', p.dataset.adPanel !== tab.dataset.adTab);
+        });
+    });
+});
+
+async function copyText(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        return true;
+    } catch (err) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            return true;
+        } catch (e) {
+            document.body.removeChild(textArea);
+            return false;
+        }
+    }
+}
+
+function flashCopied(btn, msgEl, originalLabel) {
+    btn.textContent = 'Copiado!';
+    btn.classList.add('copied');
+    msgEl.classList.add('show');
+    setTimeout(() => {
+        btn.textContent = originalLabel;
+        btn.classList.remove('copied');
+        msgEl.classList.remove('show');
+    }, 2200);
+}
+
+adCopyBtn.addEventListener('click', async () => {
+    const email = adEmailText.textContent.trim();
+    const ok = await copyText(email);
+    if (ok) flashCopied(adCopyBtn, adCopiedMsg, 'Copiar');
+    else {
+        adCopiedMsg.textContent = 'Não foi possível copiar. Selecione manualmente.';
+        adCopiedMsg.classList.add('show');
+    }
+});
+
+adCopyPixBtn.addEventListener('click', async () => {
+    const pix = adPixText.textContent.trim();
+    const ok = await copyText(pix);
+    if (ok) flashCopied(adCopyPixBtn, adCopiedPixMsg, 'Copiar chave');
+    else {
+        adCopiedPixMsg.textContent = 'Não foi possível copiar. Selecione manualmente.';
+        adCopiedPixMsg.classList.add('show');
     }
 });
 

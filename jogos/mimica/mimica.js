@@ -246,7 +246,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Placar só aparece durante o jogo (reveal, action, guesser)
         const inGame = ['reveal', 'action', 'guesser'].includes(screenKey);
         document.querySelectorAll('.score-btn').forEach(btn => {
             btn.classList.toggle('hidden', !inGame);
@@ -289,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // MODO DE JOGO (troca descrição + setup)
+    // MODO DE JOGO
     document.querySelectorAll('.segment-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
@@ -686,7 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ====== PLACAR AO VIVO (vários botões) ======
+    // ====== PLACAR AO VIVO ======
     function openScoreModal() {
         const content = document.getElementById('liveScoreContent');
         content.innerHTML = '';
@@ -784,14 +783,24 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = '../../index.html';
     });
 
-    // ====== MODAL "Anuncie aqui" ======
+    // ====== MODAL "Apoie ou anuncie aqui" ======
     const adBanners = document.querySelectorAll('[data-ad-banner]');
     const adOverlay = document.getElementById('adOverlay');
     const adModal = document.getElementById('adModal');
     const adModalClose = document.getElementById('adModalClose');
+
+    const adTabs = document.querySelectorAll('.ad-tab');
+    const adPanels = document.querySelectorAll('.ad-tab-panel');
+
+    // Anúncio
     const adEmailText = document.getElementById('adEmailText');
     const adCopyBtn = document.getElementById('adCopyBtn');
     const adCopiedMsg = document.getElementById('adCopiedMsg');
+
+    // Apoio
+    const adPixText = document.getElementById('adPixText');
+    const adCopyPixBtn = document.getElementById('adCopyPixBtn');
+    const adCopiedPixMsg = document.getElementById('adCopiedPixMsg');
 
     function openAdModal() {
         adOverlay.classList.add('open');
@@ -801,47 +810,91 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeAdModal() {
         adOverlay.classList.remove('open');
         adModal.classList.remove('open');
+
+        adTabs.forEach(t => {
+            const active = t.dataset.adTab === 'advertise';
+            t.classList.toggle('active', active);
+            t.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        adPanels.forEach(p => {
+            p.classList.toggle('hidden', p.dataset.adPanel !== 'advertise');
+        });
+
         adCopyBtn.textContent = 'Copiar';
         adCopyBtn.classList.remove('copied');
         adCopiedMsg.classList.remove('show');
+        adCopyPixBtn.textContent = 'Copiar chave';
+        adCopyPixBtn.classList.remove('copied');
+        adCopiedPixMsg.classList.remove('show');
     }
 
     adBanners.forEach(btn => btn.addEventListener('click', openAdModal));
     adModalClose.addEventListener('click', closeAdModal);
     adOverlay.addEventListener('click', closeAdModal);
 
-    adCopyBtn.addEventListener('click', async () => {
-        const email = adEmailText.textContent.trim();
+    adTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            adTabs.forEach(t => {
+                const active = t === tab;
+                t.classList.toggle('active', active);
+                t.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            adPanels.forEach(p => {
+                p.classList.toggle('hidden', p.dataset.adPanel !== tab.dataset.adTab);
+            });
+        });
+    });
+
+    async function copyText(text) {
         try {
-            await navigator.clipboard.writeText(email);
-            adCopyBtn.textContent = 'Copiado!';
-            adCopyBtn.classList.add('copied');
-            adCopiedMsg.classList.add('show');
-            setTimeout(() => {
-                adCopyBtn.textContent = 'Copiar';
-                adCopyBtn.classList.remove('copied');
-                adCopiedMsg.classList.remove('show');
-            }, 2200);
+            await navigator.clipboard.writeText(text);
+            return true;
         } catch (err) {
             const textArea = document.createElement('textarea');
-            textArea.value = email;
+            textArea.value = text;
             document.body.appendChild(textArea);
             textArea.select();
             try {
                 document.execCommand('copy');
-                adCopyBtn.textContent = 'Copiado!';
-                adCopyBtn.classList.add('copied');
-                adCopiedMsg.classList.add('show');
-                setTimeout(() => {
-                    adCopyBtn.textContent = 'Copiar';
-                    adCopyBtn.classList.remove('copied');
-                    adCopiedMsg.classList.remove('show');
-                }, 2200);
+                document.body.removeChild(textArea);
+                return true;
             } catch (e) {
-                adCopiedMsg.textContent = 'Não foi possível copiar.';
-                adCopiedMsg.classList.add('show');
+                document.body.removeChild(textArea);
+                return false;
             }
-            document.body.removeChild(textArea);
+        }
+    }
+
+    function flashCopied(btn, msgEl, originalLabel) {
+        btn.textContent = 'Copiado!';
+        btn.classList.add('copied');
+        msgEl.classList.add('show');
+        setTimeout(() => {
+            btn.textContent = originalLabel;
+            btn.classList.remove('copied');
+            msgEl.classList.remove('show');
+        }, 2200);
+    }
+
+    adCopyBtn.addEventListener('click', async () => {
+        const email = adEmailText.textContent.trim();
+        const ok = await copyText(email);
+        if (ok) {
+            flashCopied(adCopyBtn, adCopiedMsg, 'Copiar');
+        } else {
+            adCopiedMsg.textContent = 'Não foi possível copiar. Selecione manualmente.';
+            adCopiedMsg.classList.add('show');
+        }
+    });
+
+    adCopyPixBtn.addEventListener('click', async () => {
+        const pix = adPixText.textContent.trim();
+        const ok = await copyText(pix);
+        if (ok) {
+            flashCopied(adCopyPixBtn, adCopiedPixMsg, 'Copiar chave');
+        } else {
+            adCopiedPixMsg.textContent = 'Não foi possível copiar. Selecione manualmente.';
+            adCopiedPixMsg.classList.add('show');
         }
     });
 

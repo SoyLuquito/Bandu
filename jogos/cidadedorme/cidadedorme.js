@@ -1,4 +1,4 @@
-// Bandu - Cidade Dorme (Party Game)
+// Rally - Cidade Dorme (Party Game)
 // Modo Online (cada um no seu) + Modo Local (1 dispositivo)
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
@@ -185,7 +185,12 @@ function descricaoPapel(papel) {
     return map[papel] || map.cidadao;
 }
 function iconePapel(papel) {
-    return { assassino: 'skull', detetive: 'search', anjo: 'shield', cidadao: 'user' }[papel] || 'user';
+    return {
+        assassino: 'skull',      // caveira (Lucide não tem "knife")
+        detetive: 'search',      // lupa
+        anjo: 'feather',         // pena/asa
+        cidadao: 'user'          // pessoa comum
+    }[papel] || 'user';
 }
 function tituloPapel(papel) {
     return { assassino: 'Assassino', detetive: 'Detetive', anjo: 'Anjo', cidadao: 'Cidadão' }[papel] || 'Cidadão';
@@ -273,11 +278,8 @@ document.getElementById('modeOnlineBtn').addEventListener('click', () => {
 });
 
 // ============================================================
+// MODO LOCAL
 // ============================================================
-// ============== MODO LOCAL (1 DISPOSITIVO) ==================
-// ============================================================
-// ============================================================
-
 function initLocalGame() {
     if (state.gameMode !== 'local') return;
     state.local = {
@@ -391,10 +393,8 @@ function startLocalRound() {
     const L = state.local;
     const players = L.players;
 
-    // 1) Embaralha a LISTA de jogadores (não os índices)
     const playersEmbaralhados = shuffle(players.map((p, i) => ({ p, i })));
 
-    // 2) Distribui papéis com base na ordem embaralhada
     const numAss = Math.min(L.config.assassinos, maxAssassinosPara(players.length));
     const assassinosEmbaralhados = playersEmbaralhados.slice(0, numAss);
     const restantesEmbaralhados = playersEmbaralhados.slice(numAss);
@@ -405,13 +405,11 @@ function startLocalRound() {
         anjoObj = restantesEmbaralhados[1];
     }
 
-    // 3) Limpa papéis e estados
     players.forEach(p => {
         p.vivo = true;
         p.papel = 'cidadao';
     });
 
-    // 4) Aplica os papéis
     assassinosEmbaralhados.forEach(a => {
         players[a.i].papel = 'assassino';
     });
@@ -422,7 +420,6 @@ function startLocalRound() {
         players[anjoObj.i].papel = 'anjo';
     }
 
-    // 5) Reseta estado da rodada
     L.currentRound = 0;
     L.votos = {};
     L.vencedor = null;
@@ -432,8 +429,6 @@ function startLocalRound() {
     L.fase = 'papel';
     L.revealed = false;
 
-    // 6) EMBARALHA TAMBÉM A ORDEM DE REVELAÇÃO DOS PAPÉIS
-    // Assim ninguém adivinha pela posição na roda
     L.ordemPassagem = shuffle(players.map((_, i) => i));
     L.passandoIndex = 0;
 
@@ -459,8 +454,7 @@ function renderLocalRole() {
 
     const iconWrap = document.getElementById('roleIconWrap');
     iconWrap.className = 'role-icon-wrap';
-    const icon = document.getElementById('roleIcon');
-    icon.setAttribute('data-lucide', 'eye-off');
+    iconWrap.innerHTML = '<i data-lucide="eye-off"></i>';
     if (window.lucide) lucide.createIcons();
 
     const confirmBtn = document.getElementById('roleConfirmBtn');
@@ -482,8 +476,8 @@ function renderLocalRole() {
             document.getElementById('roleDesc').innerHTML =
                 `<strong style="display:block;font-size:1.1rem;color:var(--texto);margin-bottom:0.25rem">${tituloPapel(player.papel)}</strong>${descricaoPapel(player.papel)}`;
 
-            icon.setAttribute('data-lucide', iconePapel(player.papel));
             iconWrap.className = 'role-icon-wrap ' + player.papel;
+            iconWrap.innerHTML = `<i data-lucide="${iconePapel(player.papel)}"></i>`;
             if (window.lucide) lucide.createIcons();
 
             newBtn.innerHTML = '<i data-lucide="arrow-right"></i> Entendi';
@@ -508,8 +502,7 @@ function renderLocalReadyToStart() {
 
     const iconWrap = document.getElementById('roleIconWrap');
     iconWrap.className = 'role-icon-wrap';
-    const icon = document.getElementById('roleIcon');
-    icon.setAttribute('data-lucide', 'moon');
+    iconWrap.innerHTML = '<i data-lucide="moon"></i>';
     if (window.lucide) lucide.createIcons();
 
     const confirmBtn = document.getElementById('roleConfirmBtn');
@@ -547,30 +540,20 @@ function startLocalNight() {
         matadorIdx: matador ? matador.i : -1
     };
 
-    // ============================================================
-    // Monta a fila da noite em ORDEM ALEATÓRIA entre poderes
-    // ============================================================
     const fila = [];
 
-    // 1) Adiciona o matador da noite
-    if (matador) {
-        fila.push({ tipo: 'matador', idx: matador.i });
-    }
+    if (matador) fila.push({ tipo: 'matador', idx: matador.i });
 
-    // 2) Adiciona os outros assassinos (que só sugerem)
     assVivos.forEach((x, k) => {
         if (k !== matadorIdx) fila.push({ tipo: 'sugestor', idx: x.i });
     });
 
-    // 3) Adiciona o detetive vivo (se houver)
     const det = L.players.map((p, i) => ({ p, i })).find(x => x.p.vivo && x.p.papel === 'detetive');
     if (det) fila.push({ tipo: 'detetive', idx: det.i });
 
-    // 4) Adiciona o anjo vivo (se houver)
     const anjo = L.players.map((p, i) => ({ p, i })).find(x => x.p.vivo && x.p.papel === 'anjo');
     if (anjo) fila.push({ tipo: 'anjo', idx: anjo.i });
 
-    // 5) Adiciona os cidadãos vivos
     const cidadaos = L.players
         .map((p, i) => ({ p, i }))
         .filter(x => x.p.vivo && x.p.papel === 'cidadao');
@@ -578,11 +561,7 @@ function startLocalNight() {
         fila.push({ tipo: 'cidadao', idx: x.i });
     });
 
-    // 6) Embaralha a fila inteira
-    // Isso garante que matador, detetive, anjo e cidadãos podem
-    // aparecer em QUALQUER ordem a cada rodada
     L.ordemNoite = shuffle(fila);
-
     L.noiteIndex = 0;
     renderLocalNightStep();
 }
@@ -912,7 +891,6 @@ function resolveLocalNight() {
         return renderLocalGameOver();
     }
 
-    // Vai DIRETO para votação (não passa mais por tela de dia)
     L.fase = 'votacao';
     startLocalVote();
 }
@@ -936,7 +914,6 @@ function renderLocalVoteStep() {
     const timerEl = document.getElementById('voteTimer');
     timerEl.innerText = '';
 
-    // Mostra notícias da noite no topo da votação (modo local)
     const newsEl = document.getElementById('nightNews');
     if (newsEl) {
         newsEl.innerHTML = '';
@@ -1119,7 +1096,7 @@ function renderLocalGameOver() {
 }
 
 // ============================================================
-// BOTÕES DE FIM (compartilhados)
+// BOTÕES DE FIM
 // ============================================================
 document.getElementById('rematchBtn').addEventListener('click', async () => {
     if (state.gameMode === 'local') {
@@ -1172,11 +1149,8 @@ document.getElementById('closeRoomBtn').addEventListener('click', async () => {
 });
 
 // ============================================================
+// MODO ONLINE
 // ============================================================
-// ============= MODO ONLINE (CADA UM NO SEU) =================
-// ============================================================
-// ============================================================
-
 document.getElementById('createRoomBtn').addEventListener('click', () => {
     if (state.gameMode !== 'online') return;
     askName(async (name) => {
@@ -1502,8 +1476,7 @@ function renderRole() {
 
     const iconWrap = document.getElementById('roleIconWrap');
     iconWrap.className = 'role-icon-wrap ' + me.papel;
-    const icon = document.getElementById('roleIcon');
-    icon.setAttribute('data-lucide', iconePapel(me.papel));
+    iconWrap.innerHTML = `<i data-lucide="${iconePapel(me.papel)}"></i>`;
 
     const players = getPlayersArray(state.online.roomData);
     const viram = players.filter(p => p.viuPapel).length;
@@ -1820,9 +1793,6 @@ async function checkNightComplete() {
     return assassinoOk && detOk && anjoOk && cidOk;
 }
 
-// ============================================================
-// RESOLVE NOITE — vai DIRETO para votação (sem passar por dia)
-// ============================================================
 async function resolveNight() {
     if (state.gameMode !== 'online') return;
     const snap = await getDoc(state.online.roomRef);
@@ -1866,18 +1836,15 @@ async function resolveNight() {
     const proximoMatadorIndex = (room.assassinoMatadorIndex || 0) + 1;
     resetTransitionKey();
 
-    // ← AQUI: transição DIRETA para votação (sem passar por dia)
     await updateDoc(state.online.roomRef, {
         jogadores: jogadoresAtualizados,
         status: jogoAcabou ? 'fim' : 'votacao',
         vencedor: vencedor || null,
         historico: [...(room.historico || []), { rodada: (room.historico || []).length + 1, eventos }],
         assassinoMatadorIndex: proximoMatadorIndex,
-        // Votação começa JÁ
         votos: {},
         votacaoIniciadaEm: Date.now(),
         votacaoDuracao: room.config.tempoVotacao,
-        // Guarda eventos da noite para exibir no topo da votação
         noiteEventos: eventos
     });
 }
@@ -1889,7 +1856,6 @@ function renderVote() {
     const room = state.online.roomData;
     const me = getMyPlayer(room);
 
-    // Notícias da noite no topo da votação
     const newsEl = document.getElementById('nightNews');
     if (newsEl) {
         newsEl.innerHTML = '';
@@ -2140,24 +2106,26 @@ function renderGameOver() {
 }
 
 // ============================================================
-// SAIR
+// SAIR — qualquer botão com data-exit-btn
 // ============================================================
-document.getElementById('exitBtn').addEventListener('click', () => {
-    if (state.gameMode === 'local') {
-        if (confirm('Voltar ao menu principal? A partida atual será cancelada.')) {
-            cleanupAndHome();
+document.querySelectorAll('[data-exit-btn]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (state.gameMode === 'local') {
+            if (confirm('Voltar ao menu principal? A partida atual será cancelada.')) {
+                cleanupAndHome();
+            }
+            return;
         }
-        return;
-    }
-    if (state.gameMode === 'online' && !state.online.roomCode) {
+        if (state.gameMode === 'online' && !state.online.roomCode) {
+            window.location.href = '../../index.html';
+            return;
+        }
+        if (state.gameMode === 'online' && state.online.roomCode) {
+            exitModal.classList.remove('hidden');
+            return;
+        }
         window.location.href = '../../index.html';
-        return;
-    }
-    if (state.gameMode === 'online' && state.online.roomCode) {
-        exitModal.classList.remove('hidden');
-        return;
-    }
-    window.location.href = '../../index.html';
+    });
 });
 
 document.getElementById('cancelExitBtn').addEventListener('click', () => {
@@ -2228,6 +2196,119 @@ window.addEventListener('beforeunload', () => {
         } else {
             updateDoc(state.online.roomRef, { [`jogadores.${state.online.uid}`]: null }).catch(() => {});
         }
+    }
+});
+
+// ============================================================
+// MODAL "Apoie ou anuncie aqui"
+// ============================================================
+const adBanners = document.querySelectorAll('[data-ad-banner]');
+const adOverlay = document.getElementById('adOverlay');
+const adModal = document.getElementById('adModal');
+const adModalClose = document.getElementById('adModalClose');
+
+const adTabs = document.querySelectorAll('.ad-tab');
+const adPanels = document.querySelectorAll('.ad-tab-panel');
+
+const adEmailText = document.getElementById('adEmailText');
+const adCopyBtn = document.getElementById('adCopyBtn');
+const adCopiedMsg = document.getElementById('adCopiedMsg');
+
+const adPixText = document.getElementById('adPixText');
+const adCopyPixBtn = document.getElementById('adCopyPixBtn');
+const adCopiedPixMsg = document.getElementById('adCopiedPixMsg');
+
+function openAdModal() {
+    adOverlay.classList.add('open');
+    adModal.classList.add('open');
+}
+
+function closeAdModal() {
+    adOverlay.classList.remove('open');
+    adModal.classList.remove('open');
+
+    adTabs.forEach(t => {
+        const active = t.dataset.adTab === 'advertise';
+        t.classList.toggle('active', active);
+        t.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    adPanels.forEach(p => {
+        p.classList.toggle('hidden', p.dataset.adPanel !== 'advertise');
+    });
+
+    adCopyBtn.textContent = 'Copiar';
+    adCopyBtn.classList.remove('copied');
+    adCopiedMsg.classList.remove('show');
+    adCopyPixBtn.textContent = 'Copiar chave';
+    adCopyPixBtn.classList.remove('copied');
+    adCopiedPixMsg.classList.remove('show');
+}
+
+adBanners.forEach(btn => btn.addEventListener('click', openAdModal));
+adModalClose.addEventListener('click', closeAdModal);
+adOverlay.addEventListener('click', closeAdModal);
+
+adTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        adTabs.forEach(t => {
+            const active = t === tab;
+            t.classList.toggle('active', active);
+            t.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        adPanels.forEach(p => {
+            p.classList.toggle('hidden', p.dataset.adPanel !== tab.dataset.adTab);
+        });
+    });
+});
+
+async function copyText(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        return true;
+    } catch (err) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            return true;
+        } catch (e) {
+            document.body.removeChild(textArea);
+            return false;
+        }
+    }
+}
+
+function flashCopied(btn, msgEl, originalLabel) {
+    btn.textContent = 'Copiado!';
+    btn.classList.add('copied');
+    msgEl.classList.add('show');
+    setTimeout(() => {
+        btn.textContent = originalLabel;
+        btn.classList.remove('copied');
+        msgEl.classList.remove('show');
+    }, 2200);
+}
+
+adCopyBtn.addEventListener('click', async () => {
+    const email = adEmailText.textContent.trim();
+    const ok = await copyText(email);
+    if (ok) flashCopied(adCopyBtn, adCopiedMsg, 'Copiar');
+    else {
+        adCopiedMsg.textContent = 'Não foi possível copiar. Selecione manualmente.';
+        adCopiedMsg.classList.add('show');
+    }
+});
+
+adCopyPixBtn.addEventListener('click', async () => {
+    const pix = adPixText.textContent.trim();
+    const ok = await copyText(pix);
+    if (ok) flashCopied(adCopyPixBtn, adCopiedPixMsg, 'Copiar chave');
+    else {
+        adCopiedPixMsg.textContent = 'Não foi possível copiar. Selecione manualmente.';
+        adCopiedPixMsg.classList.add('show');
     }
 });
 

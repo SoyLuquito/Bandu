@@ -1,5 +1,5 @@
 // Rally - Lobby de Party Games
-// Versão 1.7
+// Versão 1.9
 
 document.addEventListener('DOMContentLoaded', () => {
     // Inicializa os ícones do Lucide
@@ -18,14 +18,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalClose = document.getElementById('modalClose');
     const noResults = document.getElementById('noResults');
 
-    // Elementos do modal "Anuncie aqui"
+    // Elementos do modal "Apoie ou anuncie aqui"
     const adBanners = document.querySelectorAll('[data-ad-banner]');
     const adOverlay = document.getElementById('adOverlay');
     const adModal = document.getElementById('adModal');
     const adModalClose = document.getElementById('adModalClose');
+
+    const adTabs = document.querySelectorAll('.ad-tab');
+    const adPanels = document.querySelectorAll('.ad-tab-panel');
+
+    // Anúncio
     const adEmailText = document.getElementById('adEmailText');
     const adCopyBtn = document.getElementById('adCopyBtn');
     const adCopiedMsg = document.getElementById('adCopiedMsg');
+
+    // Apoio
+    const adPixText = document.getElementById('adPixText');
+    const adCopyPixBtn = document.getElementById('adCopyPixBtn');
+    const adCopiedPixMsg = document.getElementById('adCopiedPixMsg');
 
     // ===== Banco de dados dos jogos (info que só aparece no modal) =====
     const GAMES_INFO = {
@@ -93,8 +103,21 @@ document.addEventListener('DOMContentLoaded', () => {
         device: 'any'
     };
 
-    // ===== Animação de ondinha do logo =====
+    // ===== Animação de ondinha do logo + letras levitáveis =====
+    const logoLetters = logo.querySelectorAll('[data-letter]');
+
+    // Clique em cada letra alterna o estado "levantada"
+    logoLetters.forEach(letter => {
+        letter.addEventListener('click', (e) => {
+            e.stopPropagation();
+            letter.classList.toggle('lifted');
+        });
+    });
+
     function triggerWave() {
+        // Antes de iniciar a onda, abaixa todas as letras levantadas
+        logoLetters.forEach(letter => letter.classList.remove('lifted'));
+
         logo.classList.add('waving');
         setTimeout(() => {
             logo.classList.remove('waving');
@@ -215,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         noResults.style.display = visibleCount === 0 ? 'block' : 'none';
     }
 
-    // ===== Modal "Anuncie aqui" (funciona nos dois botões) =====
+    // ===== Modal "Apoie ou anuncie aqui" =====
     function openAdModal() {
         adOverlay.classList.add('open');
         adModal.classList.add('open');
@@ -226,50 +249,97 @@ document.addEventListener('DOMContentLoaded', () => {
         adOverlay.classList.remove('open');
         adModal.classList.remove('open');
         document.body.style.overflow = '';
-        // Reset do estado do botão copiar
+
+        // Reseta abas para "Anuncie"
+        adTabs.forEach(t => {
+            const active = t.dataset.adTab === 'advertise';
+            t.classList.toggle('active', active);
+            t.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        adPanels.forEach(p => {
+            p.classList.toggle('hidden', p.dataset.adPanel !== 'advertise');
+        });
+
+        // Reseta estados de cópia
         adCopyBtn.textContent = 'Copiar';
         adCopyBtn.classList.remove('copied');
         adCopiedMsg.classList.remove('show');
+        adCopyPixBtn.textContent = 'Copiar chave';
+        adCopyPixBtn.classList.remove('copied');
+        adCopiedPixMsg.classList.remove('show');
     }
 
     adBanners.forEach(btn => btn.addEventListener('click', openAdModal));
     adModalClose.addEventListener('click', closeAdModal);
     adOverlay.addEventListener('click', closeAdModal);
 
-    // Botão copiar e-mail
-    adCopyBtn.addEventListener('click', async () => {
-        const email = adEmailText.textContent.trim();
+    // Troca de abas
+    adTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            adTabs.forEach(t => {
+                const active = t === tab;
+                t.classList.toggle('active', active);
+                t.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            adPanels.forEach(p => {
+                p.classList.toggle('hidden', p.dataset.adPanel !== tab.dataset.adTab);
+            });
+        });
+    });
+
+    // Função utilitária de cópia com fallback
+    async function copyText(text) {
         try {
-            await navigator.clipboard.writeText(email);
-            adCopyBtn.textContent = 'Copiado!';
-            adCopyBtn.classList.add('copied');
-            adCopiedMsg.classList.add('show');
-            setTimeout(() => {
-                adCopyBtn.textContent = 'Copiar';
-                adCopyBtn.classList.remove('copied');
-                adCopiedMsg.classList.remove('show');
-            }, 2200);
+            await navigator.clipboard.writeText(text);
+            return true;
         } catch (err) {
-            // Fallback para navegadores sem clipboard API
             const textArea = document.createElement('textarea');
-            textArea.value = email;
+            textArea.value = text;
             document.body.appendChild(textArea);
             textArea.select();
             try {
                 document.execCommand('copy');
-                adCopyBtn.textContent = 'Copiado!';
-                adCopyBtn.classList.add('copied');
-                adCopiedMsg.classList.add('show');
-                setTimeout(() => {
-                    adCopyBtn.textContent = 'Copiar';
-                    adCopyBtn.classList.remove('copied');
-                    adCopiedMsg.classList.remove('show');
-                }, 2200);
+                document.body.removeChild(textArea);
+                return true;
             } catch (e) {
-                adCopiedMsg.textContent = 'Não foi possível copiar. Selecione manualmente.';
-                adCopiedMsg.classList.add('show');
+                document.body.removeChild(textArea);
+                return false;
             }
-            document.body.removeChild(textArea);
+        }
+    }
+
+    function flashCopied(btn, msgEl, originalLabel) {
+        btn.textContent = 'Copiado!';
+        btn.classList.add('copied');
+        msgEl.classList.add('show');
+        setTimeout(() => {
+            btn.textContent = originalLabel;
+            btn.classList.remove('copied');
+            msgEl.classList.remove('show');
+        }, 2200);
+    }
+
+    // Copiar e-mail de contato (aba Anuncie)
+    adCopyBtn.addEventListener('click', async () => {
+        const email = adEmailText.textContent.trim();
+        const ok = await copyText(email);
+        if (ok) {
+            flashCopied(adCopyBtn, adCopiedMsg, 'Copiar');
+        } else {
+            adCopiedMsg.textContent = 'Não foi possível copiar. Selecione manualmente.';
+            adCopiedMsg.classList.add('show');
+        }
+    });
+
+    // Copiar chave Pix (aba Apoie)
+    adCopyPixBtn.addEventListener('click', async () => {
+        const pix = adPixText.textContent.trim();
+        const ok = await copyText(pix);
+        if (ok) {
+            flashCopied(adCopyPixBtn, adCopiedPixMsg, 'Copiar chave');
+        } else {
+            adCopiedPixMsg.textContent = 'Não foi possível copiar. Selecione manualmente.';
+            adCopiedPixMsg.classList.add('show');
         }
     });
 

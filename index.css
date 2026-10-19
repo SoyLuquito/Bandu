@@ -91,11 +91,23 @@ body::after {
 
 .logo span {
     display: inline-block;
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: pointer;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    will-change: transform;
+}
+
+/* Letra "levantada" pelo clique */
+.logo span.lifted {
+    transform: translateY(-8px) rotate(-4deg);
 }
 
 .logo span:hover {
     transform: translateY(-6px) rotate(-4deg);
+}
+
+/* Se a letra estiver levantada, o hover não a abaixa */
+.logo span.lifted:hover {
+    transform: translateY(-8px) rotate(-4deg);
 }
 
 @keyframes wave {
@@ -139,7 +151,7 @@ body::after {
     padding: 0 0.5rem;
 }
 
-/* Faixa "Anuncie aqui" — gradiente pastel animado */
+/* Faixa "Apoie ou anuncie aqui" — gradiente pastel animado */
 .ad-banner {
     display: flex;
     align-items: center;
@@ -594,7 +606,7 @@ body::after {
     transform: scale(0.97);
 }
 
-/* ===== Modal "Anuncie na Rally" ===== */
+/* ===== Modal "Apoie ou anuncie aqui" ===== */
 .ad-overlay {
     position: fixed;
     inset: 0;
@@ -618,7 +630,9 @@ body::after {
     left: 50%;
     transform: translate(-50%, -50%) scale(0.9);
     width: calc(100% - 2rem);
-    max-width: 380px;
+    max-width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
     background: #FFFFFF;
     border-radius: 24px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
@@ -653,6 +667,7 @@ body::after {
     align-items: center;
     justify-content: center;
     transition: transform 0.15s ease, background 0.2s ease;
+    z-index: 5;
 }
 
 .ad-modal-close:hover {
@@ -667,7 +682,41 @@ body::after {
     font-size: 1.25rem;
     font-weight: 900;
     color: var(--texto);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.85rem;
+}
+
+/* Abas */
+.ad-tabs {
+    display: flex;
+    background: var(--bege-escuro);
+    border-radius: 14px;
+    padding: 4px;
+    gap: 4px;
+    margin-bottom: 1.1rem;
+}
+
+.ad-tab {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 0.6rem 0.4rem;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #6B5F5F;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.ad-tab.active {
+    background: #FFFFFF;
+    color: var(--texto);
+    box-shadow: 0 2px 6px var(--sombra);
+}
+
+.ad-tab-panel.hidden {
+    display: none;
 }
 
 .ad-modal-desc {
@@ -675,6 +724,10 @@ body::after {
     line-height: 1.5;
     color: #5A5050;
     margin-bottom: 1.1rem;
+}
+
+.ad-modal-desc-left {
+    text-align: left;
 }
 
 .ad-email-box {
@@ -738,6 +791,37 @@ body::after {
     opacity: 1;
 }
 
+/* Rótulo da chave Pix */
+.ad-pix-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6B5F5F;
+    text-align: left;
+    margin: 0.75rem 0 0.4rem;
+}
+
+/* QR Code */
+.ad-qr-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #F8F6F1;
+    border: 2px solid #EDE9E0;
+    border-radius: 16px;
+    padding: 0.75rem;
+    margin: 1rem 0 0.5rem;
+}
+
+.ad-qr-img {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+}
+
 /* No results */
 .no-results {
     text-align: center;
@@ -769,7 +853,6 @@ body::after {
     gap: 0.5rem;
 }
 
-/* Linha 1: "Desenvolvido por Luca de Sousa" */
 .footer-text {
     font-size: 0.8rem;
     color: #7A6E6E;
@@ -777,7 +860,6 @@ body::after {
     line-height: 1.4;
 }
 
-/* Linha 2: os links @luq_ito | @soyluquito */
 .footer-credit {
     display: flex;
     flex-wrap: wrap;

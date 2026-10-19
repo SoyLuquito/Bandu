@@ -3,250 +3,348 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cidade Dorme - Bandu</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232E2626' stroke-width='2'%3E%3Cpath d='M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z'/%3E%3C/svg%3E">
+    <title>Cidade Dorme - Rally</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23FBFAF7'/%3E%3Ctext x='50' y='50' text-anchor='middle' dominant-baseline='central' font-family='Outfit, Arial, sans-serif' font-weight='900' font-size='78' fill='%23FF6B8A'%3ER%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="cidadedorme.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
-    <div class="top-bar">
-        <button class="icon-button" id="exitBtn" aria-label="Sair">
-            <i data-lucide="arrow-left"></i>
-        </button>
-    </div>
-
     <main class="container">
 
         <!-- TELA 1: MENU INICIAL -->
-        <section id="homeScreen" class="card-panel">
-            <header class="panel-header">
-                <h1>Cidade Dorme</h1>
-                <p>Assassino, detetive e cidadãos</p>
-            </header>
-
-            <!-- Escolha do modo -->
-            <div id="modeChoice" class="home-actions">
-                <button type="button" class="btn btn-primary btn-block" id="modeLocalBtn">
-                    <i data-lucide="smartphone"></i> 1 dispositivo
+        <section id="homeScreen" class="screen-wrap">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
                 </button>
-                <button type="button" class="btn btn-secondary btn-block" id="modeOnlineBtn">
-                    <i data-lucide="users"></i> Cada um no seu
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
                 </button>
             </div>
 
-            <!-- Modo online: criar/entrar -->
-            <div id="onlineMenu" class="home-actions hidden">
-                <button type="button" class="btn btn-primary btn-block" id="createRoomBtn">
-                    <i data-lucide="plus-circle"></i> Criar Sala
-                </button>
+            <div class="card-panel">
+                <header class="panel-header">
+                    <h1>Cidade Dorme</h1>
+                    <p>Assassino, detetive e cidadãos</p>
+                </header>
 
-                <div class="join-box">
-                    <input type="text" id="joinCodeInput" class="code-input" placeholder="CÓDIGO" maxlength="6" autocomplete="off" spellcheck="false">
-                    <button type="button" class="btn btn-secondary" id="joinRoomBtn">
-                        <i data-lucide="log-in"></i> Entrar
+                <div class="panel-divider"></div>
+
+                <div class="panel-rules">
+                    <h2 class="panel-subtitle">Como jogar?</h2>
+                    <p class="panel-desc">
+                        A cidade adormece e os papéis são sorteados: <strong>assassinos</strong>, <strong>detetive</strong>,
+                        <strong>anjo</strong> e <strong>cidadãos</strong>. À noite, os assassinos escolhem uma vítima
+                        (o anjo pode proteger alguém e o detetive investiga um jogador). Durante o dia, todos
+                        discutem e <strong>votam</strong> em quem expulsar.
+                    </p>
+                    <p class="panel-desc">
+                        A <strong>cidade vence</strong> se eliminar todos os assassinos. Os <strong>assassinos vencem</strong>
+                        se chegarem a ter o mesmo número de jogadores que os inocentes.
+                    </p>
+                </div>
+
+                <div class="panel-divider"></div>
+
+                <div id="modeChoice" class="home-actions">
+                    <button type="button" class="btn btn-primary btn-block" id="modeLocalBtn">
+                        <i data-lucide="smartphone"></i> 1 dispositivo
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-block" id="modeOnlineBtn">
+                        <i data-lucide="users"></i> Cada um no seu
                     </button>
                 </div>
 
-                <p class="home-hint">Crie uma sala e mande o código pros amigos.</p>
+                <div id="onlineMenu" class="home-actions hidden">
+                    <button type="button" class="btn btn-primary btn-block" id="createRoomBtn">
+                        <i data-lucide="plus-circle"></i> Criar Sala
+                    </button>
+
+                    <div class="join-box">
+                        <input type="text" id="joinCodeInput" class="code-input" placeholder="CÓDIGO" maxlength="6" autocomplete="off" spellcheck="false">
+                        <button type="button" class="btn btn-secondary" id="joinRoomBtn">
+                            <i data-lucide="log-in"></i> Entrar
+                        </button>
+                    </div>
+
+                    <p class="home-hint">Crie uma sala e mande o código pros amigos.</p>
+                </div>
             </div>
         </section>
 
-        <!-- TELA 2: CONFIG LOCAL (1 dispositivo) -->
-        <section id="localConfigScreen" class="card-panel hidden">
-            <header class="panel-header">
-                <h1>Nova Partida</h1>
-                <p>Modo 1 dispositivo</p>
-            </header>
-
-            <div class="form-group">
-                <label class="config-label">Jogadores</label>
-                <div class="input-with-button">
-                    <input type="text" id="localPlayerInput" class="code-input" placeholder="Nome do jogador" maxlength="15" autocomplete="off" style="text-transform:none;letter-spacing:normal;text-align:left">
-                    <button type="button" class="btn btn-secondary" id="localAddPlayerBtn">Adicionar</button>
-                </div>
-                <ul class="tag-list" id="localPlayerList"></ul>
-                <p class="players-header" style="margin-top:0.5rem"><span>Total</span><span id="localPlayerCount">0 / 10</span></p>
+        <!-- TELA 2: CONFIG LOCAL -->
+        <section id="localConfigScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
             </div>
 
-            <div class="config-group">
-                <label class="config-label">Assassinos</label>
-                <div class="chip-group" id="localAssassinosGroup">
-                    <button type="button" class="chip-btn active" data-value="1">1</button>
-                    <button type="button" class="chip-btn" data-value="2">2</button>
-                    <button type="button" class="chip-btn" data-value="3">3</button>
+            <div class="card-panel">
+                <header class="panel-header">
+                    <h1>Nova Partida</h1>
+                    <p>Modo 1 dispositivo</p>
+                </header>
+
+                <div class="form-group">
+                    <label class="config-label">Jogadores</label>
+                    <div class="input-with-button">
+                        <input type="text" id="localPlayerInput" class="code-input" placeholder="Nome do jogador" maxlength="15" autocomplete="off" style="text-transform:none;letter-spacing:normal;text-align:left">
+                        <button type="button" class="btn btn-secondary" id="localAddPlayerBtn">Adicionar</button>
+                    </div>
+                    <ul class="tag-list" id="localPlayerList"></ul>
+                    <p class="players-header" style="margin-top:0.5rem"><span>Total</span><span id="localPlayerCount">0 / 10</span></p>
                 </div>
-            </div>
 
-            <div class="config-group">
-                <label class="config-label">Anjo</label>
-                <div class="chip-group" id="localAnjoGroup">
-                    <button type="button" class="chip-btn active" data-value="sim">Sim</button>
-                    <button type="button" class="chip-btn" data-value="nao">Não</button>
-                </div>
-            </div>
-
-            <button type="button" class="btn btn-primary btn-block" id="localStartBtn" disabled>
-                <i data-lucide="play"></i> Iniciar Partida
-            </button>
-        </section>
-
-        <!-- TELA 3: LOBBY (ONLINE) -->
-        <section id="lobbyScreen" class="card-panel hidden">
-            <header class="panel-header">
-                <h1>Sala</h1>
-                <p class="room-code-display" id="lobbyRoomCode">------</p>
-            </header>
-
-            <div class="host-config hidden" id="hostConfig">
                 <div class="config-group">
                     <label class="config-label">Assassinos</label>
-                    <div class="chip-group" id="assassinosGroup">
+                    <div class="chip-group" id="localAssassinosGroup">
                         <button type="button" class="chip-btn active" data-value="1">1</button>
                         <button type="button" class="chip-btn" data-value="2">2</button>
                         <button type="button" class="chip-btn" data-value="3">3</button>
                     </div>
                 </div>
+
                 <div class="config-group">
                     <label class="config-label">Anjo</label>
-                    <div class="chip-group" id="anjoGroup">
+                    <div class="chip-group" id="localAnjoGroup">
                         <button type="button" class="chip-btn active" data-value="sim">Sim</button>
                         <button type="button" class="chip-btn" data-value="nao">Não</button>
                     </div>
                 </div>
-                <div class="config-group">
-                    <label class="config-label">Tempo de votação</label>
-                    <div class="chip-group" id="tempoGroup">
-                        <button type="button" class="chip-btn active" data-value="60">60s</button>
-                        <button type="button" class="chip-btn" data-value="90">90s</button>
-                        <button type="button" class="chip-btn" data-value="120">120s</button>
-                    </div>
-                </div>
-                <div class="config-group">
-                    <label class="config-label">Voto</label>
-                    <div class="chip-group" id="votoGroup">
-                        <button type="button" class="chip-btn active" data-value="aberto">Aberto</button>
-                        <button type="button" class="chip-btn" data-value="anonimo">Anônimo</button>
-                    </div>
-                </div>
+
+                <button type="button" class="btn btn-primary btn-block" id="localStartBtn" disabled>
+                    <i data-lucide="play"></i> Iniciar Partida
+                </button>
+            </div>
+        </section>
+
+        <!-- TELA 3: LOBBY (ONLINE) -->
+        <section id="lobbyScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
             </div>
 
-            <div class="players-section">
-                <div class="players-header">
-                    <span>Jogadores</span>
-                    <span id="playerCount">0 / 10</span>
-                </div>
-                <ul class="players-list" id="playersList"></ul>
-            </div>
+            <div class="card-panel">
+                <header class="panel-header">
+                    <h1>Sala</h1>
+                    <p class="room-code-display" id="lobbyRoomCode">------</p>
+                </header>
 
-            <button type="button" class="btn btn-primary btn-block hidden" id="startGameBtn">
-                <i data-lucide="play"></i> Iniciar Partida
-            </button>
-            <button type="button" class="btn btn-secondary btn-block" id="readyBtn">
-                <i data-lucide="check"></i> Estou Pronto
-            </button>
+                <div class="host-config hidden" id="hostConfig">
+                    <div class="config-group">
+                        <label class="config-label">Assassinos</label>
+                        <div class="chip-group" id="assassinosGroup">
+                            <button type="button" class="chip-btn active" data-value="1">1</button>
+                            <button type="button" class="chip-btn" data-value="2">2</button>
+                            <button type="button" class="chip-btn" data-value="3">3</button>
+                        </div>
+                    </div>
+                    <div class="config-group">
+                        <label class="config-label">Anjo</label>
+                        <div class="chip-group" id="anjoGroup">
+                            <button type="button" class="chip-btn active" data-value="sim">Sim</button>
+                            <button type="button" class="chip-btn" data-value="nao">Não</button>
+                        </div>
+                    </div>
+                    <div class="config-group">
+                        <label class="config-label">Tempo de votação</label>
+                        <div class="chip-group" id="tempoGroup">
+                            <button type="button" class="chip-btn active" data-value="60">60s</button>
+                            <button type="button" class="chip-btn" data-value="90">90s</button>
+                            <button type="button" class="chip-btn" data-value="120">120s</button>
+                        </div>
+                    </div>
+                    <div class="config-group">
+                        <label class="config-label">Voto</label>
+                        <div class="chip-group" id="votoGroup">
+                            <button type="button" class="chip-btn active" data-value="aberto">Aberto</button>
+                            <button type="button" class="chip-btn" data-value="anonimo">Anônimo</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="players-section">
+                    <div class="players-header">
+                        <span>Jogadores</span>
+                        <span id="playerCount">0 / 10</span>
+                    </div>
+                    <ul class="players-list" id="playersList"></ul>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-block hidden" id="startGameBtn">
+                    <i data-lucide="play"></i> Iniciar Partida
+                </button>
+                <button type="button" class="btn btn-secondary btn-block" id="readyBtn">
+                    <i data-lucide="check"></i> Estou Pronto
+                </button>
+            </div>
         </section>
 
         <!-- TELA 4: PAPEL -->
-        <section id="roleScreen" class="card-panel hidden">
-            <div class="round-badge">Seu papel</div>
-            <h2 class="display-title" id="roleTitle">...</h2>
-            <p class="subtitle" id="roleSubtitle">...</p>
-
-            <div class="role-card">
-                <div class="role-icon-wrap" id="roleIconWrap">
-                    <i data-lucide="user" id="roleIcon"></i>
-                </div>
-                <p class="role-desc" id="roleDesc">...</p>
+        <section id="roleScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
             </div>
 
-            <button type="button" class="btn btn-primary btn-block" id="roleConfirmBtn">
-                <i data-lucide="eye"></i> Entendi
-            </button>
+            <div class="card-panel">
+                <div class="round-badge">Seu papel</div>
+                <h2 class="display-title" id="roleTitle">...</h2>
+                <p class="subtitle" id="roleSubtitle">...</p>
+
+                <div class="role-card">
+                    <div class="role-icon-wrap" id="roleIconWrap">
+                        <i data-lucide="user" id="roleIcon"></i>
+                    </div>
+                    <p class="role-desc" id="roleDesc">...</p>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-block" id="roleConfirmBtn">
+                    <i data-lucide="eye"></i> Entendi
+                </button>
+            </div>
         </section>
 
         <!-- TELA 5: NOITE -->
-        <section id="nightScreen" class="card-panel hidden">
-            <div class="night-icon">
-                <i data-lucide="moon"></i>
+        <section id="nightScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
             </div>
-            <h2 class="display-title">A cidade dorme...</h2>
-            <p class="subtitle" id="nightSubtitle">Sua ação</p>
 
-            <div class="night-action" id="nightActionArea"></div>
+            <div class="card-panel">
+                <div class="night-icon">
+                    <i data-lucide="moon"></i>
+                </div>
+                <h2 class="display-title">A cidade dorme...</h2>
+                <p class="subtitle" id="nightSubtitle">Sua ação</p>
 
-            <div class="waiting-msg hidden" id="waitingMsg">
-                <i data-lucide="hourglass"></i>
-                <span>Aguardando os outros...</span>
+                <div class="night-action" id="nightActionArea"></div>
+
+                <div class="waiting-msg hidden" id="waitingMsg">
+                    <i data-lucide="hourglass"></i>
+                    <span>Aguardando os outros...</span>
+                </div>
             </div>
         </section>
 
         <!-- TELA 6: VOTAÇÃO -->
-        <section id="voteScreen" class="card-panel hidden">
-            <div class="vote-header">
-                <i data-lucide="vote"></i>
-                <h2>Votação</h2>
-                <p class="subtitle" id="voteTimer">--</p>
+        <section id="voteScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
             </div>
 
-            <div class="day-events" id="nightNews" style="margin-bottom: 0.5rem;"></div>
+            <div class="card-panel">
+                <div class="vote-header">
+                    <i data-lucide="vote"></i>
+                    <h2>Votação</h2>
+                    <p class="subtitle" id="voteTimer">--</p>
+                </div>
 
-            <p class="vote-instruction" id="voteInstruction">Escolha quem expulsar</p>
+                <div class="day-events" id="nightNews" style="margin-bottom: 0.5rem;"></div>
 
-            <div class="vote-grid" id="voteGrid"></div>
+                <p class="vote-instruction" id="voteInstruction">Escolha quem expulsar</p>
 
-            <div class="vote-status hidden" id="voteStatus">
-                <i data-lucide="check-circle"></i>
-                <span>Você votou</span>
+                <div class="vote-grid" id="voteGrid"></div>
+
+                <div class="vote-status hidden" id="voteStatus">
+                    <i data-lucide="check-circle"></i>
+                    <span>Você votou</span>
+                </div>
+
+                <div class="vote-progress" id="voteProgress"></div>
             </div>
-
-            <div class="vote-progress" id="voteProgress"></div>
         </section>
 
         <!-- TELA 7: RESULTADO -->
-        <section id="roundResultScreen" class="card-panel hidden">
-            <div class="result-icon" id="roundResultIcon">
-                <i data-lucide="user-x"></i>
+        <section id="roundResultScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
             </div>
-            <h2 class="display-title" id="roundResultTitle">Resultado</h2>
 
-            <div class="round-result-reveal" id="roundResultReveal"></div>
+            <div class="card-panel">
+                <div class="result-icon" id="roundResultIcon">
+                    <i data-lucide="user-x"></i>
+                </div>
+                <h2 class="display-title" id="roundResultTitle">Resultado</h2>
 
-            <button type="button" class="btn btn-primary btn-block" id="continueBtn">
-                <i data-lucide="arrow-right"></i> Continuar
-            </button>
-            <div class="waiting-msg hidden" id="waitContinueMsg">
-                <i data-lucide="hourglass"></i>
-                <span>Aguardando o anfitrião...</span>
+                <div class="round-result-reveal" id="roundResultReveal"></div>
+
+                <button type="button" class="btn btn-primary btn-block" id="continueBtn">
+                    <i data-lucide="arrow-right"></i> Continuar
+                </button>
+                <div class="waiting-msg hidden" id="waitContinueMsg">
+                    <i data-lucide="hourglass"></i>
+                    <span>Aguardando o anfitrião...</span>
+                </div>
             </div>
         </section>
 
         <!-- TELA 8: FIM -->
-        <section id="gameOverScreen" class="card-panel hidden">
-            <div class="result-icon win" id="gameOverIcon">
-                <i data-lucide="trophy"></i>
-            </div>
-            <h2 class="display-title" id="gameOverTitle">Fim!</h2>
-            <p class="subtitle" id="gameOverSub">...</p>
-
-            <div class="final-reveal" id="finalReveal"></div>
-
-            <div class="game-over-actions hidden" id="gameOverActions">
-                <button type="button" class="btn btn-primary btn-block" id="rematchBtn">
-                    <i data-lucide="rotate-ccw"></i> Jogar Novamente
+        <section id="gameOverScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
                 </button>
-                <button type="button" class="btn btn-secondary btn-block" id="editConfigBtn">
-                    <i data-lucide="settings"></i> Editar Configurações
-                </button>
-                <button type="button" class="btn btn-danger btn-block" id="closeRoomBtn">
-                    <i data-lucide="log-out"></i> Encerrar Sala
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
                 </button>
             </div>
 
-            <div class="spectator-msg hidden" id="spectatorMsg">
-                <i data-lucide="hourglass"></i>
-                <span>Aguardando o anfitrião...</span>
+            <div class="card-panel">
+                <div class="result-icon win" id="gameOverIcon">
+                    <i data-lucide="trophy"></i>
+                </div>
+                <h2 class="display-title" id="gameOverTitle">Fim!</h2>
+                <p class="subtitle" id="gameOverSub">...</p>
+
+                <div class="final-reveal" id="finalReveal"></div>
+
+                <div class="game-over-actions hidden" id="gameOverActions">
+                    <button type="button" class="btn btn-primary btn-block" id="rematchBtn">
+                        <i data-lucide="rotate-ccw"></i> Jogar Novamente
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-block" id="editConfigBtn">
+                        <i data-lucide="settings"></i> Editar Configurações
+                    </button>
+                    <button type="button" class="btn btn-danger btn-block" id="closeRoomBtn">
+                        <i data-lucide="log-out"></i> Encerrar Sala
+                    </button>
+                </div>
+
+                <div class="spectator-msg hidden" id="spectatorMsg">
+                    <i data-lucide="hourglass"></i>
+                    <span>Aguardando o anfitrião...</span>
+                </div>
             </div>
         </section>
 
@@ -296,6 +394,57 @@
         <div class="loading-card">
             <div class="loading-spinner"></div>
             <p id="loadingText">Carregando...</p>
+        </div>
+    </div>
+
+    <!-- Modal "Apoie ou anuncie aqui" -->
+    <div class="ad-overlay" id="adOverlay"></div>
+    <div class="ad-modal" id="adModal" role="dialog" aria-modal="true" aria-labelledby="adModalTitle">
+        <button class="ad-modal-close" id="adModalClose" aria-label="Fechar">✕</button>
+        <h3 class="ad-modal-title" id="adModalTitle">Apoie ou anuncie aqui</h3>
+
+        <div class="ad-tabs" role="tablist">
+            <button type="button" class="ad-tab active" data-ad-tab="advertise" role="tab" aria-selected="true">
+                Anuncie aqui
+            </button>
+            <button type="button" class="ad-tab" data-ad-tab="support" role="tab" aria-selected="false">
+                Apoie o projeto
+            </button>
+        </div>
+
+        <div class="ad-tab-panel" data-ad-panel="advertise">
+            <p class="ad-modal-desc">
+                Quer divulgar sua marca para quem joga com os amigos?
+                Entre em contato pelo e-mail abaixo:
+            </p>
+            <div class="ad-email-box">
+                <span class="ad-email-text" id="adEmailText">contato.rallybr@gmail.com</span>
+                <button type="button" class="ad-copy-btn" id="adCopyBtn" aria-label="Copiar e-mail">
+                    Copiar
+                </button>
+            </div>
+            <p class="ad-copied-msg" id="adCopiedMsg">E-mail copiado!</p>
+        </div>
+
+        <div class="ad-tab-panel hidden" data-ad-panel="support">
+            <p class="ad-modal-desc ad-modal-desc-left">
+                O Rally é um projeto independente, feito por mim, para que todo mundo possa se divertir com os amigos de forma gratuita. Não pretendo cobrar pelo acesso, mas manter tudo funcionando e trazer novidades exige tempo e recursos.
+            </p>
+            <p class="ad-modal-desc ad-modal-desc-left">
+                Se você gosta do projeto e quer ajudar a mantê-lo vivo, qualquer contribuição é muito bem-vinda! É só escanear o QR Code abaixo e apoiar pelo Pix. Obrigado por fazer parte disso!
+            </p>
+            <div class="ad-qr-wrap">
+                <img src="../../qrcode.png" alt="QR Code para apoiar via Pix" class="ad-qr-img">
+            </div>
+
+            <p class="ad-pix-label">Chave Pix (e-mail):</p>
+            <div class="ad-email-box">
+                <span class="ad-email-text" id="adPixText">contato.rallybr@gmail.com</span>
+                <button type="button" class="ad-copy-btn" id="adCopyPixBtn" aria-label="Copiar chave Pix">
+                    Copiar chave
+                </button>
+            </div>
+            <p class="ad-copied-msg" id="adCopiedPixMsg">Chave Pix copiada!</p>
         </div>
     </div>
 

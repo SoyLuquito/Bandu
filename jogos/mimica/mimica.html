@@ -20,8 +20,8 @@
                 <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
                     <i data-lucide="arrow-left"></i>
                 </button>
-                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Anuncie aqui — ver email de contato">
-                    <span class="ad-banner-text">Anuncie aqui</span>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
                 </button>
                 <button class="icon-button score-btn hidden" id="liveScoreBtn" aria-label="Ver Placar">
                     <i data-lucide="bar-chart-2"></i>
@@ -138,17 +138,21 @@
                     <button type="button" class="btn btn-primary btn-block btn-start" id="startGameBtn">Iniciar Jogo</button>
                 </form>
             </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
         </section>
 
 
         <!-- ================= FASE 2: REVELAÇÃO DO JOGADOR ================= -->
-        <section id="revealScreen" class="screen-wrap hidden">
+        <section id="revealScreen" class="screen-wrap screen-wrap-game hidden">
             <div class="top-bar">
                 <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
                     <i data-lucide="arrow-left"></i>
                 </button>
-                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Anuncie aqui — ver email de contato">
-                    <span class="ad-banner-text">Anuncie aqui</span>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
                 </button>
                 <button class="icon-button score-btn hidden" id="liveScoreBtnReveal" aria-label="Ver Placar">
                     <i data-lucide="bar-chart-2"></i>
@@ -190,13 +194,13 @@
 
 
         <!-- ================= FASE 3: PARTIDA E CRONÔMETRO ================= -->
-        <section id="actionScreen" class="screen-wrap hidden">
+        <section id="actionScreen" class="screen-wrap screen-wrap-game hidden">
             <div class="top-bar">
                 <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
                     <i data-lucide="arrow-left"></i>
                 </button>
-                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Anuncie aqui — ver email de contato">
-                    <span class="ad-banner-text">Anuncie aqui</span>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
                 </button>
                 <button class="icon-button score-btn hidden" id="liveScoreBtnAction" aria-label="Ver Placar">
                     <i data-lucide="bar-chart-2"></i>
@@ -223,13 +227,13 @@
 
 
         <!-- ================= FASE 4: SELEÇÃO DE QUEM DESCOBRIU (GERAL) ================= -->
-        <section id="guesserScreen" class="screen-wrap hidden">
+        <section id="guesserScreen" class="screen-wrap screen-wrap-game hidden">
             <div class="top-bar">
                 <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
                     <i data-lucide="arrow-left"></i>
                 </button>
-                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Anuncie aqui — ver email de contato">
-                    <span class="ad-banner-text">Anuncie aqui</span>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
                 </button>
                 <button class="icon-button score-btn hidden" id="liveScoreBtnGuesser" aria-label="Ver Placar">
                     <i data-lucide="bar-chart-2"></i>
@@ -251,8 +255,8 @@
                 <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
                     <i data-lucide="arrow-left"></i>
                 </button>
-                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Anuncie aqui — ver email de contato">
-                    <span class="ad-banner-text">Anuncie aqui</span>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
                 </button>
             </div>
 
@@ -307,22 +311,58 @@
         </div>
     </div>
 
-    <!-- Modal "Anuncie aqui" -->
+    <!-- Modal "Apoie ou anuncie aqui" -->
     <div class="ad-overlay" id="adOverlay"></div>
     <div class="ad-modal" id="adModal" role="dialog" aria-modal="true" aria-labelledby="adModalTitle">
         <button class="ad-modal-close" id="adModalClose" aria-label="Fechar">✕</button>
-        <h3 class="ad-modal-title" id="adModalTitle">ANUNCIE AQUI</h3>
-        <p class="ad-modal-desc">
-            Quer divulgar sua marca para quem joga com os amigos?
-            Entre em contato pelo e-mail abaixo:
-        </p>
-        <div class="ad-email-box">
-            <span class="ad-email-text" id="adEmailText">contato.rallybr@gmail.com</span>
-            <button type="button" class="ad-copy-btn" id="adCopyBtn" aria-label="Copiar e-mail">
-                Copiar
+        <h3 class="ad-modal-title" id="adModalTitle">Apoie ou anuncie aqui</h3>
+
+        <!-- Abas -->
+        <div class="ad-tabs" role="tablist">
+            <button type="button" class="ad-tab active" data-ad-tab="advertise" role="tab" aria-selected="true">
+                Anuncie aqui
+            </button>
+            <button type="button" class="ad-tab" data-ad-tab="support" role="tab" aria-selected="false">
+                Apoie o projeto
             </button>
         </div>
-        <p class="ad-copied-msg" id="adCopiedMsg">E-mail copiado!</p>
+
+        <!-- Aba: Anuncie -->
+        <div class="ad-tab-panel" data-ad-panel="advertise">
+            <p class="ad-modal-desc">
+                Quer divulgar sua marca para quem joga com os amigos?
+                Entre em contato pelo e-mail abaixo:
+            </p>
+            <div class="ad-email-box">
+                <span class="ad-email-text" id="adEmailText">contato.rallybr@gmail.com</span>
+                <button type="button" class="ad-copy-btn" id="adCopyBtn" aria-label="Copiar e-mail">
+                    Copiar
+                </button>
+            </div>
+            <p class="ad-copied-msg" id="adCopiedMsg">E-mail copiado!</p>
+        </div>
+
+        <!-- Aba: Apoie -->
+        <div class="ad-tab-panel hidden" data-ad-panel="support">
+            <p class="ad-modal-desc ad-modal-desc-left">
+                O Rally é um projeto independente, feito por mim, para que todo mundo possa se divertir com os amigos de forma gratuita. Não pretendo cobrar pelo acesso, mas manter tudo funcionando e trazer novidades exige tempo e recursos.
+            </p>
+            <p class="ad-modal-desc ad-modal-desc-left">
+                Se você gosta do projeto e quer ajudar a mantê-lo vivo, qualquer contribuição é muito bem-vinda! É só escanear o Pix QR Code abaixo e apoiar. Obrigado por fazer parte disso!
+            </p>
+            <div class="ad-qr-wrap">
+                <img src="../../qrcode.png" alt="QR Code para apoiar via Pix" class="ad-qr-img">
+            </div>
+
+            <p class="ad-pix-label">Chave Pix (e-mail):</p>
+            <div class="ad-email-box">
+                <span class="ad-email-text" id="adPixText">contato.rallybr@gmail.com</span>
+                <button type="button" class="ad-copy-btn" id="adCopyPixBtn" aria-label="Copiar chave Pix">
+                    Copiar chave
+                </button>
+            </div>
+            <p class="ad-copied-msg" id="adCopiedPixMsg">Chave Pix copiada!</p>
+        </div>
     </div>
 
     <script src="mimica.js"></script>

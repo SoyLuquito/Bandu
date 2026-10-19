@@ -1,4 +1,4 @@
-// Bandu - Eu Nunca (Party Game)
+// Rally - Eu Nunca (Party Game)
 
 document.addEventListener('DOMContentLoaded', () => {
     if (window.lucide) {
@@ -7,14 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ============================================================
     // BARALHOS
-    // Formato da frase: "Eu nunca " + [frase]
-    // Ex: "fui a uma festa" -> "Eu nunca fui a uma festa."
     // ============================================================
     const DECKS = {
         livre: {
             name: 'Baralho Livre',
             questions: [
-                // Quebra-gelo e vida cotidiana
                 "fingi que estava entendendo alguma coisa",
                 "acenei para alguém que não estava acenando para mim",
                 "mandei mensagem para a pessoa errada",
@@ -35,8 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 "reli uma mensagem várias vezes antes de enviar",
                 "apaguei uma mensagem porque me arrependi de mandar",
                 "fiquei esperando alguém sair para poder usar um banheiro",
-
-                // Vergonhas e situações engraçadas
                 "paguei um mico na frente de uma pessoa que queria impressionar",
                 "caí em público e fingi que nada aconteceu",
                 "ri tanto que comecei a chorar",
@@ -57,8 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 "derrubei comida ou bebida em mim mesmo em público",
                 "cantei uma música com a letra completamente errada",
                 "fui pego fazendo algo que achava que ninguém tinha visto",
-
-                // Amizade e convivência
                 "tive uma primeira impressão completamente errada de alguém",
                 "fiquei com ciúmes de uma amizade",
                 "guardei um segredo de um amigo por muito tempo",
@@ -79,8 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 "julguei alguém antes de conhecer sua história",
                 "tive uma amizade que acabou sem explicação",
                 "voltei a conversar com alguém depois de anos sem contato",
-
-                // Escola, trabalho e responsabilidades
                 "colei em uma prova",
                 "estudei só na noite anterior a uma prova",
                 "entreguei um trabalho no último minuto",
@@ -96,8 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 "cheguei atrasado e tentei entrar sem ser percebido",
                 "fiz uma tarefa de qualquer jeito só para terminar logo",
                 "culpei outra pessoa por um erro meu",
-
-                // Hábitos, aventuras e curiosidades
                 "comi escondido para não ter que dividir",
                 "comi algo que caiu no chão",
                 "experimentei uma comida só para não parecer fresco",
@@ -128,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
         adulto: {
             name: 'Baralho +18',
             questions: [
-                // Sexo e experiências sexuais
                 "fiz sexo a três",
                 "fiz sexo com mais de uma pessoa na mesma noite",
                 "fiz sexo com alguém que conheci no mesmo dia",
@@ -149,8 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 "tive uma experiência sexual completamente inesperada",
                 "fiz sexo com alguém por quem não sentia atração romântica",
                 "tive uma relação sexual em um lugar inusitado",
-
-                // Masturbação e orgasmos
                 "me masturbei em um local público",
                 "me masturbei no trabalho ou na escola",
                 "me masturbei em um banheiro fora de casa",
@@ -171,8 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 "tive um orgasmo durante uma situação em que não esperava",
                 "fingi estar gostando de algo durante o sexo",
                 "conversei abertamente com alguém sobre minhas preferências sexuais",
-
-                // Traição e relacionamentos proibidos
                 "traí um namorado ou uma namorada",
                 "beijei outra pessoa enquanto estava em um relacionamento",
                 "tive uma relação sexual com alguém que não era meu parceiro",
@@ -193,8 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 "me envolvi com alguém sabendo que isso causaria uma briga no grupo",
                 "escondi de um parceiro quantas pessoas já tinha beijado",
                 "voltei a ficar com alguém com quem tinha jurado nunca mais ficar",
-
-                // Amigos, irmãos e pessoas próximas
                 "fiquei com a irmã ou o irmão de um amigo",
                 "fiquei com o melhor amigo ou a melhor amiga de um ex",
                 "fiquei com duas pessoas da mesma família",
@@ -210,8 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 "me envolvi com alguém que meu grupo de amigos detestava",
                 "fiquei com alguém e descobri depois que um amigo já tinha ficado com a pessoa",
                 "tive uma tensão sexual com alguém do meu grupo de amigos",
-
-                // Fetiches, fantasias e curiosidades
                 "tive um fetiche que tive vergonha de admitir",
                 "realizei uma fantasia sexual incomum",
                 "conversei com um parceiro sobre experimentar algo diferente na cama",
@@ -227,8 +207,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 "tive uma fantasia com alguém que não era meu parceiro",
                 "experimentei um brinquedo sexual acompanhado",
                 "tive curiosidade de fazer sexo em um ambiente diferente do habitual",
-
-                // Piercings, nudez e situações ousadas
                 "coloquei um piercing em uma região íntima",
                 "fiz uma tatuagem com significado sexual ou romântico",
                 "fiquei completamente nu diante de alguém pela primeira vez em uma situação inesperada",
@@ -239,8 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 "fui visto por acidente em um momento íntimo",
                 "tirei a roupa por causa de um desafio",
                 "fiz striptease para alguém",
-
-                // Aplicativos, mensagens e conteúdo adulto
                 "usei um aplicativo de relacionamento apenas para conseguir sexo",
                 "marquei um encontro com a intenção explícita de transar",
                 "enviei uma mensagem sexual para a pessoa errada",
@@ -256,8 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 "tive uma conversa picante durante uma chamada de vídeo",
                 "recebi uma mensagem sexual de alguém inesperado",
                 "flertei com alguém apenas por mensagens, sem intenção de encontrar a pessoa",
-
-                // Encontros desastrosos e confissões
                 "fui embora de um encontro depois de perceber que não queria nada com a pessoa",
                 "inventei uma desculpa para ir embora depois de ficar com alguém",
                 "me arrependi de ter transado com alguém logo depois",
@@ -273,8 +247,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 "fiquei com alguém apenas para esquecer outra pessoa",
                 "me envolvi com alguém e descobri depois uma informação importante que a pessoa havia escondido",
                 "tive uma experiência sexual que ninguém do meu grupo de amigos imagina",
-
-                // Perguntas mais comprometedoras
                 "tive vontade de ficar com alguém que está nesta roda",
                 "imaginei como seria transar com alguém que está nesta roda",
                 "fiquei com alguém presente nesta roda",
@@ -290,8 +262,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 "tive uma experiência íntima que mantive em segredo por anos",
                 "me envolvi com alguém que era proibido pelas circunstâncias",
                 "escondi uma informação importante sobre minha vida sexual de alguém com quem estava me relacionando",
-
-                // Para fechar a rodada com histórias
                 "tive uma experiência sexual que começou de forma completamente inesperada",
                 "fui surpreendido por uma proposta sexual",
                 "recusei uma proposta sexual e depois fiquei curioso sobre como teria sido",
@@ -461,10 +431,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ============================================================
-    // SAIR
+    // SAIR — qualquer botão com data-exit-btn
     // ============================================================
-    document.getElementById('exitBtn').addEventListener('click', () => {
-        exitModal.classList.remove('hidden');
+    document.querySelectorAll('[data-exit-btn]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            exitModal.classList.remove('hidden');
+        });
     });
 
     document.getElementById('cancelExitBtn').addEventListener('click', () => {
@@ -482,6 +454,125 @@ document.addEventListener('DOMContentLoaded', () => {
 
     exitModal.addEventListener('click', (e) => {
         if (e.target === exitModal) exitModal.classList.add('hidden');
+    });
+
+    // ============================================================
+    // MODAL "Apoie ou anuncie aqui"
+    // ============================================================
+    const adBanners = document.querySelectorAll('[data-ad-banner]');
+    const adOverlay = document.getElementById('adOverlay');
+    const adModal = document.getElementById('adModal');
+    const adModalClose = document.getElementById('adModalClose');
+
+    const adTabs = document.querySelectorAll('.ad-tab');
+    const adPanels = document.querySelectorAll('.ad-tab-panel');
+
+    // Anúncio
+    const adEmailText = document.getElementById('adEmailText');
+    const adCopyBtn = document.getElementById('adCopyBtn');
+    const adCopiedMsg = document.getElementById('adCopiedMsg');
+
+    // Apoio
+    const adPixText = document.getElementById('adPixText');
+    const adCopyPixBtn = document.getElementById('adCopyPixBtn');
+    const adCopiedPixMsg = document.getElementById('adCopiedPixMsg');
+
+    function openAdModal() {
+        adOverlay.classList.add('open');
+        adModal.classList.add('open');
+    }
+
+    function closeAdModal() {
+        adOverlay.classList.remove('open');
+        adModal.classList.remove('open');
+
+        adTabs.forEach(t => {
+            const active = t.dataset.adTab === 'advertise';
+            t.classList.toggle('active', active);
+            t.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        adPanels.forEach(p => {
+            p.classList.toggle('hidden', p.dataset.adPanel !== 'advertise');
+        });
+
+        adCopyBtn.textContent = 'Copiar';
+        adCopyBtn.classList.remove('copied');
+        adCopiedMsg.classList.remove('show');
+        adCopyPixBtn.textContent = 'Copiar chave';
+        adCopyPixBtn.classList.remove('copied');
+        adCopiedPixMsg.classList.remove('show');
+    }
+
+    adBanners.forEach(btn => btn.addEventListener('click', openAdModal));
+    adModalClose.addEventListener('click', closeAdModal);
+    adOverlay.addEventListener('click', closeAdModal);
+
+    // Troca de abas
+    adTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            adTabs.forEach(t => {
+                const active = t === tab;
+                t.classList.toggle('active', active);
+                t.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            adPanels.forEach(p => {
+                p.classList.toggle('hidden', p.dataset.adPanel !== tab.dataset.adTab);
+            });
+        });
+    });
+
+    // Função utilitária de cópia com fallback
+    async function copyText(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (err) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                return true;
+            } catch (e) {
+                document.body.removeChild(textArea);
+                return false;
+            }
+        }
+    }
+
+    function flashCopied(btn, msgEl, originalLabel) {
+        btn.textContent = 'Copiado!';
+        btn.classList.add('copied');
+        msgEl.classList.add('show');
+        setTimeout(() => {
+            btn.textContent = originalLabel;
+            btn.classList.remove('copied');
+            msgEl.classList.remove('show');
+        }, 2200);
+    }
+
+    adCopyBtn.addEventListener('click', async () => {
+        const email = adEmailText.textContent.trim();
+        const ok = await copyText(email);
+        if (ok) {
+            flashCopied(adCopyBtn, adCopiedMsg, 'Copiar');
+        } else {
+            adCopiedMsg.textContent = 'Não foi possível copiar. Selecione manualmente.';
+            adCopiedMsg.classList.add('show');
+        }
+    });
+
+    adCopyPixBtn.addEventListener('click', async () => {
+        const pix = adPixText.textContent.trim();
+        const ok = await copyText(pix);
+        if (ok) {
+            flashCopied(adCopyPixBtn, adCopiedPixMsg, 'Copiar chave');
+        } else {
+            adCopiedPixMsg.textContent = 'Não foi possível copiar. Selecione manualmente.';
+            adCopiedPixMsg.classList.add('show');
+        }
     });
 
     console.log('🎉 Eu Nunca carregado com sucesso!');

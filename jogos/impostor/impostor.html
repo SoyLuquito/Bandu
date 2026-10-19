@@ -16,19 +16,18 @@
 
         <!-- ================= FASE 1: CONFIGURAÇÃO ================= -->
         <section id="configScreen" class="screen-wrap">
-            <!-- Topo relativo à janela (não à viewport) -->
             <div class="top-bar">
-                <button class="icon-button exit-btn" id="exitBtn" aria-label="Voltar à Rally">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
                     <i data-lucide="arrow-left"></i>
                 </button>
-                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Anuncie aqui — ver email de contato">
-                    <span class="ad-banner-text">Anuncie aqui</span>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
                 </button>
             </div>
 
             <div class="card-panel">
                 <header class="panel-header">
-                    <h1>IMPOSTOR</h1>
+                    <h1>Impostor</h1>
                 </header>
 
                 <div class="panel-divider"></div>
@@ -96,75 +95,112 @@
                     <button type="button" class="btn btn-primary btn-block btn-start" id="startGameBtn">Iniciar Partida</button>
                 </form>
             </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
         </section>
 
 
         <!-- ================= FASE 2: REVELAÇÃO DAS PALAVRAS ================= -->
-        <section id="revealScreen" class="card-panel hidden">
-            <div class="round-badge" id="roundBadge">Vez de...</div>
-            <h2 id="revealActorName" class="display-title">Nome do Jogador</h2>
-            <p class="subtitle" id="revealSub">Passe o celular para ele(a)</p>
-
-            <div class="card-secret" id="cardSecret">
-                <div class="card-secret-inner">
-                    <div class="card-front">
-                        <i data-lucide="eye" class="card-front-icon"></i>
-                        <p>Toque para revelar</p>
-                    </div>
-                    <div class="card-back">
-                        <span class="card-back-label" id="secretLabel">Sua palavra</span>
-                        <h3 id="secretContent">PALAVRA</h3>
-                    </div>
-                </div>
+        <section id="revealScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
             </div>
 
-            <button type="button" class="btn btn-primary btn-block hidden" id="nextPlayerBtn">
-                <i data-lucide="arrow-right"></i> Passar
-            </button>
+            <div class="card-panel">
+                <div class="round-badge" id="roundBadge">Vez de...</div>
+                <h2 id="revealActorName" class="display-title">Nome do Jogador</h2>
+                <p class="subtitle" id="revealSub">Passe o celular para ele(a)</p>
+
+                <div class="card-secret" id="cardSecret">
+                    <div class="card-secret-inner">
+                        <div class="card-front">
+                            <i data-lucide="eye" class="card-front-icon"></i>
+                            <p>Toque para revelar</p>
+                        </div>
+                        <div class="card-back">
+                            <span class="card-back-label" id="secretLabel">Sua palavra</span>
+                            <h3 id="secretContent">PALAVRA</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-block hidden" id="nextPlayerBtn">
+                    <i data-lucide="arrow-right"></i> Passar
+                </button>
+            </div>
         </section>
 
 
         <!-- ================= FASE 3: SORTEIO DE QUEM COMEÇA ================= -->
-        <section id="sortScreen" class="card-panel hidden">
-            <div class="round-badge">Todos prontos!</div>
-            <h2 class="display-title">Sorteando quem começa</h2>
-            <p class="subtitle">Siga a ordem no sentido horário</p>
-
-            <div class="sort-display" id="sortDisplay">
-                <div class="sort-name" id="sortName">Sorteando...</div>
+        <section id="sortScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
             </div>
 
-            <button type="button" class="btn btn-primary btn-block hidden" id="startRoundBtn">
-                <i data-lucide="play"></i> Iniciar Rodada
-            </button>
+            <div class="card-panel">
+                <div class="round-badge">Todos prontos!</div>
+                <h2 class="display-title">Sorteando quem começa</h2>
+                <p class="subtitle">Siga a ordem no sentido horário</p>
+
+                <div class="sort-display" id="sortDisplay">
+                    <div class="sort-name" id="sortName">Sorteando...</div>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-block hidden" id="startRoundBtn">
+                    <i data-lucide="play"></i> Iniciar Rodada
+                </button>
+            </div>
         </section>
 
 
         <!-- ================= FASE 4: RODADA EM ANDAMENTO ================= -->
-        <section id="playingScreen" class="card-panel hidden">
-            <div class="playing-icon">
-                <i data-lucide="message-circle"></i>
+        <section id="playingScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
             </div>
-            <h2 class="display-title">Rodada em andamento</h2>
-            <p class="subtitle">
-                <strong id="firstSpeakerName">Nome</strong> começa!
-            </p>
-            <p class="playing-hint">Cada um diz uma palavra ou dica sobre o tema. Depois, discutam e votem em quem acham que é o impostor.</p>
 
-            <button type="button" class="btn btn-primary btn-block" id="endRoundBtn">
-                <i data-lucide="check-circle-2"></i> Rodada Finalizada
-            </button>
+            <div class="card-panel">
+                <div class="playing-icon">
+                    <i data-lucide="message-circle"></i>
+                </div>
+                <h2 class="display-title">Rodada em andamento</h2>
+                <p class="subtitle">
+                    <strong id="firstSpeakerName">Nome</strong> começa!
+                </p>
+                <p class="playing-hint">Cada um diz uma palavra ou dica sobre o tema. Depois, discutam e votem em quem acham que é o impostor.</p>
+
+                <button type="button" class="btn btn-primary btn-block" id="endRoundBtn">
+                    <i data-lucide="check-circle-2"></i> Rodada Finalizada
+                </button>
+            </div>
         </section>
 
 
         <!-- ================= FASE 5: RESULTADO DA RODADA ================= -->
         <section id="resultScreen" class="screen-wrap hidden">
             <div class="top-bar">
-                <button class="icon-button exit-btn" id="exitBtnResult" aria-label="Voltar à Rally">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
                     <i data-lucide="arrow-left"></i>
                 </button>
-                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Anuncie aqui — ver email de contato">
-                    <span class="ad-banner-text">Anuncie aqui</span>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
                 </button>
             </div>
 
@@ -205,22 +241,58 @@
         </div>
     </div>
 
-    <!-- Modal "Anuncie aqui" -->
+    <!-- Modal "Apoie ou anuncie aqui" -->
     <div class="ad-overlay" id="adOverlay"></div>
     <div class="ad-modal" id="adModal" role="dialog" aria-modal="true" aria-labelledby="adModalTitle">
         <button class="ad-modal-close" id="adModalClose" aria-label="Fechar">✕</button>
-        <h3 class="ad-modal-title" id="adModalTitle">ANUNCIE AQUI</h3>
-        <p class="ad-modal-desc">
-            Quer divulgar sua marca para quem joga com os amigos?
-            Entre em contato pelo e-mail abaixo:
-        </p>
-        <div class="ad-email-box">
-            <span class="ad-email-text" id="adEmailText">contato.rallybr@gmail.com</span>
-            <button type="button" class="ad-copy-btn" id="adCopyBtn" aria-label="Copiar e-mail">
-                Copiar
+        <h3 class="ad-modal-title" id="adModalTitle">Apoie ou anuncie aqui</h3>
+
+        <!-- Abas -->
+        <div class="ad-tabs" role="tablist">
+            <button type="button" class="ad-tab active" data-ad-tab="advertise" role="tab" aria-selected="true">
+                Anuncie aqui
+            </button>
+            <button type="button" class="ad-tab" data-ad-tab="support" role="tab" aria-selected="false">
+                Apoie o projeto
             </button>
         </div>
-        <p class="ad-copied-msg" id="adCopiedMsg">E-mail copiado!</p>
+
+        <!-- Aba: Anuncie -->
+        <div class="ad-tab-panel" data-ad-panel="advertise">
+            <p class="ad-modal-desc">
+                Quer divulgar sua marca para quem joga com os amigos?
+                Entre em contato pelo e-mail abaixo:
+            </p>
+            <div class="ad-email-box">
+                <span class="ad-email-text" id="adEmailText">contato.rallybr@gmail.com</span>
+                <button type="button" class="ad-copy-btn" id="adCopyBtn" aria-label="Copiar e-mail">
+                    Copiar
+                </button>
+            </div>
+            <p class="ad-copied-msg" id="adCopiedMsg">E-mail copiado!</p>
+        </div>
+
+        <!-- Aba: Apoie -->
+        <div class="ad-tab-panel hidden" data-ad-panel="support">
+            <p class="ad-modal-desc ad-modal-desc-left">
+                O Rally é um projeto independente, feito por mim, para que todo mundo possa se divertir com os amigos de forma gratuita. Não pretendo cobrar pelo acesso, mas manter tudo funcionando e trazer novidades exige tempo e recursos.
+            </p>
+            <p class="ad-modal-desc ad-modal-desc-left">
+                Se você gosta do projeto e quer ajudar a mantê-lo vivo, qualquer contribuição é muito bem-vinda! É só escanear o Pix QR Code abaixo e apoiar. Obrigado por fazer parte disso!
+            </p>
+            <div class="ad-qr-wrap">
+                <img src="../../qrcode.png" alt="QR Code para apoiar via Pix" class="ad-qr-img">
+            </div>
+
+            <p class="ad-pix-label">Chave Pix (e-mail):</p>
+            <div class="ad-email-box">
+                <span class="ad-email-text" id="adPixText">contato.rallybr@gmail.com</span>
+                <button type="button" class="ad-copy-btn" id="adCopyPixBtn" aria-label="Copiar chave Pix">
+                    Copiar chave
+                </button>
+            </div>
+            <p class="ad-copied-msg" id="adCopiedPixMsg">Chave Pix copiada!</p>
+        </div>
     </div>
 
     <script src="impostor.js"></script>
