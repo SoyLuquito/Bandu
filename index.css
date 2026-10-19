@@ -388,7 +388,7 @@ body::after {
     gap: 1rem;
 }
 
-/* Game Card — achatado (imagem 88px, ícone 42px, título 0.5rem) */
+/* Game Card — formato mais quadrado */
 .game-card {
     background: #FFFFFF;
     border-radius: 20px;
@@ -415,7 +415,7 @@ body::after {
 }
 
 .card-image {
-    height: 88px;
+    height: 130px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -431,8 +431,8 @@ body::after {
 }
 
 .card-icon {
-    width: 42px;
-    height: 42px;
+    width: 56px;
+    height: 56px;
     color: #FFFFFF;
     stroke-width: 2;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
@@ -441,10 +441,10 @@ body::after {
 }
 
 .card-title {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 800;
     text-align: center;
-    padding: 0.5rem 0.5rem;
+    padding: 0.9rem 0.5rem;
     letter-spacing: 0.01em;
     line-height: 1.2;
 }
@@ -854,7 +854,7 @@ body::after {
     }
     
     .card-title {
-        font-size: 0.95rem;
+        font-size: 1rem;
     }
 
     .intro {
