@@ -508,6 +508,51 @@ body::after {
     color: #FFFFFF;
 }
 
+/* Agente: cartas já reveladas ficam apagadas com um ✓ */
+.board-card.revealed {
+    position: relative;
+    opacity: 0.35;
+    filter: grayscale(0.6);
+}
+
+.board-card.revealed::after {
+    content: '✓';
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-size: 0.75rem;
+    font-weight: 900;
+    color: #FFFFFF;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    line-height: 1;
+    z-index: 2;
+}
+
+/* No modo decodificador, não apaga as reveladas (ele precisa ver a cor forte) */
+.decoder-board .board-card.revealed {
+    opacity: 1;
+    filter: none;
+}
+
+.decoder-board .board-card.revealed::after {
+    content: none;
+}
+
+/* No tabuleiro do agente, cartas ainda não reveladas ficam com borda e brilho */
+#agentBoardGrid .board-card:not(.revealed) {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 2px 6px var(--sombra);
+    position: relative;
+}
+
+#agentBoardGrid .board-card:not(.revealed)::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    border: 1px dashed rgba(255, 255, 255, 0.7);
+    pointer-events: none;
+}
+
 /* Modo decodificador */
 .decoder-board .board-card {
     cursor: pointer;
