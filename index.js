@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
             bg: 'linear-gradient(135deg, #B197FC 0%, #FF9A8B 100%)',
             players: '5+ jogadores',
             device: '1 dispositivo',
-            description: 'Cada jogador recebe uma palavra secreta. Duas pessoas recebem a mesma palavra (formam uma dupla), e uma é o impostor — que não sabe a palavra de ninguém. Através de dicas relacionadas, vocês precisam descobrir quem é a sua dupla, sem cair na armadilha do impostor. Dependendo do número de jogadores, pode haver mais de um impostor!'
+            description: 'Cada jogador recebe uma palavra secreta, compartilhada com sua dupla. O impostor não sabe a palavra e precisa blefar! Dê dicas, descubra sua dupla e desmascare o impostor. Cuidado: pode haver mais de um!'
         }
     };
 
