@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codinomes - Rally</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23FBFAF7'/%3E%3Ctext x='50' y='50' text-anchor='middle' dominant-baseline='central' font-family='Outfit, Arial, sans-serif' font-weight='900' font-size='78' fill='%23FF6B8A'%3ER%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="codinomes.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+    <main class="container">
+
+        <!-- ================= MENU INICIAL ================= -->
+        <section id="homeScreen" class="screen-wrap">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <header class="panel-header">
+                    <h1>Codinomes</h1>
+                </header>
+
+                <div class="panel-divider"></div>
+
+                <div class="panel-rules">
+                    <h2 class="panel-subtitle">Como jogar?</h2>
+                    <p class="panel-desc">
+                        Duas equipes (<strong>Azul</strong> e <strong>Vermelha</strong>) disputam. Em cada equipe há um
+                        <strong>decodificador</strong> e os demais são <strong>agentes</strong>. São sorteadas 25 cartas:
+                        9 azuis, 9 vermelhas, 6 brancas e <strong>1 preta</strong>.
+                    </p>
+                    <p class="panel-desc">
+                        O agente da vez dá uma dica (uma palavra + um número) que ligue suas cartas. O decodificador
+                        clica nas cartas que acha que combinam. Vence a equipe que revelar todas as suas cartas primeiro.
+                        Mas cuidado: se virar a carta preta, o jogo acaba e a outra equipe vence na hora!
+                    </p>
+                </div>
+
+                <div class="panel-divider"></div>
+
+                <div class="home-actions">
+                    <button type="button" class="btn btn-primary btn-block" id="modeLocalBtn">
+                        <i data-lucide="smartphone"></i> 1 dispositivo
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-block" id="modeOnlineBtn">
+                        <i data-lucide="users"></i> Cada um no seu
+                    </button>
+                </div>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ================= CONFIGURAÇÃO DE EQUIPES ================= -->
+        <section id="configScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <header class="panel-header">
+                    <h1>Nova Partida</h1>
+                    <p>Monte as duas equipes</p>
+                </header>
+
+                <div class="teams-container">
+                    <div class="team-box team-a">
+                        <h3>Equipe Azul</h3>
+                        <div class="input-with-button">
+                            <input type="text" id="teamAInput" placeholder="Nome na azul..." maxlength="15">
+                            <button type="button" class="btn btn-secondary" id="addTeamABtn">+</button>
+                        </div>
+                        <ul class="tag-list" id="teamAList"></ul>
+                    </div>
+
+                    <div class="team-box team-b">
+                        <h3>Equipe Vermelha</h3>
+                        <div class="input-with-button">
+                            <input type="text" id="teamBInput" placeholder="Nome na vermelha..." maxlength="15">
+                            <button type="button" class="btn btn-secondary" id="addTeamBBtn">+</button>
+                        </div>
+                        <ul class="tag-list" id="teamBList"></ul>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-secondary btn-block shuffle-btn" id="randomizeTeamsBtn">
+                    <i data-lucide="shuffle"></i> Embaralhar Equipes
+                </button>
+
+                <p class="teams-hint" id="teamsHint">
+                    Mínimo de 2 jogadores por equipe para começar.
+                </p>
+
+                <button type="button" class="btn btn-primary btn-block btn-start" id="startGameBtn" disabled>
+                    <i data-lucide="play"></i> Iniciar Partida
+                </button>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ================= ESCOLHA DO DECODIFICADOR ================= -->
+        <section id="rolePickScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <header class="panel-header">
+                    <h1>Decodificadores</h1>
+                    <p>Cada equipe escolhe quem será o decodificador</p>
+                </header>
+
+                <div class="role-pick-team team-a">
+                    <h3>Equipe Azul</h3>
+                    <p class="role-pick-sub">Quem vai decodificar?</p>
+                    <div class="role-pick-list" id="rolePickA"></div>
+                </div>
+
+                <div class="role-pick-team team-b">
+                    <h3>Equipe Vermelha</h3>
+                    <p class="role-pick-sub">Quem vai decodificar?</p>
+                    <div class="role-pick-list" id="rolePickB"></div>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-block btn-start" id="confirmRolesBtn" disabled>
+                    <i data-lucide="check"></i> Confirmar Decodificadores
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ================= TABULEIRO ================= -->
+        <section id="boardScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+                <button class="icon-button score-btn" id="liveScoreBtn" aria-label="Ver Placar">
+                    <i data-lucide="bar-chart-2"></i>
+                </button>
+            </div>
+
+            <div class="card-panel board-panel">
+                <!-- Barra de status do turno -->
+                <div class="turn-bar" id="turnBar">
+                    <div class="turn-team team-a" id="turnTeamLabel">Equipe Azul</div>
+                    <div class="turn-role" id="turnRoleLabel">Dica do agente</div>
+                </div>
+
+                <!-- Indicador da dica atual -->
+                <div class="clue-display hidden" id="clueDisplay">
+                    <span class="clue-label">Dica atual</span>
+                    <span class="clue-text" id="clueText">—</span>
+                    <span class="clue-number" id="clueNumber">0</span>
+                </div>
+
+                <!-- Instrução central -->
+                <p class="board-instruction" id="boardInstruction">Aguarde o agente dar a dica</p>
+
+                <!-- Score mini -->
+                <div class="board-score">
+                    <div class="score-mini team-a">
+                        <span>Azul</span>
+                        <strong id="scoreA">0/9</strong>
+                    </div>
+                    <div class="score-mini team-b">
+                        <span>Vermelha</span>
+                        <strong id="scoreB">0/9</strong>
+                    </div>
+                </div>
+
+                <!-- Grade 5x5 -->
+                <div class="board-grid" id="boardGrid"></div>
+
+                <!-- Ação do agente (antes de dar a dica) -->
+                <div class="agent-area hidden" id="agentArea">
+                    <div class="agent-hint-row">
+                        <input type="text" id="clueWordInput" class="agent-input" placeholder="Dica (uma palavra)" maxlength="20" autocomplete="off">
+                        <input type="number" id="clueNumberInput" class="agent-number" placeholder="Nº" min="1" max="9" value="1">
+                    </div>
+                    <button type="button" class="btn btn-primary btn-block" id="giveClueBtn">
+                        <i data-lucide="send"></i> Dar dica
+                    </button>
+                </div>
+
+                <!-- Ações do decodificador -->
+                <div class="decoder-area hidden" id="decoderArea">
+                    <button type="button" class="btn btn-secondary btn-block" id="passTurnBtn">
+                        <i data-lucide="skip-forward"></i> Passar a vez
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= FIM DE JOGO ================= -->
+        <section id="gameOverScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <div class="result-icon" id="resultIcon">
+                    <i data-lucide="trophy"></i>
+                </div>
+                <h2 class="display-title" id="resultTitle">Fim de jogo!</h2>
+                <p class="subtitle" id="resultSub">...</p>
+
+                <button type="button" class="btn btn-primary btn-block" id="rematchBtn">
+                    <i data-lucide="rotate-ccw"></i> Jogar Novamente
+                </button>
+                <button type="button" class="btn btn-secondary btn-block" id="backToConfigBtn">
+                    <i data-lucide="settings"></i> Ajustar Equipes
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal Placar ao vivo -->
+    <div class="modal-overlay hidden" id="scoreModal">
+        <div class="modal-card">
+            <h3>Placar</h3>
+            <div class="live-score-list" id="liveScoreContent"></div>
+            <button class="btn btn-primary" id="closeScoreModalBtn">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Modal "Em breve" -->
+    <div class="modal-overlay hidden" id="comingSoonModal">
+        <div class="modal-card">
+            <div class="modal-icon" style="background: #FFF3CD; color: #B6A300;">
+                <i data-lucide="construction"></i>
+            </div>
+            <h3>Em breve!</h3>
+            <p>O modo <strong>Cada um no seu</strong> estará disponível em breve. Por enquanto, jogue com todos no mesmo dispositivo.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="comingSoonCloseBtn">Entendi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmação para sair -->
+    <div class="modal-overlay hidden" id="exitModal">
+        <div class="modal-card">
+            <h3>Cancelar Partida?</h3>
+            <p>Se voltar à Rally, a partida atual será cancelada.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" id="cancelExitBtn">Continuar</button>
+                <button class="btn btn-danger" id="confirmExitBtn">Sair da Partida</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal "Apoie ou anuncie aqui" -->
+    <div class="ad-overlay" id="adOverlay"></div>
+    <div class="ad-modal" id="adModal" role="dialog" aria-modal="true" aria-labelledby="adModalTitle">
+        <button class="ad-modal-close" id="adModalClose" aria-label="Fechar">✕</button>
+        <h3 class="ad-modal-title" id="adModalTitle">Apoie ou anuncie aqui</h3>
+
+        <div class="ad-tabs" role="tablist">
+            <button type="button" class="ad-tab active" data-ad-tab="advertise" role="tab" aria-selected="true">
+                Anuncie aqui
+            </button>
+            <button type="button" class="ad-tab" data-ad-tab="support" role="tab" aria-selected="false">
+                Apoie o projeto
+            </button>
+        </div>
+
+        <div class="ad-tab-panel" data-ad-panel="advertise">
+            <p class="ad-modal-desc">
+                Quer divulgar sua marca para quem joga com os amigos?
+                Entre em contato pelo e-mail abaixo:
+            </p>
+            <div class="ad-email-box">
+                <span class="ad-email-text" id="adEmailText">contato.rallybr@gmail.com</span>
+                <button type="button" class="ad-copy-btn" id="adCopyBtn" aria-label="Copiar e-mail">
+                    Copiar
+                </button>
+            </div>
+            <p class="ad-copied-msg" id="adCopiedMsg">E-mail copiado!</p>
+        </div>
+
+        <div class="ad-tab-panel hidden" data-ad-panel="support">
+            <p class="ad-modal-desc ad-modal-desc-left">
+                O Rally é um projeto independente, feito por mim, para que todo mundo possa se divertir com os amigos de forma gratuita. Não pretendo cobrar pelo acesso, mas manter tudo funcionando e trazer novidades exige tempo e recursos.
+            </p>
+            <p class="ad-modal-desc ad-modal-desc-left">
+                Se você gosta do projeto e quer ajudar a mantê-lo vivo, qualquer contribuição é muito bem-vinda! É só escanear o Pix QR Code abaixo e apoiar. Obrigado por fazer parte disso!
+            </p>
+            <div class="ad-qr-wrap">
+                <img src="../../qrcode.png" alt="QR Code para apoiar via Pix" class="ad-qr-img">
+            </div>
+
+            <p class="ad-pix-label">Chave Pix (e-mail):</p>
+            <div class="ad-email-box">
+                <span class="ad-email-text" id="adPixText">contato.rallybr@gmail.com</span>
+                <button type="button" class="ad-copy-btn" id="adCopyPixBtn" aria-label="Copiar chave Pix">
+                    Copiar chave
+                </button>
+            </div>
+            <p class="ad-copied-msg" id="adCopiedPixMsg">Chave Pix copiada!</p>
+        </div>
+    </div>
+
+    <script src="codinomes.js"></script>
+</body>
+</html>
