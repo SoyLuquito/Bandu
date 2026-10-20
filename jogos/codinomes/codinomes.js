@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "Chuva","Cinema","Cinto","Círculo","Cobra","Coco","Coelho","Colar","Colher","Computador",
         "Coração","Corda","Coroa","Cozinha","Cruz","Dado","Dedo","Dente","Deserto","Diamante",
         "Dinheiro","Dragão","Eclipse","Elefante","Elevador","Escada","Escola","Espada","Espelho","Estrela",
-        "Faca","Fada","Fantasma","Faca","Fênix","Ferro","Festa","Fita","Flor","Fogo",
+        "Faca","Fada","Fantasma","Fênix","Ferro","Festa","Fita","Flor","Fogo",
         "Foguete","Fonte","Formiga","Futebol","Gaiola","Galinha","Gato","Gelo","Girafa","Gota",
         "Grande","Guarda","Guitarra","Hélice","Igreja","Ilha","Ímã","Indio","Inseto","Inverno",
         "Jacaré","Jangada","Janela","Jardim","Jornal","Jogo","Jumento","Lago","Lâmpada","Lanterna",
@@ -41,17 +41,15 @@ document.addEventListener('DOMContentLoaded', () => {
         teamA: { players: [], decoder: null, agentIndex: 0, score: 0 },
         teamB: { players: [], decoder: null, agentIndex: 0, score: 0 },
 
-        // Tabuleiro
-        board: [], // [{ word, color, revealed }]
-        currentTeam: 'A', // 'A' ou 'B'
-        phase: 'clue', // 'clue' | 'guess' | 'over'
+        board: [],
+        currentTeam: 'A',       // 'A' ou 'B'
+        phase: 'clue',          // 'clue' | 'guess' | 'revealing' | 'over'
 
-        currentClue: null, // { word, number }
+        currentClue: null,
         remainingGuesses: 0,
+        justRevealedIndex: -1,  // índice da carta recém-revelada (para animar só ela)
 
-        winner: null, // 'A' | 'B'
-
-        isTransitioning: false
+        winner: null
     };
 
     // ============================================================
@@ -61,7 +59,10 @@ document.addEventListener('DOMContentLoaded', () => {
         home: document.getElementById('homeScreen'),
         config: document.getElementById('configScreen'),
         rolePick: document.getElementById('rolePickScreen'),
-        board: document.getElementById('boardScreen'),
+        handoffAgent: document.getElementById('handoffAgentScreen'),
+        agentBoard: document.getElementById('agentBoardScreen'),
+        handoffDecoder: document.getElementById('handoffDecoderScreen'),
+        decoderBoard: document.getElementById('decoderBoardScreen'),
         gameOver: document.getElementById('gameOverScreen')
     };
 
@@ -114,7 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // CONFIGURAÇÃO DE EQUIPES
     // ============================================================
     function renderConfig() {
-        // Equipe A
         lists.teamA.innerHTML = '';
         state.teamA.players.forEach((name, i) => {
             const li = document.createElement('li');
@@ -127,7 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
             lists.teamA.appendChild(li);
         });
 
-        // Equipe B
         lists.teamB.innerHTML = '';
         state.teamB.players.forEach((name, i) => {
             const li = document.createElement('li');
@@ -142,13 +141,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const totalA = state.teamA.players.length;
         const totalB = state.teamB.players.length;
-        const total = totalA + totalB;
 
         const hint = document.getElementById('teamsHint');
         if (totalA < 2 || totalB < 2) {
             hint.innerText = `Cada equipe precisa de pelo menos 2 jogadores. Azul: ${totalA}, Vermelha: ${totalB}.`;
-        } else if (total < 4) {
-            hint.innerText = 'Adicione pelo menos 4 jogadores no total.';
         } else {
             hint.innerText = `Pronto! ${totalA} na azul e ${totalB} na vermelha.`;
         }
@@ -173,7 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
         inputEl.focus();
     }
 
-    // Evita perder o foco do input no mobile (mesmo padrão dos outros jogos)
     ['addTeamABtn', 'addTeamBBtn'].forEach(id => {
         const btn = document.getElementById(id);
         btn.addEventListener('mousedown', (e) => e.preventDefault());
@@ -198,7 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') { e.preventDefault(); document.getElementById('addTeamBBtn').click(); }
     });
 
-    // Embaralhar equipes (junta todos e divide aleatoriamente)
     document.getElementById('randomizeTeamsBtn').addEventListener('click', () => {
         const all = [...state.teamA.players, ...state.teamB.players];
         if (all.length < 4) {
@@ -215,7 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderConfig();
     });
 
-    // Iniciar → escolher decodificadores
     document.getElementById('startGameBtn').addEventListener('click', () => {
         if (state.teamA.players.length < 2 || state.teamB.players.length < 2) {
             alert('Cada equipe precisa de pelo menos 2 jogadores.');
@@ -269,30 +262,26 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('confirmRolesBtn').addEventListener('click', () => {
         if (!state.teamA.decoder || !state.teamB.decoder) return;
 
-        // Inicializa estado dos agentes
         state.teamA.agentIndex = state.teamA.players.findIndex(n => n !== state.teamA.decoder);
         if (state.teamA.agentIndex < 0) state.teamA.agentIndex = 0;
         state.teamB.agentIndex = state.teamB.players.findIndex(n => n !== state.teamB.decoder);
         if (state.teamB.agentIndex < 0) state.teamB.agentIndex = 0;
 
-        // Sorteia quem começa
         state.currentTeam = Math.random() < 0.5 ? 'A' : 'B';
         state.phase = 'clue';
         state.currentClue = null;
         state.remainingGuesses = 0;
+        state.justRevealedIndex = -1;
         state.winner = null;
-        state.isTransitioning = false;
 
         buildBoard();
-        renderBoard();
-        showScreen('board');
+        goToHandoffAgent();
     });
 
     // ============================================================
-    // TABULEIRO
+    // TABULEIRO — CONSTRUÇÃO
     // ============================================================
     function buildBoard() {
-        // Embaralha o pool e pega 25 palavras únicas
         const shuffled = [...WORDS_POOL].sort(() => Math.random() - 0.5);
         const unique = [];
         const seen = new Set();
@@ -304,7 +293,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (unique.length === 25) break;
         }
 
-        // Define as cores: 9 azuis, 9 vermelhas, 6 brancas, 1 preta
         const colors = [];
         for (let i = 0; i < 9; i++) colors.push('azul');
         for (let i = 0; i < 9; i++) colors.push('vermelho');
@@ -320,96 +308,86 @@ document.addEventListener('DOMContentLoaded', () => {
 
         state.teamA.score = 0;
         state.teamB.score = 0;
+        state.justRevealedIndex = -1;
     }
 
-    function renderBoard() {
-        const grid = document.getElementById('boardGrid');
+    // ============================================================
+    // AGENTE / DECODIFICADOR DA VEZ
+    // ============================================================
+    function getCurrentAgent() {
+        const team = state.currentTeam === 'A' ? state.teamA : state.teamB;
+        return team.players[team.agentIndex % team.players.length];
+    }
+
+    function getCurrentDecoder() {
+        const team = state.currentTeam === 'A' ? state.teamA : state.teamB;
+        return team.decoder;
+    }
+
+    // ============================================================
+    // HANDOFF — IR PARA O AGENTE
+    // ============================================================
+    function goToHandoffAgent() {
+        const teamIsA = state.currentTeam === 'A';
+        const teamName = teamIsA ? 'Equipe Azul' : 'Equipe Vermelha';
+        const agent = getCurrentAgent();
+
+        const badge = document.getElementById('handoffAgentTeam');
+        badge.className = 'handoff-badge ' + (teamIsA ? 'team-a' : 'team-b');
+        badge.innerText = teamName;
+
+        document.getElementById('handoffAgentSub').innerText = 'Para o agente da equipe';
+        document.getElementById('handoffAgentName').innerText = agent;
+
+        state.phase = 'clue';
+        showScreen('handoffAgent');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    document.getElementById('confirmAgentBtn').addEventListener('click', () => {
+        renderAgentBoard();
+        showScreen('agentBoard');
+    });
+
+    // ============================================================
+    // TABULEIRO — MODO AGENTE (vê as cores)
+    // ============================================================
+    function renderAgentBoard() {
+        const teamIsA = state.currentTeam === 'A';
+        const teamName = teamIsA ? 'Equipe Azul' : 'Equipe Vermelha';
+        const agent = getCurrentAgent();
+
+        const turnBar = document.getElementById('agentTurnBar');
+        turnBar.className = 'turn-bar ' + (teamIsA ? 'team-a' : 'team-b');
+        document.getElementById('agentTeamLabel').innerText = teamName;
+        document.getElementById('agentRoleLabel').innerText = `Agente: ${agent}`;
+        document.getElementById('agentInstruction').innerText =
+            `Este é o tabuleiro com as cores. Escolha uma dica e um número.`;
+
+        const grid = document.getElementById('agentBoardGrid');
         grid.innerHTML = '';
-
         state.board.forEach((card, index) => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'board-card';
-            btn.innerText = card.word;
-
+            const div = document.createElement('div');
+            div.className = 'board-card color-' + card.color;
             if (card.revealed) {
-                btn.classList.add('revealed', card.color);
-                btn.disabled = true;
-            } else {
-                // Só habilita clique se for a vez do decodificador
-                if (state.phase === 'guess' && isDecoderTurn()) {
-                    btn.addEventListener('click', () => handleGuess(index));
-                } else {
-                    btn.disabled = true;
+                div.classList.add('revealed', card.color);
+                if (index === state.justRevealedIndex) {
+                    div.classList.add('just-revealed');
                 }
             }
-
-            grid.appendChild(btn);
+            div.innerText = card.word;
+            grid.appendChild(div);
         });
 
-        // Atualiza placar
-        document.getElementById('scoreA').innerText = `${state.teamA.score}/9`;
-        document.getElementById('scoreB').innerText = `${state.teamB.score}/9`;
+        document.getElementById('agentScoreA').innerText = `${state.teamA.score}/9`;
+        document.getElementById('agentScoreB').innerText = `${state.teamB.score}/9`;
 
-        updateTurnUI();
+        document.getElementById('clueWordInput').value = '';
+        document.getElementById('clueNumberInput').value = '1';
+
+        if (window.lucide) lucide.createIcons();
     }
 
-    function updateTurnUI() {
-        const turnBar = document.getElementById('turnBar');
-        const teamLabel = document.getElementById('turnTeamLabel');
-        const roleLabel = document.getElementById('turnRoleLabel');
-        const instruction = document.getElementById('boardInstruction');
-        const clueDisplay = document.getElementById('clueDisplay');
-        const clueText = document.getElementById('clueText');
-        const clueNumber = document.getElementById('clueNumber');
-        const agentArea = document.getElementById('agentArea');
-        const decoderArea = document.getElementById('decoderArea');
-
-        const teamIsA = state.currentTeam === 'A';
-        const team = teamIsA ? state.teamA : state.teamB;
-        const teamName = teamIsA ? 'Equipe Azul' : 'Equipe Vermelha';
-
-        turnBar.className = 'turn-bar ' + (teamIsA ? 'team-a' : 'team-b');
-        teamLabel.innerText = teamName;
-
-        if (state.phase === 'over') {
-            roleLabel.innerText = 'Fim de jogo';
-            instruction.innerText = 'A partida terminou.';
-            agentArea.classList.add('hidden');
-            decoderArea.classList.add('hidden');
-            clueDisplay.classList.add('hidden');
-            return;
-        }
-
-        const agentName = team.players[team.agentIndex % team.players.length];
-
-        if (state.phase === 'clue') {
-            roleLabel.innerText = `Agente: ${agentName}`;
-            instruction.innerText = `Passe o celular para ${agentName}. Escolha uma dica e um número.`;
-            agentArea.classList.remove('hidden');
-            decoderArea.classList.add('hidden');
-            clueDisplay.classList.add('hidden');
-            document.getElementById('clueWordInput').value = '';
-            document.getElementById('clueNumberInput').value = '1';
-        } else if (state.phase === 'guess') {
-            roleLabel.innerText = `Decodificador: ${team.decoder}`;
-            instruction.innerText = `Passe o celular para ${team.decoder}. Clique nas cartas certas!`;
-            agentArea.classList.add('hidden');
-            decoderArea.classList.remove('hidden');
-            clueDisplay.classList.remove('hidden');
-            clueText.innerText = state.currentClue.word;
-            clueNumber.innerText = state.currentClue.number;
-        }
-    }
-
-    function isDecoderTurn() {
-        // No modo 1 dispositivo, sempre é a vez do decodificador local quando estamos em 'guess'
-        return state.phase === 'guess';
-    }
-
-    // ============================================================
-    // AÇÃO DO AGENTE — DAR DICA
-    // ============================================================
     document.getElementById('giveClueBtn').addEventListener('click', () => {
         if (state.phase !== 'clue') return;
 
@@ -419,97 +397,186 @@ document.addEventListener('DOMContentLoaded', () => {
         const clueWord = wordInput.value.trim();
         const clueNum = parseInt(numberInput.value, 10);
 
-        if (!clueWord) {
-            alert('Digite uma dica.');
-            return;
-        }
-
+        if (!clueWord) { alert('Digite uma dica.'); return; }
         if (!clueNum || clueNum < 1 || clueNum > 9) {
             alert('Escolha um número entre 1 e 9.');
             return;
         }
 
         state.currentClue = { word: clueWord, number: clueNum };
-        state.remainingGuesses = clueNum + 1; // regra clássica: número + 1 tentativas
         state.phase = 'guess';
 
-        renderBoard();
+        goToHandoffDecoder();
     });
 
     // ============================================================
-    // AÇÃO DO DECODIFICADOR — CLICAR NAS CARTAS
+    // HANDOFF — IR PARA O DECODIFICADOR
+    // ============================================================
+    function goToHandoffDecoder() {
+        const teamIsA = state.currentTeam === 'A';
+        const teamName = teamIsA ? 'Equipe Azul' : 'Equipe Vermelha';
+        const decoder = getCurrentDecoder();
+
+        const badge = document.getElementById('handoffDecoderTeam');
+        badge.className = 'handoff-badge ' + (teamIsA ? 'team-a' : 'team-b');
+        badge.innerText = teamName;
+
+        document.getElementById('handoffDecoderSub').innerText = 'Para o decodificador da equipe';
+        document.getElementById('handoffDecoderName').innerText = decoder;
+
+        document.getElementById('handoffClueWord').innerText = state.currentClue.word;
+        document.getElementById('handoffClueNumber').innerText = state.currentClue.number;
+
+        showScreen('handoffDecoder');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    document.getElementById('confirmDecoderBtn').addEventListener('click', () => {
+        renderDecoderBoard();
+        showScreen('decoderBoard');
+    });
+
+    // ============================================================
+    // TABULEIRO — MODO DECODIFICADOR (sem cores, clicável)
+    // ============================================================
+    function renderDecoderBoard() {
+        const teamIsA = state.currentTeam === 'A';
+        const teamName = teamIsA ? 'Equipe Azul' : 'Equipe Vermelha';
+        const decoder = getCurrentDecoder();
+
+        const turnBar = document.getElementById('decoderTurnBar');
+        turnBar.className = 'turn-bar ' + (teamIsA ? 'team-a' : 'team-b');
+        document.getElementById('decoderTeamLabel').innerText = teamName;
+        document.getElementById('decoderRoleLabel').innerText = `Decodificador: ${decoder}`;
+
+        document.getElementById('clueText').innerText = state.currentClue.word;
+        document.getElementById('clueNumber').innerText = state.currentClue.number;
+
+        if (state.phase === 'revealing') {
+            document.getElementById('decoderInstruction').innerText =
+                'A carta foi revelada! Veja a cor…';
+        } else if (state.phase === 'guess') {
+            document.getElementById('decoderInstruction').innerText =
+                'Clique nas cartas que você acha que combinam com a dica. Se acertar a sua cor, continua jogando!';
+        } else {
+            document.getElementById('decoderInstruction').innerText =
+                'Clique nas cartas que você acha que combinam com a dica.';
+        }
+
+        const grid = document.getElementById('decoderBoardGrid');
+        grid.innerHTML = '';
+        grid.classList.add('decoder-board');
+
+        state.board.forEach((card, index) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+
+            if (card.revealed) {
+                // Carta já revelada (de turnos anteriores ou agora)
+                let classes = 'board-card revealed ' + card.color;
+                // Só a carta recém-virada ganha a animação
+                if (index === state.justRevealedIndex) {
+                    classes += ' just-revealed';
+                }
+                btn.className = classes;
+                btn.innerText = card.word;
+                btn.disabled = true;
+            } else {
+                btn.className = 'board-card';
+                btn.innerText = card.word;
+
+                if (state.phase === 'guess') {
+                    btn.addEventListener('click', () => handleGuess(index));
+                } else {
+                    btn.disabled = true;
+                }
+            }
+
+            grid.appendChild(btn);
+        });
+
+        document.getElementById('decoderScoreA').innerText = `${state.teamA.score}/9`;
+        document.getElementById('decoderScoreB').innerText = `${state.teamB.score}/9`;
+
+        if (window.lucide) lucide.createIcons();
+    }
+
+    // ============================================================
+    // CLIQUE DO DECODIFICADOR
     // ============================================================
     function handleGuess(index) {
         if (state.phase !== 'guess') return;
         const card = state.board[index];
         if (!card || card.revealed) return;
 
-        const teamIsA = state.currentTeam === 'A';
+        // Bloqueia cliques adicionais enquanto a animação roda
+        state.phase = 'revealing';
+
         card.revealed = true;
+        // Marca SÓ esta carta para animar
+        state.justRevealedIndex = index;
+
+        const teamIsA = state.currentTeam === 'A';
 
         // Atualiza placar
         if (card.color === 'azul') state.teamA.score++;
         if (card.color === 'vermelho') state.teamB.score++;
 
-        // Verificações de fim de jogo
+        // Re-renderiza imediatamente para a animação de flip acontecer
+        renderDecoderBoard();
+
+        // Preto → fim de jogo imediato (mas com 1.8s para ver a carta)
         if (card.color === 'preto') {
             state.winner = teamIsA ? 'B' : 'A';
-            state.phase = 'over';
-            renderBoard();
-            renderGameOver();
+            setTimeout(() => {
+                state.phase = 'over';
+                state.justRevealedIndex = -1;
+                renderGameOver();
+            }, 1800);
             return;
         }
 
-        // Venceu por revelar todas
+        // Vitórias por revelar todas
         if (state.teamA.score >= 9) {
             state.winner = 'A';
-            state.phase = 'over';
-            renderBoard();
-            renderGameOver();
+            setTimeout(() => {
+                state.phase = 'over';
+                state.justRevealedIndex = -1;
+                renderGameOver();
+            }, 1800);
             return;
         }
         if (state.teamB.score >= 9) {
             state.winner = 'B';
-            state.phase = 'over';
-            renderBoard();
-            renderGameOver();
+            setTimeout(() => {
+                state.phase = 'over';
+                state.justRevealedIndex = -1;
+                renderGameOver();
+            }, 1800);
             return;
         }
 
-        // Regras de turno
-        // Se virou uma carta da própria equipe, continua jogando
-        // Se virou uma carta da equipe oponente ou branca, passa a vez
+        // Regra: se virou a própria cor, continua jogando
         const ownColor = teamIsA ? 'azul' : 'vermelho';
 
         if (card.color === ownColor) {
-            state.remainingGuesses--;
-            if (state.remainingGuesses <= 0) {
-                endTurn();
-            } else {
-                renderBoard();
-            }
+            // Continua jogando — libera cliques de novo após animação
+            setTimeout(() => {
+                if (state.phase === 'revealing') {
+                    state.phase = 'guess';
+                    state.justRevealedIndex = -1; // já animou, pode limpar
+                    renderDecoderBoard();
+                }
+            }, 700);
         } else {
-            // Carta neutra ou da equipe adversária → passa a vez
-            endTurn();
+            // Acertou branco ou cor adversária → passa a vez
+            setTimeout(() => {
+                if (state.phase === 'revealing') {
+                    state.justRevealedIndex = -1;
+                    endTurn();
+                }
+            }, 1500);
         }
-    }
-
-    function endTurn() {
-        // Passa a vez para a outra equipe e avança o agente
-        if (state.currentTeam === 'A') {
-            state.currentTeam = 'B';
-        } else {
-            state.currentTeam = 'A';
-        }
-
-        const team = state.currentTeam === 'A' ? state.teamA : state.teamB;
-        team.agentIndex = (team.agentIndex + 1) % team.players.length;
-
-        state.currentClue = null;
-        state.remainingGuesses = 0;
-        state.phase = 'clue';
-
-        renderBoard();
     }
 
     // Passar a vez manualmente
@@ -517,6 +584,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.phase !== 'guess') return;
         endTurn();
     });
+
+    function endTurn() {
+        // Troca a equipe
+        state.currentTeam = state.currentTeam === 'A' ? 'B' : 'A';
+
+        // Avança o agente da nova equipe
+        const team = state.currentTeam === 'A' ? state.teamA : state.teamB;
+        team.agentIndex = (team.agentIndex + 1) % team.players.length;
+
+        state.currentClue = null;
+        state.remainingGuesses = 0;
+        state.phase = 'clue';
+        state.justRevealedIndex = -1;
+
+        goToHandoffAgent();
+    }
 
     // ============================================================
     // FIM DE JOGO
@@ -545,17 +628,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById('rematchBtn').addEventListener('click', () => {
-        // Reinicia mantendo equipes e decodificadores
         state.currentTeam = Math.random() < 0.5 ? 'A' : 'B';
         state.phase = 'clue';
         state.currentClue = null;
         state.remainingGuesses = 0;
+        state.justRevealedIndex = -1;
         state.winner = null;
         state.teamA.score = 0;
         state.teamB.score = 0;
         buildBoard();
-        renderBoard();
-        showScreen('board');
+        goToHandoffAgent();
     });
 
     document.getElementById('backToConfigBtn').addEventListener('click', () => {
@@ -566,7 +648,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================
     // PLACAR AO VIVO
     // ============================================================
-    document.getElementById('liveScoreBtn').addEventListener('click', () => {
+    function openLiveScore() {
         const content = document.getElementById('liveScoreContent');
         content.innerHTML = `
             <div class="live-score-row team-a"><span>Equipe Azul</span><span>${state.teamA.score}/9</span></div>
@@ -576,7 +658,10 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         scoreModal.classList.remove('hidden');
-    });
+    }
+
+    document.getElementById('liveScoreBtn').addEventListener('click', openLiveScore);
+    document.getElementById('liveScoreBtnDecoder').addEventListener('click', openLiveScore);
 
     document.getElementById('closeScoreModalBtn').addEventListener('click', () => {
         scoreModal.classList.add('hidden');

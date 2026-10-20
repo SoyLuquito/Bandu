@@ -40,9 +40,9 @@
                         9 azuis, 9 vermelhas, 6 brancas e <strong>1 preta</strong>.
                     </p>
                     <p class="panel-desc">
-                        O agente da vez dá uma dica (uma palavra + um número) que ligue suas cartas. O decodificador
-                        clica nas cartas que acha que combinam. Vence a equipe que revelar todas as suas cartas primeiro.
-                        Mas cuidado: se virar a carta preta, o jogo acaba e a outra equipe vence na hora!
+                        O agente da vez vê as cores e dá uma dica (palavra + número). O decodificador clica nas cartas
+                        que acha que combinam. Enquanto acertar as próprias, continua jogando. Se errar ou virar a preta,
+                        a vez passa. Vence quem revelar todas as suas cartas primeiro.
                     </p>
                 </div>
 
@@ -156,8 +156,39 @@
         </section>
 
 
-        <!-- ================= TABULEIRO ================= -->
-        <section id="boardScreen" class="screen-wrap hidden">
+        <!-- ================= HANDOFF: PASSE PARA O AGENTE ================= -->
+        <section id="handoffAgentScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel handoff-panel">
+                <div class="handoff-icon">
+                    <i data-lucide="smartphone"></i>
+                </div>
+                <h2 class="display-title">Passe o celular</h2>
+                <p class="subtitle" id="handoffAgentSub">Para o agente da equipe</p>
+
+                <div class="handoff-badge team-a" id="handoffAgentTeam">Equipe Azul</div>
+
+                <p class="handoff-name" id="handoffAgentName">Nome do agente</p>
+
+                <p class="handoff-hint">Só o agente pode ver a tela com as cores. Os decodificadores não podem espiar!</p>
+
+                <button type="button" class="btn btn-primary btn-block btn-start" id="confirmAgentBtn">
+                    <i data-lucide="check"></i> Sou eu, começar
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ================= TABULEIRO (AGENTE) ================= -->
+        <section id="agentBoardScreen" class="screen-wrap hidden">
             <div class="top-bar">
                 <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
                     <i data-lucide="arrow-left"></i>
@@ -171,39 +202,31 @@
             </div>
 
             <div class="card-panel board-panel">
-                <!-- Barra de status do turno -->
-                <div class="turn-bar" id="turnBar">
-                    <div class="turn-team team-a" id="turnTeamLabel">Equipe Azul</div>
-                    <div class="turn-role" id="turnRoleLabel">Dica do agente</div>
+                <div class="turn-bar team-a" id="agentTurnBar">
+                    <div class="turn-team" id="agentTeamLabel">Equipe Azul</div>
+                    <div class="turn-role" id="agentRoleLabel">Agente</div>
                 </div>
 
-                <!-- Indicador da dica atual -->
-                <div class="clue-display hidden" id="clueDisplay">
-                    <span class="clue-label">Dica atual</span>
-                    <span class="clue-text" id="clueText">—</span>
-                    <span class="clue-number" id="clueNumber">0</span>
-                </div>
+                <p class="board-instruction" id="agentInstruction">
+                    Este é o tabuleiro com as cores. Escolha uma dica e um número.
+                </p>
 
-                <!-- Instrução central -->
-                <p class="board-instruction" id="boardInstruction">Aguarde o agente dar a dica</p>
-
-                <!-- Score mini -->
                 <div class="board-score">
                     <div class="score-mini team-a">
                         <span>Azul</span>
-                        <strong id="scoreA">0/9</strong>
+                        <strong id="agentScoreA">0/9</strong>
                     </div>
                     <div class="score-mini team-b">
                         <span>Vermelha</span>
-                        <strong id="scoreB">0/9</strong>
+                        <strong id="agentScoreB">0/9</strong>
                     </div>
                 </div>
 
-                <!-- Grade 5x5 -->
-                <div class="board-grid" id="boardGrid"></div>
+                <!-- Grade 5x5 colorida -->
+                <div class="board-grid" id="agentBoardGrid"></div>
 
-                <!-- Ação do agente (antes de dar a dica) -->
-                <div class="agent-area hidden" id="agentArea">
+                <!-- Área de dar dica -->
+                <div class="agent-area">
                     <div class="agent-hint-row">
                         <input type="text" id="clueWordInput" class="agent-input" placeholder="Dica (uma palavra)" maxlength="20" autocomplete="off">
                         <input type="number" id="clueNumberInput" class="agent-number" placeholder="Nº" min="1" max="9" value="1">
@@ -212,9 +235,92 @@
                         <i data-lucide="send"></i> Dar dica
                     </button>
                 </div>
+            </div>
+        </section>
 
-                <!-- Ações do decodificador -->
-                <div class="decoder-area hidden" id="decoderArea">
+
+        <!-- ================= HANDOFF: PASSE PARA O DECODIFICADOR ================= -->
+        <section id="handoffDecoderScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel handoff-panel">
+                <div class="handoff-icon">
+                    <i data-lucide="search"></i>
+                </div>
+                <h2 class="display-title">Passe o celular</h2>
+                <p class="subtitle" id="handoffDecoderSub">Para o decodificador da equipe</p>
+
+                <div class="handoff-badge team-a" id="handoffDecoderTeam">Equipe Azul</div>
+
+                <p class="handoff-name" id="handoffDecoderName">Nome do decodificador</p>
+
+                <div class="handoff-clue" id="handoffClueBox">
+                    <span class="handoff-clue-label">Dica</span>
+                    <span class="handoff-clue-word" id="handoffClueWord">—</span>
+                    <span class="handoff-clue-number" id="handoffClueNumber">0</span>
+                </div>
+
+                <p class="handoff-hint">As cores estão escondidas. O decodificador só vê as palavras.</p>
+
+                <button type="button" class="btn btn-primary btn-block btn-start" id="confirmDecoderBtn">
+                    <i data-lucide="check"></i> Sou eu, começar
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ================= TABULEIRO (DECODIFICADOR) ================= -->
+        <section id="decoderBoardScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+                <button class="icon-button score-btn" id="liveScoreBtnDecoder" aria-label="Ver Placar">
+                    <i data-lucide="bar-chart-2"></i>
+                </button>
+            </div>
+
+            <div class="card-panel board-panel">
+                <div class="turn-bar team-a" id="decoderTurnBar">
+                    <div class="turn-team" id="decoderTeamLabel">Equipe Azul</div>
+                    <div class="turn-role" id="decoderRoleLabel">Decodificador</div>
+                </div>
+
+                <div class="clue-display" id="clueDisplay">
+                    <span class="clue-label">Dica atual</span>
+                    <span class="clue-text" id="clueText">—</span>
+                    <span class="clue-number" id="clueNumber">0</span>
+                </div>
+
+                <p class="board-instruction" id="decoderInstruction">
+                    Clique nas cartas que você acha que combinam com a dica.
+                </p>
+
+                <div class="board-score">
+                    <div class="score-mini team-a">
+                        <span>Azul</span>
+                        <strong id="decoderScoreA">0/9</strong>
+                    </div>
+                    <div class="score-mini team-b">
+                        <span>Vermelha</span>
+                        <strong id="decoderScoreB">0/9</strong>
+                    </div>
+                </div>
+
+                <!-- Grade 5x5 sem cor -->
+                <div class="board-grid" id="decoderBoardGrid"></div>
+
+                <div class="decoder-area">
                     <button type="button" class="btn btn-secondary btn-block" id="passTurnBtn">
                         <i data-lucide="skip-forward"></i> Passar a vez
                     </button>
