@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quem é meu par? - Rally</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23FBFAF7'/%3E%3Ctext x='50' y='50' text-anchor='middle' dominant-baseline='central' font-family='Outfit, Arial, sans-serif' font-weight='900' font-size='78' fill='%23FF6B8A'%3ER%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="meupar.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+    <main class="container">
+
+        <!-- ================= MENU INICIAL ================= -->
+        <section id="homeScreen" class="screen-wrap">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <header class="panel-header">
+                    <h1>Quem é meu par?</h1>
+                </header>
+
+                <div class="panel-divider"></div>
+
+                <div class="panel-rules">
+                    <h2 class="panel-subtitle">Como jogar?</h2>
+                    <p class="panel-desc">
+                        Cada <strong>dupla</strong> recebe a <strong>mesma palavra secreta</strong>. Mas tem
+                        <strong>impostores</strong> no meio — eles não sabem a palavra de ninguém. Através de dicas
+                        dadas em voz alta, vocês precisam descobrir <strong>quem é seu par</strong> e
+                        <strong>quem é impostor</strong>.
+                    </p>
+                    <p class="panel-desc">
+                        Ao final da rodada, todos tentam <strong>formar duplas em voz alta</strong>. Os jogadores
+                        normais vencem se acertarem o par. Os impostores vencem se conseguirem se passar por par de alguém.
+                    </p>
+                </div>
+
+                <div class="panel-divider"></div>
+
+                <div class="home-actions">
+                    <button type="button" class="btn btn-primary btn-block" id="modeLocalBtn">
+                        <i data-lucide="smartphone"></i> 1 dispositivo
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-block" id="modeOnlineBtn">
+                        <i data-lucide="users"></i> Cada um no seu
+                    </button>
+                </div>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ================= FASE 1: CONFIGURAÇÃO ================= -->
+        <section id="configScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <header class="panel-header">
+                    <h1>Nova Partida</h1>
+                    <p>Modo 1 dispositivo</p>
+                </header>
+
+                <form id="configForm" onsubmit="return false;">
+                    <div class="form-group">
+                        <label class="form-label">Jogadores</label>
+                        <div class="input-with-button">
+                            <input type="text" id="playerInput" placeholder="Nome do jogador..." maxlength="15">
+                            <button type="button" class="btn btn-secondary" id="addPlayerBtn">Adicionar</button>
+                        </div>
+                        <ul class="tag-list" id="playerList"></ul>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Impostores</label>
+                        <div class="impostor-display" id="impostorDisplay">
+                            <span class="impostor-hint" id="impostorHint">Adicione jogadores para ver</span>
+                            <div class="chip-group" id="impostorCountGroup" style="display:none"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Impostor recebe...</label>
+                        <div class="segmented-control">
+                            <button type="button" class="segment-btn active" data-mode="blind">
+                                <i data-lucide="eye-off"></i> Sem dica
+                            </button>
+                            <button type="button" class="segment-btn" data-mode="hint">
+                                <i data-lucide="lightbulb"></i> Com dica
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Temas das Palavras</label>
+                        <div class="theme-grid" id="themeGrid">
+                            <button type="button" class="theme-toggle" data-theme="animais">Animais</button>
+                            <button type="button" class="theme-toggle" data-theme="profissoes">Profissões</button>
+                            <button type="button" class="theme-toggle" data-theme="objetos">Objetos</button>
+                            <button type="button" class="theme-toggle" data-theme="comidas">Comidas</button>
+                            <button type="button" class="theme-toggle" data-theme="filmes">Filmes &amp; Séries</button>
+                            <button type="button" class="theme-toggle" data-theme="futebol">Futebol</button>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-primary btn-block btn-start" id="startGameBtn">Iniciar Partida</button>
+                </form>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ================= FASE 2: REVELAÇÃO DAS PALAVRAS ================= -->
+        <section id="revealScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <div class="round-badge" id="roundBadge">Vez de...</div>
+                <h2 id="revealActorName" class="display-title">Nome do Jogador</h2>
+                <p class="subtitle" id="revealSub">Passe o celular para ele(a)</p>
+
+                <div class="card-secret" id="cardSecret">
+                    <div class="card-secret-inner">
+                        <div class="card-front">
+                            <i data-lucide="eye" class="card-front-icon"></i>
+                            <p>Toque para revelar</p>
+                        </div>
+                        <div class="card-back">
+                            <span class="card-back-label" id="secretLabel">Sua palavra</span>
+                            <h3 id="secretContent">PALAVRA</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-block hidden" id="nextPlayerBtn">
+                    <i data-lucide="arrow-right"></i> Passar
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ================= FASE 3: SORTEIO DE QUEM COMEÇA ================= -->
+        <section id="sortScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <div class="round-badge">Todos prontos!</div>
+                <h2 class="display-title">Sorteando quem começa</h2>
+                <p class="subtitle">Siga a ordem no sentido horário</p>
+
+                <div class="sort-display" id="sortDisplay">
+                    <div class="sort-name" id="sortName">Sorteando...</div>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-block hidden" id="startRoundBtn">
+                    <i data-lucide="play"></i> Iniciar Rodada
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ================= FASE 4: RODADA EM ANDAMENTO ================= -->
+        <section id="playingScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <div class="playing-icon">
+                    <i data-lucide="users"></i>
+                </div>
+                <h2 class="display-title">Rodada em andamento</h2>
+                <p class="subtitle">
+                    <strong id="firstSpeakerName">Nome</strong> começa!
+                </p>
+                <p class="playing-hint">Cada um diz uma palavra ou dica sobre o tema. Depois, discutam em voz alta e descubram suas duplas!</p>
+
+                <button type="button" class="btn btn-primary btn-block" id="endRoundBtn">
+                    <i data-lucide="check-circle-2"></i> Rodada Finalizada
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ================= FASE 5: RESULTADO ================= -->
+        <section id="resultScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <div class="result-icon" id="resultIcon">
+                    <i data-lucide="users"></i>
+                </div>
+                <h2 class="display-title" id="resultTitle">Resultado</h2>
+                <p class="subtitle" id="resultSub">Veja quem era par de quem</p>
+
+                <div class="result-reveal" id="resultReveal"></div>
+
+                <button type="button" class="btn btn-primary btn-block" id="nextRoundBtn">
+                    <i data-lucide="rotate-ccw"></i> Próxima Rodada
+                </button>
+                <button type="button" class="btn btn-secondary btn-block" id="backToConfigBtn">
+                    <i data-lucide="settings"></i> Ajustar Configurações
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal "Em breve" -->
+    <div class="modal-overlay hidden" id="comingSoonModal">
+        <div class="modal-card">
+            <div class="modal-icon" style="background: #FFF3CD; color: #B6A300;">
+                <i data-lucide="construction"></i>
+            </div>
+            <h3>Em breve!</h3>
+            <p>O modo <strong>Cada um no seu</strong> estará disponível em breve. Por enquanto, jogue com todos no mesmo dispositivo.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="comingSoonCloseBtn">Entendi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmação para sair -->
+    <div class="modal-overlay hidden" id="exitModal">
+        <div class="modal-card">
+            <h3>Cancelar Partida?</h3>
+            <p>Se voltar à Rally, a partida atual será cancelada.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" id="cancelExitBtn">Continuar</button>
+                <button class="btn btn-danger" id="confirmExitBtn">Sair da Partida</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal "Apoie ou anuncie aqui" -->
+    <div class="ad-overlay" id="adOverlay"></div>
+    <div class="ad-modal" id="adModal" role="dialog" aria-modal="true" aria-labelledby="adModalTitle">
+        <button class="ad-modal-close" id="adModalClose" aria-label="Fechar">✕</button>
+        <h3 class="ad-modal-title" id="adModalTitle">Apoie ou anuncie aqui</h3>
+
+        <div class="ad-tabs" role="tablist">
+            <button type="button" class="ad-tab active" data-ad-tab="advertise" role="tab" aria-selected="true">
+                Anuncie aqui
+            </button>
+            <button type="button" class="ad-tab" data-ad-tab="support" role="tab" aria-selected="false">
+                Apoie o projeto
+            </button>
+        </div>
+
+        <div class="ad-tab-panel" data-ad-panel="advertise">
+            <p class="ad-modal-desc">
+                Quer divulgar sua marca para quem joga com os amigos?
+                Entre em contato pelo e-mail abaixo:
+            </p>
+            <div class="ad-email-box">
+                <span class="ad-email-text" id="adEmailText">contato.rallybr@gmail.com</span>
+                <button type="button" class="ad-copy-btn" id="adCopyBtn" aria-label="Copiar e-mail">
+                    Copiar
+                </button>
+            </div>
+            <p class="ad-copied-msg" id="adCopiedMsg">E-mail copiado!</p>
+        </div>
+
+        <div class="ad-tab-panel hidden" data-ad-panel="support">
+            <p class="ad-modal-desc ad-modal-desc-left">
+                O Rally é um projeto independente, feito por mim, para que todo mundo possa se divertir com os amigos de forma gratuita. Não pretendo cobrar pelo acesso, mas manter tudo funcionando e trazer novidades exige tempo e recursos.
+            </p>
+            <p class="ad-modal-desc ad-modal-desc-left">
+                Se você gosta do projeto e quer ajudar a mantê-lo vivo, qualquer contribuição é muito bem-vinda! É só escanear o Pix QR Code abaixo e apoiar. Obrigado por fazer parte disso!
+            </p>
+            <div class="ad-qr-wrap">
+                <img src="../../qrcode.png" alt="QR Code para apoiar via Pix" class="ad-qr-img">
+            </div>
+
+            <p class="ad-pix-label">Chave Pix (e-mail):</p>
+            <div class="ad-email-box">
+                <span class="ad-email-text" id="adPixText">contato.rallybr@gmail.com</span>
+                <button type="button" class="ad-copy-btn" id="adCopyPixBtn" aria-label="Copiar chave Pix">
+                    Copiar chave
+                </button>
+            </div>
+            <p class="ad-copied-msg" id="adCopiedPixMsg">Chave Pix copiada!</p>
+        </div>
+    </div>
+
+    <script src="meupar.js"></script>
+</body>
+</html>
