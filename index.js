@@ -1,5 +1,5 @@
 // Rally - Lobby de Party Games
-// Versão 2.2
+// Versão 2.3
 
 document.addEventListener('DOMContentLoaded', () => {
     // Inicializa os ícones do Lucide
@@ -17,6 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalContent = document.getElementById('modalContent');
     const modalClose = document.getElementById('modalClose');
     const noResults = document.getElementById('noResults');
+
+    // Elementos do modal "Em breve"
+    const comingSoonModal = document.getElementById('comingSoonModal');
+    const comingSoonCloseBtn = document.getElementById('comingSoonCloseBtn');
 
     // Elementos do modal "Apoie ou anuncie aqui"
     const adBanners = document.querySelectorAll('[data-ad-banner]');
@@ -190,6 +194,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===== Modal de jogo =====
     function openModal(card) {
         const gameUrl = card.dataset.game;
+
+        // Cores com Dicas está "Em breve" — mostra modal especial
+        if (gameUrl === 'corescomdicas.html') {
+            comingSoonModal.style.display = 'flex';
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
         const info = GAMES_INFO[gameUrl];
 
         if (!info) return;
@@ -242,6 +254,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     modalClose.addEventListener('click', closeModal);
     overlay.addEventListener('click', closeModal);
+
+    // ===== Fecha o modal "Em breve" =====
+    comingSoonCloseBtn.addEventListener('click', () => {
+        comingSoonModal.style.display = 'none';
+    });
+
+    comingSoonModal.addEventListener('click', (e) => {
+        if (e.target === comingSoonModal) {
+            comingSoonModal.style.display = 'none';
+        }
+    });
 
     // ===== Painel de filtros =====
     filterButton.addEventListener('click', () => {
@@ -406,6 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Escape') {
             closeModal();
             closeAdModal();
+            comingSoonModal.style.display = 'none';
         }
     });
 
