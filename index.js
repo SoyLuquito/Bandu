@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
             title: 'Eu Nunca',
             icon: 'message-circle',
             bg: 'linear-gradient(135deg, #C77DFF 0%, #FF7EB9 100%)',
-            players: '3+ jogadores',
+            players: '2+ jogadores',
             device: '1 dispositivo',
             description: 'O jogo clássico de revelações! Diga algo que nunca fez e descubra quem já fez. Prepare-se para rir!'
         },
