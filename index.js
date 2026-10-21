@@ -1,5 +1,5 @@
 // Rally - Lobby de Party Games
-// Versão 2.5
+// Versão 2.6
 
 document.addEventListener('DOMContentLoaded', () => {
     // Inicializa os ícones do Lucide (com proteção contra falha do CDN)
@@ -9,6 +9,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     } catch (e) {
         console.warn('[Rally] Lucide não carregou:', e);
+    }
+
+    // ============================================================
+    // ★ VERSÃO DO SITE — atualize esta string a cada deploy ★
+    // (Não é possível ler o nome do deploy automaticamente na Vercel;
+    //  atualize manualmente aqui a cada nova versão publicada.)
+    // ============================================================
+    const SITE_VERSION = 'v0.2.6.6';
+
+    // ============================================================
+    // ★ DEVLOG — últimas atualizações (mais recente no topo) ★
+    // Mostra apenas as 5 primeiras entradas.
+    // ============================================================
+    const DEVLOG = [
+        {
+            version: 'v0.2.6.6',
+            date: '21/10/2026',
+            items: [
+                'Adicionado o Devlog acessível pelo botão no rodapé.',
+                'Versão do site agora aparece no rodapé.',
+                'Filtro de jogadores virou slider de 1 a 10.'
+            ]
+        },
+        {
+            version: 'v0.2.6.5.1',
+            date: '20/10/2026',
+            items: [
+                'Adicionado o jogo "Acerte o Tempo".',
+                'Tela de "Em breve" ao clicar em "Cores com Dicas".'
+            ]
+        }
+    ];
+
+    // ============================================================
+    // Aplica a versão no rodapé
+    // ============================================================
+    const footerVersionEl = document.getElementById('footerVersion');
+    if (footerVersionEl) {
+        footerVersionEl.textContent = SITE_VERSION;
     }
 
     const cards = document.querySelectorAll('.game-card');
@@ -26,10 +65,53 @@ document.addEventListener('DOMContentLoaded', () => {
     const comingSoonModal = document.getElementById('comingSoonModal');
     const comingSoonCloseBtn = document.getElementById('comingSoonCloseBtn');
 
-    // Debug: confirma que os elementos existem
-    console.log('[Rally] comingSoonModal:', comingSoonModal);
-    console.log('[Rally] comingSoonCloseBtn:', comingSoonCloseBtn);
-    console.log('[Rally] total de cards:', cards.length);
+    // Elementos do Devlog
+    const devlogModal = document.getElementById('devlogModal');
+    const devlogList = document.getElementById('devlogList');
+    const openDevlogBtn = document.getElementById('openDevlogBtn');
+    const devlogCloseBtn = document.getElementById('devlogCloseBtn');
+    const devlogCloseBtnBottom = document.getElementById('devlogCloseBtnBottom');
+
+    // Elementos do slider de jogadores
+    const playersSlider = document.getElementById('playersSlider');
+    const playersTicks = document.getElementById('playersTicks');
+    const playersLabel = document.getElementById('playersLabel');
+
+    // ============================================================
+    // Slider de jogadores — gera as marcações 1..10
+    // ============================================================
+    if (playersTicks) {
+        playersTicks.innerHTML = '';
+        for (let i = 1; i <= 10; i++) {
+            const span = document.createElement('span');
+            span.textContent = i;
+            span.dataset.value = String(i);
+            playersTicks.appendChild(span);
+        }
+    }
+
+    function updatePlayersSliderUI(value) {
+        // Pinta a parte preenchida da barra proporcionalmente
+        const min = parseInt(playersSlider.min, 10);
+        const max = parseInt(playersSlider.max, 10);
+        const percent = ((value - min) / (max - min)) * 100;
+        playersSlider.style.backgroundSize = `${percent}% 100%`;
+
+        // Atualiza o texto
+        if (value <= 1) {
+            playersLabel.textContent = 'Qualquer quantidade';
+        } else {
+            playersLabel.textContent = `${value}+ jogadores`;
+        }
+
+        // Marca os ticks ativos (≤ valor escolhido)
+        if (playersTicks) {
+            playersTicks.querySelectorAll('span').forEach(span => {
+                const v = parseInt(span.dataset.value, 10);
+                span.classList.toggle('active', v <= value);
+            });
+        }
+    }
 
     // Elementos do modal "Apoie ou anuncie aqui"
     const adBanners = document.querySelectorAll('[data-ad-banner]');
@@ -52,22 +134,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===== Gradientes contínuos: roda cromática de 16 cores =====
     const HUE_ANCHORS = [
-        { h: 24,  s: 90, l: 72 }, // 0: laranja quente (início)
-        { h: 350, s: 88, l: 70 }, // 1: vermelho-rosa
-        { h: 330, s: 85, l: 70 }, // 2: rosa
-        { h: 290, s: 78, l: 72 }, // 3: roxo-rosa
-        { h: 260, s: 82, l: 74 }, // 4: roxo
-        { h: 220, s: 85, l: 74 }, // 5: azul
-        { h: 190, s: 78, l: 70 }, // 6: ciano
-        { h: 150, s: 65, l: 68 }, // 7: verde
-        { h: 95,  s: 70, l: 70 }, // 8: verde-amarelo
-        { h: 55,  s: 92, l: 72 }, // 9: amarelo
-        { h: 38,  s: 92, l: 72 }, // 10: amarelo-laranja
-        { h: 18,  s: 90, l: 72 }, // 11: laranja
-        { h: 5,   s: 88, l: 72 }, // 12: laranja-vermelho
-        { h: 348, s: 88, l: 72 }, // 13: vermelho
-        { h: 340, s: 86, l: 70 }, // 14: vermelho-rosa
-        { h: 335, s: 84, l: 72 }  // 15: rosa (fecha suavemente no início)
+        { h: 24,  s: 90, l: 72 },
+        { h: 350, s: 88, l: 70 },
+        { h: 330, s: 85, l: 70 },
+        { h: 290, s: 78, l: 72 },
+        { h: 260, s: 82, l: 74 },
+        { h: 220, s: 85, l: 74 },
+        { h: 190, s: 78, l: 70 },
+        { h: 150, s: 65, l: 68 },
+        { h: 95,  s: 70, l: 70 },
+        { h: 55,  s: 92, l: 72 },
+        { h: 38,  s: 92, l: 72 },
+        { h: 18,  s: 90, l: 72 },
+        { h: 5,   s: 88, l: 72 },
+        { h: 348, s: 88, l: 72 },
+        { h: 340, s: 86, l: 70 },
+        { h: 335, s: 84, l: 72 }
     ];
 
     const CARD_GRADIENTS = HUE_ANCHORS.map((c, i) => {
@@ -77,7 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
     });
 
-    // Aplica gradiente por índice (ciclando suavemente)
     cards.forEach((card, i) => {
         const bg = CARD_GRADIENTS[i % CARD_GRADIENTS.length];
         card.dataset.bg = bg;
@@ -163,9 +244,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===== Estado dos filtros =====
     const filters = {
-        players: 'any',
+        players: 1,     // 1 = "qualquer quantidade"
         device: 'any'
     };
+
+    // Inicializa o slider
+    if (playersSlider) {
+        updatePlayersSliderUI(parseInt(playersSlider.value, 10));
+
+        playersSlider.addEventListener('input', () => {
+            const v = parseInt(playersSlider.value, 10);
+            updatePlayersSliderUI(v);
+            filters.players = v;
+            applyFilters();
+        });
+    }
 
     // ===== Animação de ondinha do logo =====
     const logoLetters = logo.querySelectorAll('[data-letter]');
@@ -194,15 +287,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===== Modal de jogo =====
     function openModal(card) {
         const gameUrl = card.dataset.game || '';
-        console.log('[Rally] openModal chamado, gameUrl:', gameUrl);
 
-        // Cores com Dicas está "Em breve" — detecta por substring
         if (gameUrl.includes('corescomdicas')) {
-            console.log('[Rally] Detectado Cores com Dicas → mostrando Em breve');
             if (comingSoonModal) {
                 comingSoonModal.classList.remove('hidden');
-            } else {
-                console.error('[Rally] comingSoonModal NÃO EXISTE no DOM!');
             }
             if (window.lucide && typeof window.lucide.createIcons === 'function') {
                 try { lucide.createIcons(); } catch (e) {}
@@ -211,10 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const info = GAMES_INFO[gameUrl];
-        if (!info) {
-            console.warn('[Rally] Jogo não encontrado em GAMES_INFO:', gameUrl);
-            return;
-        }
+        if (!info) return;
 
         const bg = card.dataset.bg || info.bg;
 
@@ -280,12 +365,64 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ===== Devlog =====
+    function renderDevlog() {
+        if (!devlogList) return;
+
+        devlogList.innerHTML = '';
+        const latest = DEVLOG.slice(0, 5);
+
+        latest.forEach(entry => {
+            const item = document.createElement('div');
+            item.className = 'devlog-entry';
+
+            const itemsHtml = entry.items
+                .map(text => `<li>${text}</li>`)
+                .join('');
+
+            item.innerHTML = `
+                <div class="devlog-entry-header">
+                    <span class="devlog-entry-version">${entry.version}</span>
+                    <span class="devlog-entry-date">${entry.date}</span>
+                </div>
+                <ul class="devlog-entry-items">${itemsHtml}</ul>
+            `;
+
+            devlogList.appendChild(item);
+        });
+    }
+
+    function openDevlog() {
+        renderDevlog();
+        if (devlogModal) {
+            devlogModal.classList.remove('hidden');
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try { lucide.createIcons(); } catch (e) {}
+            }
+        }
+    }
+
+    function closeDevlog() {
+        if (devlogModal) devlogModal.classList.add('hidden');
+    }
+
+    if (openDevlogBtn) openDevlogBtn.addEventListener('click', openDevlog);
+    if (devlogCloseBtn) devlogCloseBtn.addEventListener('click', closeDevlog);
+    if (devlogCloseBtnBottom) devlogCloseBtnBottom.addEventListener('click', closeDevlog);
+
+    if (devlogModal) {
+        devlogModal.addEventListener('click', (e) => {
+            if (e.target === devlogModal) closeDevlog();
+        });
+    }
+
     // ===== Painel de filtros =====
     filterButton.addEventListener('click', () => {
         filterPanel.classList.toggle('open');
         filterButton.classList.toggle('active');
     });
 
+    // Chips (agora só o de dispositivos)
     document.querySelectorAll('.filter-chip').forEach(chip => {
         chip.addEventListener('click', () => {
             const group = chip.closest('.filter-options');
@@ -314,9 +451,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const matchesSearch = searchTerm === '' || title.includes(searchTerm);
 
             let matchesPlayers = true;
-            if (filters.players !== 'any') {
-                const minRequired = parseInt(filters.players, 10);
-                matchesPlayers = playersMin <= minRequired;
+            if (filters.players > 1) {
+                matchesPlayers = playersMin <= filters.players;
             }
 
             let matchesDevice = true;
@@ -368,7 +504,6 @@ document.addEventListener('DOMContentLoaded', () => {
     adModalClose.addEventListener('click', closeAdModal);
     adOverlay.addEventListener('click', closeAdModal);
 
-    // Troca de abas
     adTabs.forEach(tab => {
         tab.addEventListener('click', () => {
             adTabs.forEach(t => {
@@ -382,7 +517,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Função utilitária de cópia com fallback
     async function copyText(text) {
         try {
             await navigator.clipboard.writeText(text);
@@ -414,7 +548,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2200);
     }
 
-    // Copiar e-mail de contato (aba Anuncie)
     adCopyBtn.addEventListener('click', async () => {
         const email = adEmailText.textContent.trim();
         const ok = await copyText(email);
@@ -426,7 +559,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Copiar chave Pix (aba Apoie)
     adCopyPixBtn.addEventListener('click', async () => {
         const pix = adPixText.textContent.trim();
         const ok = await copyText(pix);
@@ -443,11 +575,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Escape') {
             closeModal();
             closeAdModal();
+            closeDevlog();
             if (comingSoonModal) {
                 comingSoonModal.classList.add('hidden');
             }
         }
     });
 
-    console.log('🎉 Rally carregado com sucesso!');
+    console.log(`🎉 Rally carregado com sucesso! Versão: ${SITE_VERSION}`);
 });
