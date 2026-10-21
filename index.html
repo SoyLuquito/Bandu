@@ -74,12 +74,23 @@
         <div class="filter-panel" id="filterPanel">
             <div class="filter-group">
                 <label class="filter-label">Número de jogadores</label>
-                <div class="filter-options" data-filter="players">
-                    <button class="filter-chip" data-value="any">Qualquer</button>
-                    <button class="filter-chip" data-value="2">2+</button>
-                    <button class="filter-chip" data-value="4">4+</button>
-                    <button class="filter-chip" data-value="6">6+</button>
+                <div class="range-slider-wrapper">
+                    <input 
+                        type="range" 
+                        id="playersSlider" 
+                        class="range-slider" 
+                        min="1" 
+                        max="10" 
+                        step="1" 
+                        value="1"
+                    >
+                    <div class="range-slider-ticks" id="playersTicks">
+                        <!-- Marcas 1 a 10 geradas pelo JS -->
+                    </div>
                 </div>
+                <p class="range-slider-label">
+                    <span id="playersLabel">Qualquer quantidade</span>
+                </p>
             </div>
             <div class="filter-group">
                 <label class="filter-label">Nº de dispositivos</label>
@@ -250,6 +261,16 @@
                 @soyluquito
             </a>
         </p>
+
+        <!-- Versão + Devlog -->
+        <div class="footer-meta">
+            <span class="footer-version" id="footerVersion">v0.0.0</span>
+            <span class="footer-sep">·</span>
+            <button type="button" class="footer-devlog-btn" id="openDevlogBtn">
+                <i data-lucide="book-open"></i> Devlog
+            </button>
+        </div>
+
         <p class="footer-copyright">© Rally 2026</p>
     </footer>
 
@@ -270,6 +291,22 @@
             <p>O jogo <strong>Cores com Dicas</strong> estará disponível em breve. Fique de olho!</p>
             <div class="modal-buttons">
                 <button class="btn btn-primary" id="comingSoonCloseBtn">Entendi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Devlog -->
+    <div class="modal-overlay hidden" id="devlogModal">
+        <div class="modal-card modal-card-wide">
+            <button type="button" class="devlog-close" id="devlogCloseBtn" aria-label="Fechar">✕</button>
+            <div class="devlog-header">
+                <i data-lucide="book-open"></i>
+                <h3>Devlog</h3>
+                <p>Últimas atualizações do Rally</p>
+            </div>
+            <div class="devlog-list" id="devlogList"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="devlogCloseBtnBottom">Fechar</button>
             </div>
         </div>
     </div>

@@ -23,7 +23,6 @@ body {
     overflow-x: hidden;
 }
 
-/* Camada 1 — ondas inclinadas na diagonal (o desenho do fundo) */
 body::before {
     content: '';
     position: fixed;
@@ -40,7 +39,6 @@ body::before {
     will-change: transform;
 }
 
-/* Camada 2 — ondulações amplas e suaves que pulsam */
 body::after {
     content: '';
     position: fixed;
@@ -334,7 +332,7 @@ body::after {
 }
 
 .filter-panel.open {
-    max-height: 400px;
+    max-height: 500px;
     opacity: 1;
     padding: 1rem;
     margin-bottom: 1rem;
@@ -388,6 +386,110 @@ body::after {
     background: var(--texto);
     border-color: var(--texto);
     color: #FFFFFF;
+}
+
+/* ===== Slider de jogadores ===== */
+.range-slider-wrapper {
+    position: relative;
+    padding: 0.5rem 0 0.25rem;
+}
+
+.range-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--bege-escuro);
+    outline: none;
+    cursor: pointer;
+    /* A parte "preenchida" à esquerda é feita com gradient atualizado via JS */
+    background-image: linear-gradient(to right, #FF6B8A 0%, #FFA94D 100%);
+    background-size: 0% 100%;
+    background-repeat: no-repeat;
+    background-color: var(--bege-escuro);
+    transition: background-size 0.1s ease;
+}
+
+/* Chrome / Edge / Safari */
+.range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 3px solid var(--texto);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    cursor: grab;
+    transition: transform 0.1s ease;
+}
+
+.range-slider::-webkit-slider-thumb:active {
+    transform: scale(1.15);
+    cursor: grabbing;
+}
+
+/* Firefox */
+.range-slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 3px solid var(--texto);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    cursor: grab;
+    transition: transform 0.1s ease;
+}
+
+.range-slider::-moz-range-thumb:active {
+    transform: scale(1.15);
+    cursor: grabbing;
+}
+
+.range-slider-ticks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    padding: 0 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #A89898;
+    user-select: none;
+}
+
+.range-slider-ticks span {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    transition: color 0.15s ease;
+}
+
+.range-slider-ticks span.active {
+    color: var(--texto);
+}
+
+.range-slider-ticks span::before {
+    content: '';
+    width: 2px;
+    height: 6px;
+    background: currentColor;
+    border-radius: 1px;
+    opacity: 0.4;
+}
+
+.range-slider-ticks span.active::before {
+    opacity: 1;
+    height: 9px;
+}
+
+.range-slider-label {
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--texto);
+    margin-top: 0.5rem;
 }
 
 /* ===== Grid de cards ===== */
@@ -933,6 +1035,54 @@ body::after {
     font-weight: 400;
 }
 
+/* ===== Versão + Devlog no rodapé ===== */
+.footer-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    color: #7A6E6E;
+    font-weight: 600;
+    margin-top: 0.25rem;
+}
+
+.footer-version {
+    background: var(--bege-escuro);
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    color: var(--texto);
+}
+
+.footer-devlog-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: none;
+    background: transparent;
+    color: #7A6E6E;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0.2rem 0.4rem;
+    border-radius: 8px;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+.footer-devlog-btn:hover {
+    color: var(--texto);
+    background: var(--bege-escuro);
+}
+
+.footer-devlog-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
 .footer-copyright {
     font-size: 0.75rem;
     color: #A89898;
@@ -985,7 +1135,7 @@ body::after {
     }
 }
 
-/* ===== Modal "Em breve" ===== */
+/* ===== Modais (overlay genérico) ===== */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -999,7 +1149,6 @@ body::after {
     z-index: 300;
 }
 
-/* Quando oculto, não aparece */
 .modal-overlay.hidden {
     display: none !important;
 }
@@ -1015,6 +1164,14 @@ body::after {
     gap: 1rem;
     text-align: center;
     animation: fadeInUp 0.3s ease;
+    position: relative;
+}
+
+/* Variação mais larga, usada pelo Devlog */
+.modal-card-wide {
+    max-width: 480px;
+    max-height: 85vh;
+    gap: 0.75rem;
 }
 
 .modal-card h3 {
@@ -1072,4 +1229,134 @@ body::after {
 
 .modal-buttons .btn-primary:active {
     transform: scale(0.97);
+}
+
+/* ===== Devlog ===== */
+.devlog-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: var(--bege-escuro);
+    color: var(--texto);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s ease, background 0.2s ease;
+    z-index: 5;
+}
+
+.devlog-close:hover {
+    background: #E4DFD4;
+}
+
+.devlog-close:active {
+    transform: scale(0.9);
+}
+
+.devlog-header {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px dashed var(--bege-escuro);
+}
+
+.devlog-header svg {
+    width: 32px;
+    height: 32px;
+    color: #FF6B8A;
+}
+
+.devlog-header h3 {
+    font-size: 1.35rem;
+    font-weight: 900;
+}
+
+.devlog-header p {
+    font-size: 0.8rem;
+    color: #7A6E6E;
+    font-weight: 500;
+}
+
+.devlog-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: left;
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: 0.25rem 0.25rem 0.25rem 0;
+    margin: 0.25rem 0;
+}
+
+.devlog-entry {
+    padding: 0.85rem;
+    background: var(--bege);
+    border-radius: 14px;
+    border-left: 4px solid #FF6B8A;
+}
+
+.devlog-entry-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+}
+
+.devlog-entry-version {
+    font-size: 0.9rem;
+    font-weight: 900;
+    color: var(--texto);
+    font-variant-numeric: tabular-nums;
+}
+
+.devlog-entry-date {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #A89898;
+}
+
+.devlog-entry-items {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.devlog-entry-items li {
+    font-size: 0.82rem;
+    color: #5A5050;
+    line-height: 1.45;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    font-weight: 400;
+}
+
+.devlog-entry-items li::before {
+    content: '•';
+    color: #FF6B8A;
+    font-weight: 900;
+    flex-shrink: 0;
+    line-height: 1.45;
+}
+
+@media (max-height: 750px) {
+    .modal-card-wide {
+        max-height: 90vh;
+    }
+
+    .devlog-list {
+        max-height: 45vh;
+    }
 }
