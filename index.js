@@ -1,6 +1,36 @@
 // Rally - Lobby de Party Games
-// Versão 2.6.1
+// Versão 2.7
 
+// ============================================================
+// FIREBASE (para envio de feedback)
+// ============================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+import {
+    getFirestore, collection, addDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBtTEr0O_CY1fwINvPyDAR0XxC2Y8P-abU",
+    authDomain: "rally-ae562.firebaseapp.com",
+    projectId: "rally-ae562",
+    storageBucket: "rally-ae562.firebasestorage.app",
+    messagingSenderId: "901583949711",
+    appId: "1:901583949711:web:55361fdf42a828bf6305fa",
+    measurementId: "G-NELGBWXQ81"
+};
+
+let fbApp = null;
+let fbDb = null;
+try {
+    fbApp = initializeApp(firebaseConfig);
+    fbDb = getFirestore(fbApp);
+} catch (e) {
+    console.warn('[Rally] Firebase não inicializou:', e);
+}
+
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
 document.addEventListener('DOMContentLoaded', () => {
     try {
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -13,12 +43,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================
     // ★ VERSÃO DO SITE — atualize esta string a cada deploy ★
     // ============================================================
-    const SITE_VERSION = 'v0.2.6.6.1';
+    const SITE_VERSION = 'v0.2.7';
 
     // ============================================================
     // ★ DEVLOG — últimas atualizações (mais recente no topo) ★
     // ============================================================
     const DEVLOG = [
+        {
+            version: 'v0.2.7',
+            date: '21/10/2026',
+            items: [
+                'Novo botão "Feedback" no rodapé: reportar bug, enviar sugestão ou dar feedback direto pelo site.',
+                'Formulário de feedback salvo no Firestore (nome e e-mail opcionais).',
+                'Corrigido o número mínimo de jogadores do "Eu Nunca" para 2.'
+            ]
+        },
         {
             version: 'v0.2.6.6.1',
             date: '21/10/2026',
@@ -38,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         {
             version: 'v0.2.6.5.1',
-            date: '20/10/2026',
+            date: '21/10/2026',
             items: [
                 'Adicionado o jogo "Acerte o Tempo".',
                 'Tela de "Em breve" ao clicar em "Cores com Dicas".'
@@ -47,9 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     const footerVersionEl = document.getElementById('footerVersion');
-    if (footerVersionEl) {
-        footerVersionEl.textContent = SITE_VERSION;
-    }
+    if (footerVersionEl) footerVersionEl.textContent = SITE_VERSION;
 
     const cards = document.querySelectorAll('.game-card');
     const logo = document.getElementById('logo');
@@ -71,12 +108,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const devlogCloseBtn = document.getElementById('devlogCloseBtn');
     const devlogCloseBtnBottom = document.getElementById('devlogCloseBtnBottom');
 
+    // Feedback
+    const feedbackModal = document.getElementById('feedbackModal');
+    const openFeedbackBtn = document.getElementById('openFeedbackBtn');
+    const feedbackCloseBtn = document.getElementById('feedbackCloseBtn');
+    const feedbackCancelBtn = document.getElementById('feedbackCancelBtn');
+    const feedbackForm = document.getElementById('feedbackForm');
+    const feedbackName = document.getElementById('feedbackName');
+    const feedbackEmail = document.getElementById('feedbackEmail');
+    const feedbackMessage = document.getElementById('feedbackMessage');
+    const feedbackCharCount = document.getElementById('feedbackCharCount');
+    const feedbackStatus = document.getElementById('feedbackStatus');
+    const feedbackSubmitBtn = document.getElementById('feedbackSubmitBtn');
+    const feedbackTypeGroup = document.getElementById('feedbackTypeGroup');
+    let selectedFeedbackType = 'bug';
+
     const playersSlider = document.getElementById('playersSlider');
     const playersTicks = document.getElementById('playersTicks');
     const playersLabel = document.getElementById('playersLabel');
 
     // ============================================================
-    // Slider de jogadores — gera as marcações 1..10
+    // Slider de jogadores
     // ============================================================
     if (playersTicks) {
         playersTicks.innerHTML = '';
@@ -94,14 +146,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const percent = ((value - min) / (max - min)) * 100;
         playersSlider.style.backgroundSize = `${percent}% 100%`;
 
-        // Texto do label
         if (value === 1) {
             playersLabel.textContent = '1+ jogador';
         } else {
             playersLabel.textContent = `${value}+ jogadores`;
         }
 
-        // Marca os ticks ativos
         if (playersTicks) {
             playersTicks.querySelectorAll('span').forEach(span => {
                 const v = parseInt(span.dataset.value, 10);
@@ -238,11 +288,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===== Estado dos filtros =====
     const filters = {
-        players: 10,    // 10 = mostra todos (padrão); 1 = nenhum jogo (ninguém joga sozinho)
+        players: 10,
         device: 'any'
     };
 
-    // Inicializa o slider (começa no 10, mostrando tudo)
     if (playersSlider) {
         playersSlider.value = '10';
         updatePlayersSliderUI(10);
@@ -285,9 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const gameUrl = card.dataset.game || '';
 
         if (gameUrl.includes('corescomdicas')) {
-            if (comingSoonModal) {
-                comingSoonModal.classList.remove('hidden');
-            }
+            if (comingSoonModal) comingSoonModal.classList.remove('hidden');
             if (window.lucide && typeof window.lucide.createIcons === 'function') {
                 try { lucide.createIcons(); } catch (e) {}
             }
@@ -346,7 +393,6 @@ document.addEventListener('DOMContentLoaded', () => {
     modalClose.addEventListener('click', closeModal);
     overlay.addEventListener('click', closeModal);
 
-    // ===== Fecha o modal "Em breve" =====
     if (comingSoonCloseBtn) {
         comingSoonCloseBtn.addEventListener('click', () => {
             comingSoonModal.classList.add('hidden');
@@ -355,16 +401,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (comingSoonModal) {
         comingSoonModal.addEventListener('click', (e) => {
-            if (e.target === comingSoonModal) {
-                comingSoonModal.classList.add('hidden');
-            }
+            if (e.target === comingSoonModal) comingSoonModal.classList.add('hidden');
         });
     }
 
-    // ===== Devlog =====
+    // ============================================================
+    // Devlog
+    // ============================================================
     function renderDevlog() {
         if (!devlogList) return;
-
         devlogList.innerHTML = '';
         const latest = DEVLOG.slice(0, 5);
 
@@ -372,9 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const item = document.createElement('div');
             item.className = 'devlog-entry';
 
-            const itemsHtml = entry.items
-                .map(text => `<li>${text}</li>`)
-                .join('');
+            const itemsHtml = entry.items.map(text => `<li>${text}</li>`).join('');
 
             item.innerHTML = `
                 <div class="devlog-entry-header">
@@ -412,6 +455,141 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ============================================================
+    // Feedback
+    // ============================================================
+    function resetFeedbackForm() {
+        if (feedbackForm) feedbackForm.reset();
+        selectedFeedbackType = 'bug';
+        if (feedbackTypeGroup) {
+            feedbackTypeGroup.querySelectorAll('.feedback-type-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.type === 'bug');
+            });
+        }
+        if (feedbackCharCount) feedbackCharCount.textContent = '0 / 1000';
+        if (feedbackStatus) {
+            feedbackStatus.textContent = '';
+            feedbackStatus.classList.remove('show', 'success', 'error');
+        }
+        if (feedbackSubmitBtn) {
+            feedbackSubmitBtn.disabled = false;
+            feedbackSubmitBtn.innerHTML = '<i data-lucide="send"></i> Enviar';
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try { lucide.createIcons(); } catch (e) {}
+            }
+        }
+    }
+
+    function openFeedback() {
+        resetFeedbackForm();
+        if (feedbackModal) {
+            feedbackModal.classList.remove('hidden');
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try { lucide.createIcons(); } catch (e) {}
+            }
+            setTimeout(() => feedbackMessage && feedbackMessage.focus(), 150);
+        }
+    }
+
+    function closeFeedback() {
+        if (feedbackModal) feedbackModal.classList.add('hidden');
+    }
+
+    if (openFeedbackBtn) openFeedbackBtn.addEventListener('click', openFeedback);
+    if (feedbackCloseBtn) feedbackCloseBtn.addEventListener('click', closeFeedback);
+    if (feedbackCancelBtn) feedbackCancelBtn.addEventListener('click', closeFeedback);
+
+    if (feedbackModal) {
+        feedbackModal.addEventListener('click', (e) => {
+            if (e.target === feedbackModal) closeFeedback();
+        });
+    }
+
+    if (feedbackTypeGroup) {
+        feedbackTypeGroup.querySelectorAll('.feedback-type-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                selectedFeedbackType = btn.dataset.type;
+                feedbackTypeGroup.querySelectorAll('.feedback-type-btn').forEach(b => {
+                    b.classList.toggle('active', b === btn);
+                });
+            });
+        });
+    }
+
+    if (feedbackMessage && feedbackCharCount) {
+        feedbackMessage.addEventListener('input', () => {
+            const len = feedbackMessage.value.length;
+            feedbackCharCount.textContent = `${len} / 1000`;
+        });
+    }
+
+    async function submitFeedback() {
+        const message = feedbackMessage ? feedbackMessage.value.trim() : '';
+        const name = feedbackName ? feedbackName.value.trim() : '';
+        const email = feedbackEmail ? feedbackEmail.value.trim() : '';
+
+        if (!message) {
+            feedbackStatus.textContent = 'Escreva uma mensagem antes de enviar.';
+            feedbackStatus.classList.add('show', 'error');
+            feedbackStatus.classList.remove('success');
+            return;
+        }
+
+        if (!fbDb) {
+            feedbackStatus.textContent = 'Não foi possível conectar. Tente novamente mais tarde.';
+            feedbackStatus.classList.add('show', 'error');
+            feedbackStatus.classList.remove('success');
+            return;
+        }
+
+        feedbackSubmitBtn.disabled = true;
+        feedbackSubmitBtn.innerHTML = 'Enviando...';
+        feedbackStatus.classList.remove('show', 'error', 'success');
+        feedbackStatus.textContent = '';
+
+        try {
+            await addDoc(collection(fbDb, 'feedback'), {
+                tipo: selectedFeedbackType,
+                nome: name || null,
+                email: email || null,
+                mensagem: message,
+                versao: SITE_VERSION,
+                userAgent: navigator.userAgent,
+                url: window.location.href,
+                criadoEm: serverTimestamp()
+            });
+
+            feedbackStatus.textContent = '✓ Enviado! Obrigado pelo feedback.';
+            feedbackStatus.classList.add('show', 'success');
+            feedbackStatus.classList.remove('error');
+
+            feedbackSubmitBtn.innerHTML = 'Enviado!';
+
+            setTimeout(() => {
+                closeFeedback();
+                resetFeedbackForm();
+            }, 1800);
+
+        } catch (err) {
+            console.error('[Feedback] Erro ao enviar:', err);
+            feedbackStatus.textContent = 'Erro ao enviar. Tente novamente.';
+            feedbackStatus.classList.add('show', 'error');
+            feedbackStatus.classList.remove('success');
+            feedbackSubmitBtn.disabled = false;
+            feedbackSubmitBtn.innerHTML = '<i data-lucide="send"></i> Enviar';
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try { lucide.createIcons(); } catch (e) {}
+            }
+        }
+    }
+
+    if (feedbackForm) {
+        feedbackForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            submitFeedback();
+        });
+    }
+
     // ===== Painel de filtros =====
     filterButton.addEventListener('click', () => {
         filterPanel.classList.toggle('open');
@@ -431,7 +609,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ===== Busca =====
     searchInput.addEventListener('input', applyFilters);
 
     function applyFilters() {
@@ -444,9 +621,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const devices = (card.dataset.device || '').split(' ');
 
             const matchesSearch = searchTerm === '' || title.includes(searchTerm);
-
-            // Filtro de jogadores: se players = 1, nenhum jogo passa
-            // (todos têm playersMin >= 2). Se players = 10, todos passam.
             const matchesPlayers = playersMin <= filters.players;
 
             let matchesDevice = true;
@@ -545,9 +719,8 @@ document.addEventListener('DOMContentLoaded', () => {
     adCopyBtn.addEventListener('click', async () => {
         const email = adEmailText.textContent.trim();
         const ok = await copyText(email);
-        if (ok) {
-            flashCopied(adCopyBtn, adCopiedMsg, 'Copiar');
-        } else {
+        if (ok) flashCopied(adCopyBtn, adCopiedMsg, 'Copiar');
+        else {
             adCopiedMsg.textContent = 'Não foi possível copiar. Selecione manualmente.';
             adCopiedMsg.classList.add('show');
         }
@@ -556,9 +729,8 @@ document.addEventListener('DOMContentLoaded', () => {
     adCopyPixBtn.addEventListener('click', async () => {
         const pix = adPixText.textContent.trim();
         const ok = await copyText(pix);
-        if (ok) {
-            flashCopied(adCopyPixBtn, adCopiedPixMsg, 'Copiar chave');
-        } else {
+        if (ok) flashCopied(adCopyPixBtn, adCopiedPixMsg, 'Copiar chave');
+        else {
             adCopiedPixMsg.textContent = 'Não foi possível copiar. Selecione manualmente.';
             adCopiedPixMsg.classList.add('show');
         }
@@ -570,9 +742,8 @@ document.addEventListener('DOMContentLoaded', () => {
             closeModal();
             closeAdModal();
             closeDevlog();
-            if (comingSoonModal) {
-                comingSoonModal.classList.add('hidden');
-            }
+            closeFeedback();
+            if (comingSoonModal) comingSoonModal.classList.add('hidden');
         }
     });
 

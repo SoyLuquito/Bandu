@@ -1360,3 +1360,122 @@ body::after {
         max-height: 45vh;
     }
 }
+
+/* ===== Modal Feedback ===== */
+.feedback-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    text-align: left;
+}
+
+.feedback-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    position: relative;
+}
+
+.feedback-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--texto);
+}
+
+.feedback-label .required {
+    color: #FF3B5C;
+    font-weight: 900;
+}
+
+.feedback-input {
+    width: 100%;
+    padding: 0.7rem 0.85rem;
+    border: 2px solid var(--bege-escuro);
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.92rem;
+    color: var(--texto);
+    background: #FFFFFF;
+    outline: none;
+    transition: border-color 0.2s ease;
+    font-weight: 400;
+}
+
+.feedback-input:focus {
+    border-color: #FFD43B;
+}
+
+.feedback-textarea {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.5;
+}
+
+.feedback-char-count {
+    align-self: flex-end;
+    font-size: 0.7rem;
+    color: #A89898;
+    font-weight: 600;
+    margin-top: 0.1rem;
+}
+
+.feedback-type-group {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.feedback-type-btn {
+    flex: 1;
+    min-width: 90px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.6rem;
+    border: 2px solid var(--bege-escuro);
+    background: #FFFFFF;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--texto-suave, #6B5F5F);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.feedback-type-btn svg {
+    width: 15px;
+    height: 15px;
+}
+
+.feedback-type-btn:hover {
+    border-color: #D9CFC0;
+}
+
+.feedback-type-btn.active {
+    background: var(--texto);
+    border-color: var(--texto);
+    color: #FFFFFF;
+}
+
+.feedback-status {
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+    min-height: 1.2em;
+    margin-top: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.feedback-status.show { opacity: 1; }
+.feedback-status.success { color: #51CF66; }
+.feedback-status.error { color: #FA5252; }
+
+.modal-buttons .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

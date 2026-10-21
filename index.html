@@ -262,12 +262,16 @@
             </a>
         </p>
 
-        <!-- Versão + Devlog -->
+        <!-- Versão + Devlog + Feedback -->
         <div class="footer-meta">
             <span class="footer-version" id="footerVersion">v0.0.0</span>
             <span class="footer-sep">·</span>
             <button type="button" class="footer-devlog-btn" id="openDevlogBtn">
                 <i data-lucide="book-open"></i> Devlog
+            </button>
+            <span class="footer-sep">·</span>
+            <button type="button" class="footer-devlog-btn" id="openFeedbackBtn">
+                <i data-lucide="message-square-plus"></i> Feedback
             </button>
         </div>
 
@@ -311,13 +315,85 @@
         </div>
     </div>
 
+    <!-- Modal Feedback -->
+    <div class="modal-overlay hidden" id="feedbackModal">
+        <div class="modal-card modal-card-wide">
+            <button type="button" class="devlog-close" id="feedbackCloseBtn" aria-label="Fechar">✕</button>
+            <div class="devlog-header">
+                <i data-lucide="message-square-plus"></i>
+                <h3>Enviar Feedback</h3>
+                <p>Reporte um bug, envie sugestões ou dê seu feedback</p>
+            </div>
+
+            <form id="feedbackForm" class="feedback-form" autocomplete="off">
+                <div class="feedback-field">
+                    <label for="feedbackName" class="feedback-label">Seu nome (opcional)</label>
+                    <input 
+                        type="text" 
+                        id="feedbackName" 
+                        class="feedback-input" 
+                        placeholder="Como podemos te chamar?" 
+                        maxlength="40"
+                    >
+                </div>
+
+                <div class="feedback-field">
+                    <label for="feedbackEmail" class="feedback-label">E-mail (opcional)</label>
+                    <input 
+                        type="email" 
+                        id="feedbackEmail" 
+                        class="feedback-input" 
+                        placeholder="seu@email.com" 
+                        maxlength="80"
+                    >
+                </div>
+
+                <div class="feedback-field">
+                    <label class="feedback-label">Tipo</label>
+                    <div class="feedback-type-group" id="feedbackTypeGroup">
+                        <button type="button" class="feedback-type-btn active" data-type="bug">
+                            <i data-lucide="bug"></i> Bug
+                        </button>
+                        <button type="button" class="feedback-type-btn" data-type="feedback">
+                            <i data-lucide="message-circle"></i> Feedback
+                        </button>
+                        <button type="button" class="feedback-type-btn" data-type="suggestion">
+                            <i data-lucide="lightbulb"></i> Sugestão
+                        </button>
+                    </div>
+                </div>
+
+                <div class="feedback-field">
+                    <label for="feedbackMessage" class="feedback-label">Mensagem <span class="required">*</span></label>
+                    <textarea 
+                        id="feedbackMessage" 
+                        class="feedback-input feedback-textarea" 
+                        placeholder="Descreva o que aconteceu, sua sugestão ou feedback..." 
+                        rows="5" 
+                        maxlength="1000"
+                        required
+                    ></textarea>
+                    <span class="feedback-char-count" id="feedbackCharCount">0 / 1000</span>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" id="feedbackCancelBtn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="feedbackSubmitBtn">
+                        <i data-lucide="send"></i> Enviar
+                    </button>
+                </div>
+
+                <p class="feedback-status" id="feedbackStatus"></p>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal "Apoie ou anuncie aqui" -->
     <div class="ad-overlay" id="adOverlay"></div>
     <div class="ad-modal" id="adModal" role="dialog" aria-modal="true" aria-labelledby="adModalTitle">
         <button class="ad-modal-close" id="adModalClose" aria-label="Fechar">✕</button>
         <h3 class="ad-modal-title" id="adModalTitle">Apoie ou anuncie aqui</h3>
 
-        <!-- Abas -->
         <div class="ad-tabs" role="tablist">
             <button type="button" class="ad-tab active" data-ad-tab="advertise" role="tab" aria-selected="true">
                 Anuncie aqui
@@ -327,7 +403,6 @@
             </button>
         </div>
 
-        <!-- Aba: Anuncie -->
         <div class="ad-tab-panel" data-ad-panel="advertise">
             <p class="ad-modal-desc">
                 Quer divulgar sua marca para quem joga com os amigos?
@@ -342,7 +417,6 @@
             <p class="ad-copied-msg" id="adCopiedMsg">E-mail copiado!</p>
         </div>
 
-        <!-- Aba: Apoie -->
         <div class="ad-tab-panel hidden" data-ad-panel="support">
             <p class="ad-modal-desc ad-modal-desc-left">
                 O Rally é um projeto independente, feito por mim, para que todo mundo possa se divertir com os amigos de forma gratuita. Não pretendo cobrar pelo acesso, mas manter tudo funcionando e trazer novidades exige tempo e recursos.
@@ -365,6 +439,7 @@
         </div>
     </div>
 
-    <script src="index.js"></script>
+    <!-- Firebase SDK (módulo) + index.js -->
+    <script type="module" src="index.js"></script>
 </body>
 </html>
