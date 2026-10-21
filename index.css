@@ -395,7 +395,6 @@ body::after {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
-    /* espaço para o badge "Novo" que sai do card no topo */
     padding-top: 0.75rem;
 }
 
@@ -403,7 +402,6 @@ body::after {
 .game-card {
     background: #FFFFFF;
     border-radius: 20px;
-    /* overflow visível para o badge "Novo" poder sair do card */
     overflow: visible;
     box-shadow: 0 4px 16px var(--sombra);
     cursor: pointer;
@@ -446,7 +444,6 @@ body::after {
     pointer-events: none;
     user-select: none;
     transform-origin: center;
-    /* leve inclinação, como um selo */
     rotate: -6deg;
 }
 
@@ -472,7 +469,6 @@ body::after {
     justify-content: center;
     position: relative;
     overflow: hidden;
-    /* cantos superiores arredondados (já que o card não tem mais overflow hidden) */
     border-radius: 20px 20px 0 0;
 }
 
@@ -1001,6 +997,11 @@ body::after {
     justify-content: center;
     padding: 1rem;
     z-index: 300;
+}
+
+/* Quando oculto, não aparece */
+.modal-overlay.hidden {
+    display: none !important;
 }
 
 .modal-card {

@@ -1,5 +1,5 @@
 // Rally - Lobby de Party Games
-// Versão 2.3
+// Versão 2.4
 
 document.addEventListener('DOMContentLoaded', () => {
     // Inicializa os ícones do Lucide
@@ -42,13 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const adCopiedPixMsg = document.getElementById('adCopiedPixMsg');
 
     // ===== Gradientes contínuos: roda cromática de 16 cores =====
-    // Cada card "avança" um passo na paleta, sem repetir e sem voltar.
-    // Ordem: laranja → vermelho → rosa → roxo → azul → ciano → verde → amarelo → volta suave.
-    // 16 tons únicos antes de repetir — e o 16º emenda perfeitamente no 1º,
-    // criando a sensação de continuidade mesmo em ciclos longos.
-
-    // Cores-âncora em HSL (matiz, saturação, luminosidade) — distribuição harmônica
-    // pela roda cromática. Interpolamos matiz e mantemos sat/lum para coesão visual.
     const HUE_ANCHORS = [
         { h: 24,  s: 90, l: 72 }, // 0: laranja quente (início)
         { h: 350, s: 88, l: 70 }, // 1: vermelho-rosa
@@ -68,8 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
         { h: 335, s: 84, l: 72 }  // 15: rosa (fecha suavemente no início)
     ];
 
-    // Gera 16 gradientes diagonais únicos a partir das âncoras.
-    // Cada card usa um par (cor i, cor i+1 ligeiramente mais escura) → sensação de "avanço".
     const CARD_GRADIENTS = HUE_ANCHORS.map((c, i) => {
         const next = HUE_ANCHORS[(i + 1) % HUE_ANCHORS.length];
         const c1 = `hsl(${c.h}, ${c.s}%, ${c.l}%)`;
@@ -85,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (img) img.style.background = bg;
     });
 
-    // ===== Banco de dados dos jogos (info que só aparece no modal) =====
+    // ===== Banco de dados dos jogos =====
     const GAMES_INFO = {
         '/jogos/acerteotempo/acerteotempo.html': {
             title: 'Acerte o Tempo',
@@ -167,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         device: 'any'
     };
 
-    // ===== Animação de ondinha do logo + letras levitáveis =====
+    // ===== Animação de ondinha do logo =====
     const logoLetters = logo.querySelectorAll('[data-letter]');
 
     logoLetters.forEach(letter => {
@@ -197,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Cores com Dicas está "Em breve" — mostra modal especial
         if (gameUrl === 'corescomdicas.html') {
-            comingSoonModal.style.display = 'flex';
+            comingSoonModal.classList.remove('hidden');
             if (window.lucide) lucide.createIcons();
             return;
         }
@@ -257,12 +248,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===== Fecha o modal "Em breve" =====
     comingSoonCloseBtn.addEventListener('click', () => {
-        comingSoonModal.style.display = 'none';
+        comingSoonModal.classList.add('hidden');
     });
 
     comingSoonModal.addEventListener('click', (e) => {
         if (e.target === comingSoonModal) {
-            comingSoonModal.style.display = 'none';
+            comingSoonModal.classList.add('hidden');
         }
     });
 
@@ -429,7 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Escape') {
             closeModal();
             closeAdModal();
-            comingSoonModal.style.display = 'none';
+            comingSoonModal.classList.add('hidden');
         }
     });
 
