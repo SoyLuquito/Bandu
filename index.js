@@ -1,8 +1,7 @@
 // Rally - Lobby de Party Games
-// Versão 2.6
+// Versão 2.6.1
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Inicializa os ícones do Lucide (com proteção contra falha do CDN)
     try {
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
             lucide.createIcons();
@@ -13,16 +12,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ============================================================
     // ★ VERSÃO DO SITE — atualize esta string a cada deploy ★
-    // (Não é possível ler o nome do deploy automaticamente na Vercel;
-    //  atualize manualmente aqui a cada nova versão publicada.)
     // ============================================================
-    const SITE_VERSION = 'v0.2.6.6';
+    const SITE_VERSION = 'v0.2.6.6.1';
 
     // ============================================================
     // ★ DEVLOG — últimas atualizações (mais recente no topo) ★
-    // Mostra apenas as 5 primeiras entradas.
     // ============================================================
     const DEVLOG = [
+        {
+            version: 'v0.2.6.6.1',
+            date: '21/10/2026',
+            items: [
+                'Corrigido o filtro de jogadores: 1+ agora não mostra nenhum jogo.',
+                'Ajustado o playersMin dos jogos para 2 (nenhum funciona sozinho).'
+            ]
+        },
         {
             version: 'v0.2.6.6',
             date: '21/10/2026',
@@ -42,9 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     ];
 
-    // ============================================================
-    // Aplica a versão no rodapé
-    // ============================================================
     const footerVersionEl = document.getElementById('footerVersion');
     if (footerVersionEl) {
         footerVersionEl.textContent = SITE_VERSION;
@@ -61,18 +62,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalClose = document.getElementById('modalClose');
     const noResults = document.getElementById('noResults');
 
-    // Elementos do modal "Em breve"
     const comingSoonModal = document.getElementById('comingSoonModal');
     const comingSoonCloseBtn = document.getElementById('comingSoonCloseBtn');
 
-    // Elementos do Devlog
     const devlogModal = document.getElementById('devlogModal');
     const devlogList = document.getElementById('devlogList');
     const openDevlogBtn = document.getElementById('openDevlogBtn');
     const devlogCloseBtn = document.getElementById('devlogCloseBtn');
     const devlogCloseBtnBottom = document.getElementById('devlogCloseBtnBottom');
 
-    // Elementos do slider de jogadores
     const playersSlider = document.getElementById('playersSlider');
     const playersTicks = document.getElementById('playersTicks');
     const playersLabel = document.getElementById('playersLabel');
@@ -91,20 +89,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updatePlayersSliderUI(value) {
-        // Pinta a parte preenchida da barra proporcionalmente
         const min = parseInt(playersSlider.min, 10);
         const max = parseInt(playersSlider.max, 10);
         const percent = ((value - min) / (max - min)) * 100;
         playersSlider.style.backgroundSize = `${percent}% 100%`;
 
-        // Atualiza o texto
-        if (value <= 1) {
-            playersLabel.textContent = 'Qualquer quantidade';
+        // Texto do label
+        if (value === 1) {
+            playersLabel.textContent = '1+ jogador';
         } else {
             playersLabel.textContent = `${value}+ jogadores`;
         }
 
-        // Marca os ticks ativos (≤ valor escolhido)
+        // Marca os ticks ativos
         if (playersTicks) {
             playersTicks.querySelectorAll('span').forEach(span => {
                 const v = parseInt(span.dataset.value, 10);
@@ -113,7 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Elementos do modal "Apoie ou anuncie aqui"
     const adBanners = document.querySelectorAll('[data-ad-banner]');
     const adOverlay = document.getElementById('adOverlay');
     const adModal = document.getElementById('adModal');
@@ -122,12 +118,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const adTabs = document.querySelectorAll('.ad-tab');
     const adPanels = document.querySelectorAll('.ad-tab-panel');
 
-    // Anúncio
     const adEmailText = document.getElementById('adEmailText');
     const adCopyBtn = document.getElementById('adCopyBtn');
     const adCopiedMsg = document.getElementById('adCopiedMsg');
 
-    // Apoio
     const adPixText = document.getElementById('adPixText');
     const adCopyPixBtn = document.getElementById('adCopyPixBtn');
     const adCopiedPixMsg = document.getElementById('adCopiedPixMsg');
@@ -172,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
             title: 'Acerte o Tempo',
             icon: 'timer',
             bg: 'linear-gradient(135deg, #FFC078 0%, #FF8FA3 100%)',
-            players: '1+ jogadores',
+            players: '2+ jogadores',
             device: '1 dispositivo',
             description: 'Um tempo entre 0 e 12 segundos é sorteado secretamente. Aperte o botão para iniciar e tente parar no momento certo, confiando apenas na sua intuição!'
         },
@@ -180,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
             title: 'Cores com Dicas',
             icon: 'palette',
             bg: 'linear-gradient(135deg, #FF8FA3 0%, #FFC078 100%)',
-            players: '1 à 10 jogadores',
+            players: '2 à 10 jogadores',
             device: '1 dispositivo ou Cada um no seu',
             description: 'Dê dicas com palavras para que os outros jogadores acertem a cor correta no tabuleiro. Quanto mais próximo, mais pontos!'
         },
@@ -244,13 +238,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===== Estado dos filtros =====
     const filters = {
-        players: 1,     // 1 = "qualquer quantidade"
+        players: 10,    // 10 = mostra todos (padrão); 1 = nenhum jogo (ninguém joga sozinho)
         device: 'any'
     };
 
-    // Inicializa o slider
+    // Inicializa o slider (começa no 10, mostrando tudo)
     if (playersSlider) {
-        updatePlayersSliderUI(parseInt(playersSlider.value, 10));
+        playersSlider.value = '10';
+        updatePlayersSliderUI(10);
+        filters.players = 10;
 
         playersSlider.addEventListener('input', () => {
             const v = parseInt(playersSlider.value, 10);
@@ -422,7 +418,6 @@ document.addEventListener('DOMContentLoaded', () => {
         filterButton.classList.toggle('active');
     });
 
-    // Chips (agora só o de dispositivos)
     document.querySelectorAll('.filter-chip').forEach(chip => {
         chip.addEventListener('click', () => {
             const group = chip.closest('.filter-options');
@@ -450,10 +445,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const matchesSearch = searchTerm === '' || title.includes(searchTerm);
 
-            let matchesPlayers = true;
-            if (filters.players > 1) {
-                matchesPlayers = playersMin <= filters.players;
-            }
+            // Filtro de jogadores: se players = 1, nenhum jogo passa
+            // (todos têm playersMin >= 2). Se players = 10, todos passam.
+            const matchesPlayers = playersMin <= filters.players;
 
             let matchesDevice = true;
             if (filters.device !== 'any') {
