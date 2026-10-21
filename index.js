@@ -1,10 +1,14 @@
 // Rally - Lobby de Party Games
-// Versão 2.4
+// Versão 2.5
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Inicializa os ícones do Lucide
-    if (window.lucide) {
-        lucide.createIcons();
+    // Inicializa os ícones do Lucide (com proteção contra falha do CDN)
+    try {
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            lucide.createIcons();
+        }
+    } catch (e) {
+        console.warn('[Rally] Lucide não carregou:', e);
     }
 
     const cards = document.querySelectorAll('.game-card');
@@ -21,6 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Elementos do modal "Em breve"
     const comingSoonModal = document.getElementById('comingSoonModal');
     const comingSoonCloseBtn = document.getElementById('comingSoonCloseBtn');
+
+    // Debug: confirma que os elementos existem
+    console.log('[Rally] comingSoonModal:', comingSoonModal);
+    console.log('[Rally] comingSoonCloseBtn:', comingSoonCloseBtn);
+    console.log('[Rally] total de cards:', cards.length);
 
     // Elementos do modal "Apoie ou anuncie aqui"
     const adBanners = document.querySelectorAll('[data-ad-banner]');
@@ -184,18 +193,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===== Modal de jogo =====
     function openModal(card) {
-        const gameUrl = card.dataset.game;
+        const gameUrl = card.dataset.game || '';
+        console.log('[Rally] openModal chamado, gameUrl:', gameUrl);
 
-        // Cores com Dicas está "Em breve" — mostra modal especial
-        if (gameUrl === 'corescomdicas.html') {
-            comingSoonModal.classList.remove('hidden');
-            if (window.lucide) lucide.createIcons();
+        // Cores com Dicas está "Em breve" — detecta por substring
+        if (gameUrl.includes('corescomdicas')) {
+            console.log('[Rally] Detectado Cores com Dicas → mostrando Em breve');
+            if (comingSoonModal) {
+                comingSoonModal.classList.remove('hidden');
+            } else {
+                console.error('[Rally] comingSoonModal NÃO EXISTE no DOM!');
+            }
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try { lucide.createIcons(); } catch (e) {}
+            }
             return;
         }
 
         const info = GAMES_INFO[gameUrl];
-
-        if (!info) return;
+        if (!info) {
+            console.warn('[Rally] Jogo não encontrado em GAMES_INFO:', gameUrl);
+            return;
+        }
 
         const bg = card.dataset.bg || info.bg;
 
@@ -218,8 +237,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        if (window.lucide) {
-            lucide.createIcons();
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            try { lucide.createIcons(); } catch (e) {}
         }
 
         document.getElementById('modalPlayButton').addEventListener('click', () => {
@@ -247,15 +266,19 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.addEventListener('click', closeModal);
 
     // ===== Fecha o modal "Em breve" =====
-    comingSoonCloseBtn.addEventListener('click', () => {
-        comingSoonModal.classList.add('hidden');
-    });
-
-    comingSoonModal.addEventListener('click', (e) => {
-        if (e.target === comingSoonModal) {
+    if (comingSoonCloseBtn) {
+        comingSoonCloseBtn.addEventListener('click', () => {
             comingSoonModal.classList.add('hidden');
-        }
-    });
+        });
+    }
+
+    if (comingSoonModal) {
+        comingSoonModal.addEventListener('click', (e) => {
+            if (e.target === comingSoonModal) {
+                comingSoonModal.classList.add('hidden');
+            }
+        });
+    }
 
     // ===== Painel de filtros =====
     filterButton.addEventListener('click', () => {
@@ -420,7 +443,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Escape') {
             closeModal();
             closeAdModal();
-            comingSoonModal.classList.add('hidden');
+            if (comingSoonModal) {
+                comingSoonModal.classList.add('hidden');
+            }
         }
     });
 
