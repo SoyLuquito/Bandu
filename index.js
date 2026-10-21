@@ -53,8 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             version: 'v0.2.7',
             date: '21/10/2026',
             items: [
-                'Novo botão "Feedback" no rodapé: reportar bug, enviar sugestão ou dar feedback direto pelo site.',
-                'Formulário de feedback salvo no Firestore (nome e e-mail opcionais).',
+                'Novo botão "Enviar Feedback" no rodapé: reportar bug, enviar sugestão ou dar feedback direto pelo site.',
                 'Corrigido o número mínimo de jogadores do "Eu Nunca" para 2.'
             ]
         },
