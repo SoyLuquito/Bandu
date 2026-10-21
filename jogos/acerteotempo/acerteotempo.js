@@ -6,48 +6,67 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ============================================================
-    // ÁUDIO DE "BEEP" — pré-carregado e destravado no primeiro toque
+    // ÁUDIO DE "BEEP" — Web Audio API (buffer decodificado em memória)
+    // Toca com latência mínima (sem decoding delay do <audio>).
     // ============================================================
     const BEEP_SRC = '../../sons/beep.mp3';
-    const beepSound = new Audio(BEEP_SRC);
-    beepSound.preload = 'auto';
-    beepSound.volume = 1.0;
 
-    let beepUnlocked = false;
+    let audioCtx = null;
+    let beepBuffer = null;
+    let audioReady = false;
+    let audioUnlocked = false;
 
-    function unlockBeep() {
-        if (beepUnlocked) return;
-        beepUnlocked = true;
+    // Carrega e decodifica o MP3 em um AudioBuffer (em background)
+    async function loadBeepBuffer() {
+        try {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) {
+                console.warn('Web Audio API não suportada neste navegador.');
+                return;
+            }
+            audioCtx = new Ctx();
 
-        beepSound.muted = true;
-        const p = beepSound.play();
-        const reset = () => {
-            beepSound.pause();
-            beepSound.currentTime = 0;
-            beepSound.muted = false;
-        };
-        if (p && p.then) {
-            p.then(reset).catch(() => { beepSound.muted = false; });
-        } else {
-            reset();
+            const response = await fetch(BEEP_SRC);
+            const arrayBuffer = await response.arrayBuffer();
+            beepBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+            audioReady = true;
+        } catch (e) {
+            console.warn('Falha ao carregar beep.mp3:', e);
+        }
+    }
+    loadBeepBuffer();
+
+    // Destrava o AudioContext no primeiro toque (política dos navegadores)
+    function unlockAudio() {
+        if (audioUnlocked) return;
+        audioUnlocked = true;
+
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(() => {});
         }
 
-        document.removeEventListener('touchstart', unlockBeep);
-        document.removeEventListener('click', unlockBeep);
-        document.removeEventListener('keydown', unlockBeep);
+        document.removeEventListener('touchstart', unlockAudio);
+        document.removeEventListener('click', unlockAudio);
+        document.removeEventListener('keydown', unlockAudio);
     }
 
-    document.addEventListener('touchstart', unlockBeep, { once: false, passive: true });
-    document.addEventListener('click', unlockBeep, { once: false });
-    document.addEventListener('keydown', unlockBeep, { once: false });
+    document.addEventListener('touchstart', unlockAudio, { once: false, passive: true });
+    document.addEventListener('click', unlockAudio, { once: false });
+    document.addEventListener('keydown', unlockAudio, { once: false });
 
+    // Toca o beep IMEDIATAMENTE (usa o buffer já decodificado)
     function playBeep() {
+        if (!audioReady || !audioCtx || !beepBuffer) return;
+
         try {
-            beepSound.currentTime = 0;
-            const p = beepSound.play();
-            if (p && p.catch) {
-                p.catch(err => console.warn('Falha ao tocar beep:', err));
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume().catch(() => {});
             }
+
+            const source = audioCtx.createBufferSource();
+            source.buffer = beepBuffer;
+            source.connect(audioCtx.destination);
+            source.start(0);
         } catch (e) {
             console.warn('Erro ao tocar beep:', e);
         }
@@ -275,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // CRONÔMETRO
     // ============================================================
     function startTimer() {
-        // Toca o beep IMEDIATAMENTE no clique (antes de marcar o tempo)
+        // Toca o beep IMEDIATAMENTE (buffer em memória → latência mínima)
         playBeep();
 
         state.timerRunning = true;
