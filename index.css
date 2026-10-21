@@ -96,7 +96,6 @@ body::after {
     will-change: transform;
 }
 
-/* Letra "levantada" pelo clique */
 .logo span.lifted {
     transform: translateY(-8px) rotate(-4deg);
 }
@@ -105,7 +104,6 @@ body::after {
     transform: translateY(-6px) rotate(-4deg);
 }
 
-/* Se a letra estiver levantada, o hover não a abaixa */
 .logo span.lifted:hover {
     transform: translateY(-8px) rotate(-4deg);
 }
@@ -226,7 +224,6 @@ body::after {
     text-shadow: none;
 }
 
-/* Segunda faixa no rodapé (depois dos jogos) */
 .ad-banner-bottom {
     margin: 1.5rem auto 0.5rem;
 }
@@ -398,13 +395,16 @@ body::after {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
+    /* espaço para o badge "Novo" que sai do card no topo */
+    padding-top: 0.75rem;
 }
 
 /* Game Card — formato mais quadrado */
 .game-card {
     background: #FFFFFF;
     border-radius: 20px;
-    overflow: hidden;
+    /* overflow visível para o badge "Novo" poder sair do card */
+    overflow: visible;
     box-shadow: 0 4px 16px var(--sombra);
     cursor: pointer;
     transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), 
@@ -426,6 +426,45 @@ body::after {
     display: none;
 }
 
+/* ===== Badge "Novo" — flutuando sobre o canto do card ===== */
+.card-badge-new {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    z-index: 5;
+    background: #FF3B5C;
+    color: #FFFFFF;
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    box-shadow: 0 4px 12px rgba(255, 59, 92, 0.5),
+                0 0 0 3px #FFFFFF;
+    animation: badgePulse 2.2s ease-in-out infinite;
+    pointer-events: none;
+    user-select: none;
+    transform-origin: center;
+    /* leve inclinação, como um selo */
+    rotate: -6deg;
+}
+
+@keyframes badgePulse {
+    0%, 100% { 
+        transform: scale(1); 
+        box-shadow: 0 4px 12px rgba(255, 59, 92, 0.5), 0 0 0 3px #FFFFFF;
+    }
+    50% { 
+        transform: scale(1.08); 
+        box-shadow: 0 6px 18px rgba(255, 59, 92, 0.65), 0 0 0 3px #FFFFFF;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .card-badge-new { animation: none; }
+}
+
 .card-image {
     height: 130px;
     display: flex;
@@ -433,6 +472,8 @@ body::after {
     justify-content: center;
     position: relative;
     overflow: hidden;
+    /* cantos superiores arredondados (já que o card não tem mais overflow hidden) */
+    border-radius: 20px 20px 0 0;
 }
 
 .card-image::after {
@@ -541,6 +582,7 @@ body::after {
 
 .modal-content .card-image {
     height: 140px;
+    border-radius: 24px 24px 0 0;
 }
 
 .modal-content .card-icon {
@@ -685,7 +727,6 @@ body::after {
     margin-bottom: 0.85rem;
 }
 
-/* Abas */
 .ad-tabs {
     display: flex;
     background: var(--bege-escuro);
@@ -791,7 +832,6 @@ body::after {
     opacity: 1;
 }
 
-/* Rótulo da chave Pix */
 .ad-pix-label {
     font-size: 0.75rem;
     font-weight: 700;
@@ -802,7 +842,6 @@ body::after {
     margin: 0.75rem 0 0.4rem;
 }
 
-/* QR Code */
 .ad-qr-wrap {
     display: flex;
     justify-content: center;

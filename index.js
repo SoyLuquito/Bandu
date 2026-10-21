@@ -1,5 +1,5 @@
 // Rally - Lobby de Party Games
-// Versão 2.1
+// Versão 2.2
 
 document.addEventListener('DOMContentLoaded', () => {
     // Inicializa os ícones do Lucide
@@ -37,19 +37,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const adCopyPixBtn = document.getElementById('adCopyPixBtn');
     const adCopiedPixMsg = document.getElementById('adCopiedPixMsg');
 
-    // ===== Degradê fixo entre cards: laranja → vermelho → rosa → roxo → azul → turquesa → verde → amarelo =====
-    const CARD_GRADIENTS = [
-        'linear-gradient(135deg, #FFC078 0%, #FF8FA3 100%)', // 1: laranja → rosa
-        'linear-gradient(135deg, #FF8FA3 0%, #FF5757 100%)', // 2: rosa → vermelho
-        'linear-gradient(135deg, #FF5757 0%, #FF7EB9 100%)', // 3: vermelho → rosa
-        'linear-gradient(135deg, #FF7EB9 0%, #C77DFF 100%)', // 4: rosa → roxo
-        'linear-gradient(135deg, #C77DFF 0%, #7B9EFF 100%)', // 5: roxo → azul
-        'linear-gradient(135deg, #7B9EFF 0%, #4DD0C8 100%)', // 6: azul → turquesa
-        'linear-gradient(135deg, #4DD0C8 0%, #A8E063 100%)', // 7: turquesa → verde
-        'linear-gradient(135deg, #A8E063 0%, #FFD43B 100%)'  // 8: verde → amarelo
+    // ===== Gradientes contínuos: roda cromática de 16 cores =====
+    // Cada card "avança" um passo na paleta, sem repetir e sem voltar.
+    // Ordem: laranja → vermelho → rosa → roxo → azul → ciano → verde → amarelo → volta suave.
+    // 16 tons únicos antes de repetir — e o 16º emenda perfeitamente no 1º,
+    // criando a sensação de continuidade mesmo em ciclos longos.
+
+    // Cores-âncora em HSL (matiz, saturação, luminosidade) — distribuição harmônica
+    // pela roda cromática. Interpolamos matiz e mantemos sat/lum para coesão visual.
+    const HUE_ANCHORS = [
+        { h: 24,  s: 90, l: 72 }, // 0: laranja quente (início)
+        { h: 350, s: 88, l: 70 }, // 1: vermelho-rosa
+        { h: 330, s: 85, l: 70 }, // 2: rosa
+        { h: 290, s: 78, l: 72 }, // 3: roxo-rosa
+        { h: 260, s: 82, l: 74 }, // 4: roxo
+        { h: 220, s: 85, l: 74 }, // 5: azul
+        { h: 190, s: 78, l: 70 }, // 6: ciano
+        { h: 150, s: 65, l: 68 }, // 7: verde
+        { h: 95,  s: 70, l: 70 }, // 8: verde-amarelo
+        { h: 55,  s: 92, l: 72 }, // 9: amarelo
+        { h: 38,  s: 92, l: 72 }, // 10: amarelo-laranja
+        { h: 18,  s: 90, l: 72 }, // 11: laranja
+        { h: 5,   s: 88, l: 72 }, // 12: laranja-vermelho
+        { h: 348, s: 88, l: 72 }, // 13: vermelho
+        { h: 340, s: 86, l: 70 }, // 14: vermelho-rosa
+        { h: 335, s: 84, l: 72 }  // 15: rosa (fecha suavemente no início)
     ];
 
-    // Aplica gradiente fixo por índice (ciclando se houver mais cards que cores)
+    // Gera 16 gradientes diagonais únicos a partir das âncoras.
+    // Cada card usa um par (cor i, cor i+1 ligeiramente mais escura) → sensação de "avanço".
+    const CARD_GRADIENTS = HUE_ANCHORS.map((c, i) => {
+        const next = HUE_ANCHORS[(i + 1) % HUE_ANCHORS.length];
+        const c1 = `hsl(${c.h}, ${c.s}%, ${c.l}%)`;
+        const c2 = `hsl(${next.h}, ${next.s}%, ${Math.max(next.l - 8, 40)}%)`;
+        return `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
+    });
+
+    // Aplica gradiente por índice (ciclando suavemente)
     cards.forEach((card, i) => {
         const bg = CARD_GRADIENTS[i % CARD_GRADIENTS.length];
         card.dataset.bg = bg;
@@ -59,6 +83,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===== Banco de dados dos jogos (info que só aparece no modal) =====
     const GAMES_INFO = {
+        '/jogos/acerteotempo/acerteotempo.html': {
+            title: 'Acerte o Tempo',
+            icon: 'timer',
+            bg: 'linear-gradient(135deg, #FFC078 0%, #FF8FA3 100%)',
+            players: '1+ jogadores',
+            device: '1 dispositivo',
+            description: 'Um tempo entre 0 e 12 segundos é sorteado secretamente. Aperte o botão para iniciar e tente parar no momento certo, confiando apenas na sua intuição!'
+        },
         '/jogos/corescomdicas/corescomdicas.html': {
             title: 'Cores com Dicas',
             icon: 'palette',
