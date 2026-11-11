@@ -1,5 +1,5 @@
 // Rally - Lobby de Party Games
-// Versão 2.7
+// Versão 2.8
 
 // ============================================================
 // FIREBASE (para envio de feedback)
@@ -43,15 +43,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================
     // ★ VERSÃO DO SITE — atualize esta string a cada deploy ★
     // ============================================================
-    const SITE_VERSION = 'v0.2.7';
+    const SITE_VERSION = 'v0.2.8';
 
     // ============================================================
     // ★ DEVLOG — últimas atualizações (mais recente no topo) ★
     // ============================================================
     const DEVLOG = [
         {
+            version: 'v0.2.8',
+            date: '11/11/2026',
+            items: [
+                'Adicionado o jogo "Stop" com sorteador de letras — em breve a opção de jogar no próprio celular.',
+                'Adição do novo tema "Marvel & DC" para os jogos "Impostor" e "Quem é meu par?", além de atualizar e corrigir alguns temas e dicas já existentes.'
+            ]
+        },
+        {
             version: 'v0.2.7',
-            date: '21/10/2026',
+            date: '22/10/2026',
             items: [
                 'Novo botão "Enviar Feedback" no rodapé: reportar bug, enviar sugestão ou dar feedback direto pelo site.',
                 'Corrigido o número mínimo de jogadores do "Eu Nunca" para 2.'
@@ -211,6 +219,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===== Banco de dados dos jogos =====
     const GAMES_INFO = {
+        '/jogos/stop/stop.html': {
+            title: 'Stop',
+            icon: 'octagon',
+            bg: 'linear-gradient(135deg, #7BE495 0%, #6EC6FF 100%)',
+            players: '2+ jogadores',
+            device: '1 dispositivo',
+            description: 'Uma letra é sorteada e todos preenchem as categorias começando com ela. O primeiro a gritar STOP! encerra a rodada. Neste modo, o celular só faz o sorteio das letras.'
+        },
         '/jogos/acerteotempo/acerteotempo.html': {
             title: 'Acerte o Tempo',
             icon: 'timer',
