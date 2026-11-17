@@ -114,14 +114,14 @@ const MAX_PLAYERS = 10;
 const MIN_PLAYERS = 3;
 const CODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const CODE_LENGTH = 6;
-const REVEAL_GRACE_MS = 3000; // 3s depois que todos viram, avança
+const REVEAL_GRACE_MS = 3000;
 const NEXT_ROUND_GRACE_MS = 3000;
 
 // ============================================================
 // ESTADO
 // ============================================================
 const state = {
-    gameMode: null, // 'local' | 'online'
+    gameMode: null,
 
     local: {
         players: [],
@@ -154,12 +154,10 @@ const state = {
         confirmedContinue: false,
         revealedCardUid: null,
         writeTimerInterval: null,
-        voteTimerInterval: null,
         revealGraceTimer: null,
         nextRoundGraceTimer: null,
         lastPhaseKey: null,
         lastPlayerOnTurn: null,
-        lastRoomExists: null,
         pendingAction: null
     }
 };
@@ -232,6 +230,12 @@ function getPlayersArray(roomData) {
     return Object.entries(roomData.jogadores).map(([uid, p]) => ({ uid, ...p }));
 }
 
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+}
+
 // ============================================================
 // DOM
 // ============================================================
@@ -273,9 +277,6 @@ function hideLoading() {
     loadingOverlay.classList.add('hidden');
 }
 
-// ============================================================
-// INIT
-// ============================================================
 document.addEventListener('DOMContentLoaded', () => {
     if (window.lucide) lucide.createIcons();
 });
@@ -679,7 +680,7 @@ async function doCreateRoom(name) {
             criadoEm: serverTimestamp(),
             status: 'lobby',
             config: {
-                voltas: 1,
+                rodadas: 1,
                 tempo: 30,
                 impostorMode: 'blind',
                 temas: ['animais']
@@ -763,16 +764,13 @@ function listenToRoom(code) {
     state.online.unsubscribeRoom = onSnapshot(roomRef, (snap) => {
         if (state.gameMode !== 'online') return;
         if (!snap.exists()) {
-            // Sala encerrada → volta ao menu
             alert('A sala foi encerrada');
             cleanupAndHome();
             return;
         }
-        const prevData = state.online.roomData;
         state.online.roomData = snap.data();
         state.online.isHost = state.online.roomData.criadorId === state.online.uid;
 
-        // Detecta se eu fui removido da sala
         if (!state.online.roomData.jogadores || !state.online.roomData.jogadores[state.online.uid]) {
             alert('Você foi removido da sala');
             cleanupAndHome();
@@ -796,10 +794,8 @@ function listenToRoom(code) {
 function cleanupAndHome() {
     if (state.online.unsubscribeRoom) state.online.unsubscribeRoom();
     if (state.online.writeTimerInterval) clearInterval(state.online.writeTimerInterval);
-    if (state.online.voteTimerInterval) clearInterval(state.online.voteTimerInterval);
     if (state.online.revealGraceTimer) clearTimeout(state.online.revealGraceTimer);
     if (state.online.nextRoundGraceTimer) clearTimeout(state.online.nextRoundGraceTimer);
-    state.online.uid = state.online.uid; // preserva auth
     state.online.playerName = null;
     state.online.roomCode = null;
     state.online.roomRef = null;
@@ -813,7 +809,6 @@ function cleanupAndHome() {
     state.online.confirmedContinue = false;
     state.online.revealedCardUid = null;
     state.online.writeTimerInterval = null;
-    state.online.voteTimerInterval = null;
     state.online.revealGraceTimer = null;
     state.online.nextRoundGraceTimer = null;
     state.online.lastPhaseKey = null;
@@ -828,14 +823,12 @@ async function maybeAdvancePhase(status) {
     if (!room) return;
 
     if (status === 'revelacao') {
-        // Todos viram? Espera grace de 3s e avança.
         const players = getPlayersArray(room);
         if (players.length > 0 && players.every(p => p.viuPapel)) {
             const key = `revelacao-${room.rodadaAtual}`;
             if (state.online.lastPhaseKey === key) return;
             state.online.lastPhaseKey = key;
             await new Promise(r => setTimeout(r, REVEAL_GRACE_MS));
-            // Re-checa que ninguém saiu
             const fresh = await getDoc(state.online.roomRef);
             if (!fresh.exists()) return;
             const freshPlayers = getPlayersArray(fresh.data());
@@ -846,16 +839,15 @@ async function maybeAdvancePhase(status) {
             }
         }
     } else if (status === 'escrita') {
-        // Todos enviaram a palavra da rodada atual?
+        // Só avança para votação quando TODAS as rodadas tiverem sido preenchidas
         const players = getPlayersArray(room);
+        const totalRodadas = room.config.rodadas || 1;
         const palavras = room.jogo?.palavras || {};
-        const allSent = players.every(p => {
-            const pWord = palavras[p.uid];
-            if (!pWord) return false;
-            // Palavras é um mapa uid -> array (uma palavra por rodada)
-            return Array.isArray(pWord) ? pWord.length >= room.rodadaAtual : !!pWord;
+        const allSent = players.length > 0 && players.every(p => {
+            const arr = palavras[p.uid];
+            return Array.isArray(arr) && arr.length >= totalRodadas;
         });
-        if (allSent && players.length > 0) {
+        if (allSent) {
             const key = `escrita-${room.rodadaAtual}`;
             if (state.online.lastPhaseKey === key) return;
             state.online.lastPhaseKey = key;
@@ -890,7 +882,7 @@ function renderLobby() {
     if (state.online.isHost) {
         hostConfig.classList.remove('hidden');
         document.querySelectorAll('#roundsGroup .chip-btn').forEach(b => {
-            b.classList.toggle('active', parseInt(b.dataset.value,10) === room.config.voltas);
+            b.classList.toggle('active', parseInt(b.dataset.value,10) === room.config.rodadas);
         });
         document.querySelectorAll('#timeGroup .chip-btn').forEach(b => {
             b.classList.toggle('active', parseInt(b.dataset.value,10) === room.config.tempo);
@@ -901,6 +893,12 @@ function renderLobby() {
         document.querySelectorAll('#onlineThemeGrid .theme-toggle').forEach(b => {
             b.classList.toggle('active', (room.config.temas || []).includes(b.dataset.theme));
         });
+
+        // Descrição do modo impostor
+        const modeDescEl = document.getElementById('onlineModeDesc');
+        if (modeDescEl) {
+            modeDescEl.textContent = MODE_DESCRIPTIONS[room.config.impostorMode] || MODE_DESCRIPTIONS.blind;
+        }
     } else {
         hostConfig.classList.add('hidden');
     }
@@ -949,7 +947,7 @@ function renderLobby() {
         btn.addEventListener('click', async () => {
             if (!state.online.isHost) return;
             const config = { ...state.online.roomData.config };
-            if (groupId === 'roundsGroup') config.voltas = parseInt(btn.dataset.value, 10);
+            if (groupId === 'roundsGroup') config.rodadas = parseInt(btn.dataset.value, 10);
             else if (groupId === 'timeGroup') config.tempo = parseInt(btn.dataset.value, 10);
             await updateDoc(state.online.roomRef, { config });
         });
@@ -961,6 +959,8 @@ document.querySelectorAll('#hostConfig .segment-btn').forEach(btn => {
         if (!state.online.isHost) return;
         const config = { ...state.online.roomData.config, impostorMode: btn.dataset.mode };
         await updateDoc(state.online.roomRef, { config });
+        const modeDescEl = document.getElementById('onlineModeDesc');
+        if (modeDescEl) modeDescEl.textContent = MODE_DESCRIPTIONS[btn.dataset.mode] || '';
     });
 });
 
@@ -991,12 +991,14 @@ document.getElementById('startGameOnlineBtn').addEventListener('click', async ()
     try { await startOnlineRound(); } finally { hideLoading(); }
 });
 
+// ============================================================
+// MODO ONLINE — INICIAR PARTIDA
+// ============================================================
 async function startOnlineRound() {
     if (!state.online.isHost) return;
     const room = state.online.roomData;
     const players = getPlayersArray(room);
     const config = room.config;
-    const rodada = (room.rodadaAtual || 0) + 1;
 
     // Sorteia palavra
     const usedWords = new Set(room.jogo?.usadas || []);
@@ -1011,14 +1013,12 @@ async function startOnlineRound() {
         impostorIds.forEach((uid, i) => { infiltratedWords[uid] = picks[i]; });
     }
 
-    // Ordem de escrita aleatória por rodada
+    // Ordem de escrita aleatória por rodada — a mesma ordem é usada para todas as rodadas
     const ordemEscrita = shuffle(players.map(p => p.uid));
 
-    // Estado inicial do jogo
     const palavrasIniciais = {};
     players.forEach(p => { palavrasIniciais[p.uid] = []; });
 
-    // Atualiza jogadores com papel e palavra
     const jogadoresAtualizados = {};
     players.forEach(p => {
         const isImpostor = impostorIds.includes(p.uid);
@@ -1037,7 +1037,6 @@ async function startOnlineRound() {
         };
     });
 
-    // Reseta estado do client
     state.online.lastPhaseKey = null;
     state.online.roleConfirmed = false;
     state.online.roleRevealed = false;
@@ -1049,7 +1048,7 @@ async function startOnlineRound() {
 
     await updateDoc(state.online.roomRef, {
         status: 'revelacao',
-        rodadaAtual: rodada,
+        rodadaAtual: 1,
         jogadores: jogadoresAtualizados,
         jogo: {
             palavraReal: wordObj.word,
@@ -1064,7 +1063,6 @@ async function startOnlineRound() {
             votos: {},
             votacaoInicio: null,
             escritaInicio: null,
-            jogadorDaVez: null,
             resultadoRodada: null
         }
     });
@@ -1115,7 +1113,6 @@ function renderOnlineReveal() {
         secretContent.innerText = me.palavra;
     }
 
-    // Substitui card para evitar listeners duplicados
     const newCard = cardSecret.cloneNode(true);
     cardSecret.parentNode.replaceChild(newCard, cardSecret);
     newCard.addEventListener('click', () => {
@@ -1147,7 +1144,7 @@ function renderOnlineReveal() {
 }
 
 // ============================================================
-// MODO ONLINE — TELA DE ESCRITA (por turnos, todas as rodadas)
+// MODO ONLINE — TELA DE ESCRITA (todas as rodadas)
 // ============================================================
 function renderOnlineWrite() {
     showScreen('onlineWrite');
@@ -1155,23 +1152,20 @@ function renderOnlineWrite() {
     const me = room.jogadores[state.online.uid];
     if (!me) return;
     const jogo = room.jogo || {};
+    const totalRodadas = room.config.rodadas || 1;
+    const players = getPlayersArray(room);
 
-    // Painéis de todas as rodadas
-    renderWriteRounds(room);
-
-    // Determina jogador da vez
+    // Descobre qual jogador está na vez agora
+    // A ordem se repete: rodada 0 (todos na ordem), rodada 1 (todos de novo), etc.
     const ordem = jogo.ordemEscrita || [];
     const palavras = jogo.palavras || {};
+
     let jogadorDaVez = null;
     let rodadaDaVez = null;
-
-    // Para cada rodada, verifica quem é o próximo a falar
-    const totalRodadas = room.config.voltas || 1;
-    const players = getPlayersArray(room);
     for (let r = 0; r < totalRodadas; r++) {
         for (const uid of ordem) {
-            const words = palavras[uid] || [];
-            if (!Array.isArray(words) || words.length <= r) {
+            const arr = palavras[uid] || [];
+            if (!Array.isArray(arr) || arr.length <= r || !arr[r]) {
                 jogadorDaVez = uid;
                 rodadaDaVez = r;
                 break;
@@ -1180,35 +1174,53 @@ function renderOnlineWrite() {
         if (jogadorDaVez) break;
     }
 
+    // Renderiza painéis de rodadas
+    renderWriteRounds(room, rodadaDaVez);
+
     // Atualiza barra flutuante
     updateWriteBar(room, me, jogadorDaVez, rodadaDaVez, players);
     if (window.lucide) lucide.createIcons();
 }
 
-function renderWriteRounds(room) {
+function renderWriteRounds(room, rodadaAtualIdx) {
     const jogo = room.jogo || {};
     const players = getPlayersArray(room);
     const ordem = jogo.ordemEscrita || [];
     const palavras = jogo.palavras || {};
-    const totalRodadas = room.config.voltas || 1;
+    const totalRodadas = room.config.rodadas || 1;
     const container = document.getElementById('onlineWriteRounds');
     container.innerHTML = '';
+
+    // Marca badge no topo da tela
+    const badge = document.getElementById('onlineWriteBadge');
+    if (badge) {
+        if (rodadaAtualIdx !== null && rodadaAtualIdx !== undefined) {
+            badge.innerText = `Rodada ${rodadaAtualIdx + 1} de ${totalRodadas}`;
+        } else {
+            badge.innerText = `Todas as ${totalRodadas} rodadas concluídas`;
+        }
+    }
 
     for (let r = 0; r < totalRodadas; r++) {
         const bloco = document.createElement('div');
         bloco.className = 'write-round-block';
-        bloco.innerHTML = `<h3 class="write-round-title">Rodada ${r + 1}</h3>`;
+        if (r === rodadaAtualIdx) bloco.classList.add('active-round');
+        bloco.innerHTML = `<h3 class="write-round-title">Rodada ${r + 1}${r === rodadaAtualIdx ? ' <span class="round-now-tag">agora</span>' : ''}</h3>`;
         const list = document.createElement('ol');
         list.className = 'write-round-list';
 
         ordem.forEach((uid, idx) => {
             const p = players.find(x => x.uid === uid);
             if (!p) return;
-            const words = palavras[uid] || [];
-            const word = Array.isArray(words) && words[r] ? words[r] : '';
+            const arr = palavras[uid] || [];
+            const word = Array.isArray(arr) && arr[r] ? arr[r] : '';
             const li = document.createElement('li');
             li.className = 'write-round-item';
             if (word) li.classList.add('filled');
+            // Destaca quem está na vez
+            if (r === rodadaAtualIdx && uid === (jogo.ordemEscrita || [])[idx]) {
+                // não faz nada
+            }
             li.innerHTML = `
                 <span class="write-round-pos">${idx + 1}.</span>
                 <span class="write-round-name">${p.nome}</span>
@@ -1221,12 +1233,6 @@ function renderWriteRounds(room) {
     }
 }
 
-function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({
-        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-    }[c]));
-}
-
 function updateWriteBar(room, me, jogadorDaVez, rodadaDaVez, players) {
     const bar = document.getElementById('onlineWriteBar');
     const info = document.getElementById('onlineWriteBarInfo');
@@ -1236,13 +1242,12 @@ function updateWriteBar(room, me, jogadorDaVez, rodadaDaVez, players) {
     const timerEl = document.getElementById('onlineWriteTimer');
     const waitEl = document.getElementById('onlineWriteWait');
 
-    // Todos já enviaram tudo?
-    const totalRodadas = room.config.voltas || 1;
-    const palavras = room.jogo?.palavras || {};
-    const allDone = jogadorDaVez === null;
-
-    if (allDone) {
+    if (jogadorDaVez === null) {
         bar.classList.add('hidden');
+        if (state.online.writeTimerInterval) {
+            clearInterval(state.online.writeTimerInterval);
+            state.online.writeTimerInterval = null;
+        }
         return;
     }
 
@@ -1250,18 +1255,16 @@ function updateWriteBar(room, me, jogadorDaVez, rodadaDaVez, players) {
 
     const jogador = players.find(p => p.uid === jogadorDaVez);
     const isMeuTurno = jogadorDaVez === state.online.uid;
+    const totalRodadas = room.config.rodadas || 1;
 
-    info.innerHTML = `<strong>Rodada ${rodadaDaVez + 1}</strong> · Vez de <strong>${jogador?.nome || '?'}</strong>`;
+    info.innerHTML = `<strong>Rodada ${rodadaDaVez + 1}/${totalRodadas}</strong> · Vez de <strong>${jogador?.nome || '?'}</strong>`;
 
     if (isMeuTurno) {
         inputWrap.classList.remove('hidden');
         sendBtn.classList.remove('hidden');
         waitEl.classList.add('hidden');
-        startWriteTimer(room, rodadaDaVez);
+        startWriteTimer(room);
 
-        // Ajusta placeholder
-        input.placeholder = 'Sua palavra/dica...';
-        // Reseta valor se trocou de rodada
         const key = `${jogadorDaVez}-${rodadaDaVez}`;
         if (state.online.lastPlayerOnTurn !== key) {
             input.value = '';
@@ -1275,19 +1278,17 @@ function updateWriteBar(room, me, jogadorDaVez, rodadaDaVez, players) {
             clearInterval(state.online.writeTimerInterval);
             state.online.writeTimerInterval = null;
         }
-        timerEl.innerText = 'Aguardando...';
+        timerEl.innerText = '—';
         timerEl.classList.remove('urgent');
     }
 }
 
-function startWriteTimer(room, rodadaDaVez) {
+function startWriteTimer(room) {
     if (state.online.writeTimerInterval) clearInterval(state.online.writeTimerInterval);
     const tempo = room.config.tempo || 30;
     const inicio = room.jogo?.escritaInicio || Date.now();
     const timerEl = document.getElementById('onlineWriteTimer');
 
-    // Marca início no Firestore se ainda não marcou para essa rodada específica
-    // (o host marca, mas fazemos aqui como fallback)
     if (!room.jogo?.escritaInicio) {
         updateDoc(state.online.roomRef, { 'jogo.escritaInicio': Date.now() }).catch(() => {});
     }
@@ -1300,7 +1301,6 @@ function startWriteTimer(room, rodadaDaVez) {
         if (restante <= 0) {
             clearInterval(state.online.writeTimerInterval);
             state.online.writeTimerInterval = null;
-            // Auto-envia vazio
             sendOnlineWord(true);
         }
     };
@@ -1312,21 +1312,39 @@ async function sendOnlineWord(auto = false) {
     if (!state.online.roomData) return;
     const room = state.online.roomData;
     const jogo = room.jogo || {};
-    const rodada = (room.rodadaAtual || 1) - 1; // índice 0-based
+    const totalRodadas = room.config.rodadas || 1;
+    const players = getPlayersArray(room);
+    const ordem = jogo.ordemEscrita || [];
+    const palavras = jogo.palavras || {};
+
+    // Descobre qual é a rodada da minha vez
+    let minhaRodada = null;
+    for (let r = 0; r < totalRodadas; r++) {
+        for (const uid of ordem) {
+            const arr = palavras[uid] || [];
+            if (!Array.isArray(arr) || arr.length <= r || !arr[r]) {
+                if (uid === state.online.uid) minhaRodada = r;
+                break;
+            }
+        }
+        if (minhaRodada !== null) break;
+    }
+    if (minhaRodada === null) return;
 
     const input = document.getElementById('onlineWordInput');
     const word = auto ? '...' : (input?.value.trim() || '');
     if (!word) { alert('Digite uma palavra!'); return; }
 
     const minhasPalavras = (jogo.palavras?.[state.online.uid] || []).slice();
-    while (minhasPalavras.length < rodada) minhasPalavras.push('');
-    minhasPalavras[rodada] = word;
+    while (minhasPalavras.length < minhaRodada) minhasPalavras.push('');
+    minhasPalavras[minhaRodada] = word;
 
     if (state.online.writeTimerInterval) {
         clearInterval(state.online.writeTimerInterval);
         state.online.writeTimerInterval = null;
     }
     if (input) input.value = '';
+    state.online.lastPlayerOnTurn = null;
 
     await updateDoc(state.online.roomRef, {
         [`jogo.palavras.${state.online.uid}`]: minhasPalavras,
@@ -1340,7 +1358,7 @@ document.getElementById('onlineWordInput').addEventListener('keydown', (e) => {
 });
 
 // ============================================================
-// MODO ONLINE — VOTAÇÃO
+// MODO ONLINE — VOTAÇÃO (após TODAS as rodadas)
 // ============================================================
 function renderOnlineVote() {
     showScreen('onlineVote');
@@ -1348,20 +1366,10 @@ function renderOnlineVote() {
     const me = room.jogadores[state.online.uid];
     if (!me) return;
 
-    // Lista de palavras (rodada atual)
-    const palavras = room.jogo?.palavras || {};
-    const rodadaIdx = (room.rodadaAtual || 1) - 1;
-    const wordList = document.getElementById('onlineWordList');
-    wordList.innerHTML = '';
+    document.getElementById('onlineVoteTitle').innerText = 'Quem é o impostor?';
+    document.getElementById('onlineVoteTimer').innerText = 'Discutam e votem quando quiserem';
+
     const players = getPlayersArray(room);
-    players.forEach(p => {
-        const words = palavras[p.uid] || [];
-        const word = Array.isArray(words) ? (words[rodadaIdx] || '—') : (words || '—');
-        const div = document.createElement('div');
-        div.className = 'word-item';
-        div.innerHTML = `<span class="word-name">${p.nome}</span><span class="word-text">${escapeHtml(word)}</span>`;
-        wordList.appendChild(div);
-    });
 
     // Grid de votos
     const grid = document.getElementById('onlineVoteGrid');
@@ -1390,36 +1398,11 @@ function renderOnlineVote() {
     });
 
     document.getElementById('onlineVoteStatus').classList.toggle('hidden', !jaVotou);
-    startVoteTimer();
     if (window.lucide) lucide.createIcons();
 }
 
-function startVoteTimer() {
-    if (state.online.voteTimerInterval) clearInterval(state.online.voteTimerInterval);
-    const room = state.online.roomData;
-    const tempo = room.config.tempo || 30;
-    const inicio = room.jogo?.votacaoInicio || Date.now();
-    const update = () => {
-        const elapsed = Math.floor((Date.now() - inicio) / 1000);
-        const restante = Math.max(0, tempo - elapsed);
-        document.getElementById('onlineVoteTimer').innerText = `⏱️ ${restante}s`;
-        if (restante <= 0) {
-            clearInterval(state.online.voteTimerInterval);
-            if (state.online.isHost) {
-                const players = getPlayersArray(room);
-                const votos = room.jogo?.votos || {};
-                const votosCompletos = {};
-                players.forEach(p => { votosCompletos[p.uid] = votos[p.uid] || 'skip'; });
-                updateDoc(state.online.roomRef, { 'jogo.votos': votosCompletos });
-            }
-        }
-    };
-    update();
-    state.online.voteTimerInterval = setInterval(update, 500);
-}
-
 // ============================================================
-// MODO ONLINE — RESOLVER RODADA
+// MODO ONLINE — RESOLVER
 // ============================================================
 async function resolveOnlineRound() {
     if (!state.online.isHost) return;
@@ -1454,7 +1437,6 @@ async function resolveOnlineRound() {
         });
     }
 
-    // Reset confirmações para próxima rodada
     Object.keys(jogadoresAtualizados).forEach(uid => {
         jogadoresAtualizados[uid].confirmouProximaRodada = false;
     });
@@ -1471,7 +1453,7 @@ async function resolveOnlineRound() {
 }
 
 // ============================================================
-// MODO ONLINE — RESULTADO
+// MODO ONLINE — RESULTADO FINAL
 // ============================================================
 function renderOnlineResult() {
     showScreen('onlineResult');
@@ -1508,7 +1490,6 @@ function renderOnlineResult() {
     Object.entries(contagem).forEach(([uid, c]) => { if (c > max) { max = c; maisVotado = uid; } });
     const maisVotadoNome = maisVotado && room.jogadores[maisVotado] ? room.jogadores[maisVotado].nome : 'Ninguém';
 
-    // Texto principal
     const icon = document.getElementById('onlineResultIcon');
     const title = document.getElementById('onlineResultTitle');
     const sub = document.getElementById('onlineResultSub');
@@ -1537,7 +1518,7 @@ function renderOnlineResult() {
     const wordList = document.getElementById('onlineResultWords');
     wordList.innerHTML = '';
     const jogadores = getPlayersArray(room);
-    const totalRodadas = room.config.voltas || 1;
+    const totalRodadas = room.config.rodadas || 1;
     const palavras = jogo.palavras || {};
 
     for (let r = 0; r < totalRodadas; r++) {
@@ -1565,10 +1546,6 @@ function renderOnlineResult() {
     }
 
     // Botões de continuar
-    const totalRodadasConf = room.config.voltas || 1;
-    const rodadaAtual = room.rodadaAtual || 1;
-    const acabou = rodadaAtual >= totalRodadasConf;
-
     const confirmBtn = document.getElementById('onlineResultConfirmBtn');
     const waitEl = document.getElementById('onlineWaitResult');
     const confirmCountEl = document.getElementById('onlineResultConfirmCount');
@@ -1583,7 +1560,7 @@ function renderOnlineResult() {
     } else {
         confirmBtn.classList.remove('hidden');
         waitEl.classList.add('hidden');
-        confirmBtn.innerText = acabou ? 'Voltar ao menu' : 'Próxima rodada';
+        confirmBtn.innerText = 'Ver ranking final';
         const newBtn = confirmBtn.cloneNode(true);
         confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
         newBtn.addEventListener('click', async () => {
@@ -1598,7 +1575,6 @@ function renderOnlineResult() {
         });
     }
 
-    // Se todos confirmaram, host avança
     if (state.online.isHost) {
         maybeAdvanceFromResult(room);
     }
@@ -1623,31 +1599,8 @@ async function maybeAdvanceFromResult(room) {
     const freshPlayers = getPlayersArray(freshData);
     if (freshPlayers.filter(p => p.confirmouProximaRodada).length < freshPlayers.length) return;
 
-    const totalRodadas = freshData.config.voltas || 1;
-    const rodadaAtual = freshData.rodadaAtual || 1;
-
-    if (rodadaAtual >= totalRodadas) {
-        await updateDoc(state.online.roomRef, { status: 'fim' });
-    } else {
-        // Prepara próxima rodada
-        const jogadoresReset = {};
-        freshPlayers.forEach(p => {
-            jogadoresReset[p.uid] = {
-                nome: p.nome, pronto: true, pontos: p.pontos || 0,
-                papel: null, palavra: null, viuPapel: false,
-                confirmouProximaRodada: false
-            };
-        });
-        state.online.lastPhaseKey = null;
-        state.online.confirmedContinue = false;
-        await updateDoc(state.online.roomRef, {
-            status: 'revelacao',
-            rodadaAtual: rodadaAtual + 1,
-            jogadores: jogadoresReset,
-            jogo: null
-        });
-        await startOnlineRound();
-    }
+    // Fim de partida → vai para ranking
+    await updateDoc(state.online.roomRef, { status: 'fim' });
 }
 
 // ============================================================
@@ -1712,13 +1665,12 @@ function renderOnlineGameOver() {
         cleanupAndHome();
     });
 
-    // Botão "Voltar ao menu" para não-host
     const backMenuBtn = document.getElementById('onlineSpectatorMenuBtn');
     if (backMenuBtn) {
         const newBtn = backMenuBtn.cloneNode(true);
         backMenuBtn.parentNode.replaceChild(newBtn, backMenuBtn);
         newBtn.addEventListener('click', () => {
-            if (confirm('Sair da sala? Todos os outros voltarão ao menu.')) {
+            if (confirm('Sair da sala?')) {
                 cleanupAndHome();
             }
         });

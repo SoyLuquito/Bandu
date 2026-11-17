@@ -51,10 +51,10 @@
 
                 <div class="home-actions">
                     <button type="button" class="btn btn-primary btn-block" id="modeLocalBtn">
-                        <i data-lucide="smartphone"></i> 1 dispositivo
+                        <i data-lucide="smartphone"></i> Juntos
                     </button>
                     <button type="button" class="btn btn-secondary btn-block" id="modeOnlineBtn">
-                        <i data-lucide="users"></i> Cada um no seu
+                        <i data-lucide="users"></i> Online
                     </button>
                 </div>
             </div>
@@ -79,7 +79,7 @@
             <div class="card-panel">
                 <header class="panel-header">
                     <h1>Nova Partida</h1>
-                    <p>Modo 1 dispositivo</p>
+                    <p>Modo Juntos</p>
                 </header>
 
                 <div class="panel-divider"></div>
@@ -299,7 +299,7 @@
 
             <div class="card-panel">
                 <header class="panel-header">
-                    <h1>Cada um no seu</h1>
+                    <h1>Online</h1>
                     <p>Crie ou entre em uma sala</p>
                 </header>
 
@@ -346,7 +346,7 @@
 
                 <div class="host-config hidden" id="hostConfig">
                     <div class="config-group">
-                        <label class="config-label">Voltas</label>
+                        <label class="config-label">Rodadas</label>
                         <div class="chip-group" id="roundsGroup">
                             <button type="button" class="chip-btn active" data-value="1">1</button>
                             <button type="button" class="chip-btn" data-value="2">2</button>
@@ -374,6 +374,7 @@
                                 <i data-lucide="lightbulb"></i> Com dica
                             </button>
                         </div>
+                        <p class="mode-desc" id="onlineModeDesc">O impostor não recebe nenhuma informação — precisa blefar do zero.</p>
                     </div>
                     <div class="config-group">
                         <label class="config-label">Temas das Palavras</label>
@@ -513,8 +514,8 @@
             <div class="card-panel">
                 <div class="vote-header">
                     <i data-lucide="vote"></i>
-                    <h2 id="onlineVoteTitle">Discussão</h2>
-                    <p class="subtitle" id="onlineVoteTimer">--</p>
+                    <h2 id="onlineVoteTitle">Quem é o impostor?</h2>
+                    <p class="subtitle" id="onlineVoteTimer">Discutam e votem quando quiserem</p>
                 </div>
 
                 <div class="word-list" id="onlineWordList"></div>
@@ -573,7 +574,7 @@
                 <div class="word-list" id="onlineResultWords"></div>
 
                 <button type="button" class="btn btn-primary btn-block" id="onlineResultConfirmBtn">
-                    Próxima rodada
+                    Ver ranking final
                 </button>
                 <p class="result-confirm-count" id="onlineResultConfirmCount">0/0</p>
 
