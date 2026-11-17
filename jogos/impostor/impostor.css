@@ -113,7 +113,6 @@ body::after {
 .panel-header h1 { font-size: 2rem; font-weight: 900; margin-top: 0.5rem; margin-bottom: 0.25rem; }
 .panel-header p { font-size: 0.9rem; color: var(--texto-suave); margin-top: 0.25rem; }
 
-/* ===== Código da sala com olhinho ===== */
 .room-code-wrapper {
     display: flex;
     align-items: center;
@@ -651,9 +650,6 @@ body::after {
     padding-top: 3.5rem;
 }
 
-/* Barra de escrita — largura total do card, sticky no topo.
-   Fica entre o top-bar (voltar/anúncio) e o conteúdo do card.
-   Ao rolar, gruda no topo (abaixo do top-bar). */
 .online-write-bar {
     position: sticky;
     top: 0.5rem;
@@ -669,14 +665,12 @@ body::after {
     margin: 0;
     width: 100%;
 }
-
 .online-write-bar-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
 }
-
 .online-write-bar-info {
     font-size: 0.8rem;
     color: var(--texto-suave);
@@ -686,7 +680,6 @@ body::after {
     color: var(--texto);
     font-weight: 900;
 }
-
 .online-write-timer {
     font-size: 1.05rem;
     font-weight: 900;
@@ -702,7 +695,6 @@ body::after {
     color: var(--vermelho-alerta);
     animation: pulse 1s ease-in-out infinite;
 }
-
 .online-write-bar-input {
     display: flex;
     gap: 0.4rem;
@@ -723,7 +715,6 @@ body::after {
     padding: 0.6rem 0.8rem;
     flex-shrink: 0;
 }
-
 .online-write-wait {
     display: flex;
     align-items: center;
@@ -809,6 +800,30 @@ body::after {
 }
 .write-round-item.filled .write-round-word {
     color: var(--texto);
+}
+
+/* ============ ESCOLHA DE PRÓXIMA RODADA ============ */
+.next-round-choice {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+.next-round-status {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+    color: var(--texto-suave);
+    font-weight: 600;
+}
+.next-round-status .status-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+.next-round-status .status-line strong {
+    color: var(--texto);
+    font-weight: 800;
 }
 
 .ad-banner {

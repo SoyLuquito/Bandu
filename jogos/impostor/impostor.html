@@ -351,14 +351,6 @@
 
                 <div class="host-config hidden" id="hostConfig">
                     <div class="config-group">
-                        <label class="config-label">Rodadas</label>
-                        <div class="chip-group" id="roundsGroup">
-                            <button type="button" class="chip-btn active" data-value="1">1</button>
-                            <button type="button" class="chip-btn" data-value="2">2</button>
-                            <button type="button" class="chip-btn" data-value="3">3</button>
-                        </div>
-                    </div>
-                    <div class="config-group">
                         <label class="config-label">Tempo para jogar</label>
                         <div class="chip-group" id="timeGroup">
                             <button type="button" class="chip-btn active" data-value="30">30s</button>
@@ -505,6 +497,47 @@
         </section>
 
 
+        <!-- ============ ONLINE: ESCOLHA DE PRÓXIMA RODADA ============ -->
+        <section id="onlineNextRoundScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <div class="round-badge" id="nextRoundBadge">Rodada 1 concluída</div>
+                <h2 class="display-title">Continuar?</h2>
+                <p class="subtitle" id="nextRoundSub">A maioria decide</p>
+
+                <div class="next-round-choice">
+                    <button type="button" class="btn btn-primary btn-block" id="addRoundBtn">
+                        <i data-lucide="plus"></i> +1 rodada
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-block" id="voteNowBtn">
+                        <i data-lucide="vote"></i> Votar agora
+                    </button>
+                </div>
+
+                <p class="result-confirm-count" id="nextRoundCount">0/0</p>
+
+                <div class="next-round-status" id="nextRoundStatus"></div>
+
+                <p class="waiting-msg hidden" id="onlineWaitNextRound">
+                    <i data-lucide="hourglass"></i>
+                    <span>Aguardando os votos...</span>
+                </p>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
         <!-- ============ ONLINE: VOTAÇÃO ============ -->
         <section id="onlineVoteScreen" class="screen-wrap hidden">
             <div class="top-bar">
@@ -523,7 +556,6 @@
                     <p class="subtitle" id="onlineVoteTimer">Discutam e votem quando quiserem</p>
                 </div>
 
-                <!-- Todas as palavras ditas (todas as rodadas) — visível durante votação -->
                 <div class="write-rounds-container" id="onlineVoteRounds"></div>
 
                 <p class="vote-instruction" id="onlineVoteInstruction">Quem é o impostor?</p>
