@@ -651,31 +651,23 @@ body::after {
     padding-top: 3.5rem;
 }
 
-/* Barra de escrita — não ocupa o canto do botão voltar.
-   Alinhada à direita do container, mesmo estilo da faixa de anúncio. */
+/* Barra de escrita — largura total do card, sticky no topo.
+   Fica entre o top-bar (voltar/anúncio) e o conteúdo do card.
+   Ao rolar, gruda no topo (abaixo do top-bar). */
 .online-write-bar {
-    position: fixed;
+    position: sticky;
     top: 0.5rem;
-    right: calc(50% - 220px + 0.5rem);
-    width: auto;
-    max-width: calc(440px - 60px);
-    min-width: 260px;
+    z-index: 30;
     background: #FFFFFF;
     border-radius: 16px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.14);
-    padding: 0.55rem 0.75rem 0.65rem;
-    z-index: 200;
+    padding: 0.55rem 0.9rem 0.65rem;
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
     border: 2px solid var(--bege-escuro);
-}
-
-@media (max-width: 480px) {
-    .online-write-bar {
-        right: 0.5rem;
-        max-width: calc(100vw - 70px);
-    }
+    margin: 0;
+    width: 100%;
 }
 
 .online-write-bar-row {
@@ -686,7 +678,7 @@ body::after {
 }
 
 .online-write-bar-info {
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     color: var(--texto-suave);
     line-height: 1.3;
 }

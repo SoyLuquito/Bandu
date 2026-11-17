@@ -462,26 +462,8 @@
         </section>
 
 
-        <!-- ============ ONLINE: ESCRITA (barra flutuante + rodadas) ============ -->
+        <!-- ============ ONLINE: ESCRITA (barra sticky + rodadas) ============ -->
         <section id="onlineWriteScreen" class="screen-wrap hidden write-screen-wrap">
-            <!-- Barra flutuante fixa no topo (ao lado do botão voltar) -->
-            <div class="online-write-bar hidden" id="onlineWriteBar">
-                <div class="online-write-bar-row">
-                    <span class="online-write-bar-info" id="onlineWriteBarInfo">—</span>
-                    <span class="online-write-timer" id="onlineWriteTimer">--s</span>
-                </div>
-                <div class="online-write-bar-input hidden" id="onlineWordInputWrap">
-                    <input type="text" id="onlineWordInput" placeholder="Sua palavra/dica..." maxlength="25" autocomplete="off">
-                    <button type="button" class="btn btn-primary" id="onlineSendWordBtn">
-                        <i data-lucide="send"></i>
-                    </button>
-                </div>
-                <p class="online-write-wait hidden" id="onlineWriteWait">
-                    <i data-lucide="hourglass"></i>
-                    <span>Aguardando os outros jogadores...</span>
-                </p>
-            </div>
-
             <div class="top-bar">
                 <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
                     <i data-lucide="arrow-left"></i>
@@ -492,6 +474,24 @@
             </div>
 
             <div class="card-panel">
+                <!-- Barra sticky: fica entre o top-bar e o conteúdo, cola no topo ao rolar -->
+                <div class="online-write-bar hidden" id="onlineWriteBar">
+                    <div class="online-write-bar-row">
+                        <span class="online-write-bar-info" id="onlineWriteBarInfo">—</span>
+                        <span class="online-write-timer" id="onlineWriteTimer">--s</span>
+                    </div>
+                    <div class="online-write-bar-input hidden" id="onlineWordInputWrap">
+                        <input type="text" id="onlineWordInput" placeholder="Sua palavra/dica..." maxlength="25" autocomplete="off">
+                        <button type="button" class="btn btn-primary" id="onlineSendWordBtn">
+                            <i data-lucide="send"></i>
+                        </button>
+                    </div>
+                    <p class="online-write-wait hidden" id="onlineWriteWait">
+                        <i data-lucide="hourglass"></i>
+                        <span>Aguardando os outros jogadores...</span>
+                    </p>
+                </div>
+
                 <div class="round-badge" id="onlineWriteBadge">Rodada 1</div>
                 <h2 class="display-title">Palavras da partida</h2>
                 <p class="subtitle">Cada jogador digita sua palavra na sua vez</p>
