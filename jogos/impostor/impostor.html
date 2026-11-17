@@ -456,8 +456,26 @@
         </section>
 
 
-        <!-- ============ ONLINE: ESCREVER PALAVRA ============ -->
-        <section id="onlineWriteScreen" class="screen-wrap hidden">
+        <!-- ============ ONLINE: ESCRITA (barra flutuante + rodadas) ============ -->
+        <section id="onlineWriteScreen" class="screen-wrap hidden write-screen-wrap">
+            <!-- Barra flutuante fixa no topo -->
+            <div class="online-write-bar hidden" id="onlineWriteBar">
+                <div class="online-write-bar-row">
+                    <span class="online-write-bar-info" id="onlineWriteBarInfo">—</span>
+                    <span class="online-write-timer" id="onlineWriteTimer">--s</span>
+                </div>
+                <div class="online-write-bar-input hidden" id="onlineWordInputWrap">
+                    <input type="text" id="onlineWordInput" placeholder="Sua palavra/dica..." maxlength="25" autocomplete="off">
+                    <button type="button" class="btn btn-primary" id="onlineSendWordBtn">
+                        <i data-lucide="send"></i>
+                    </button>
+                </div>
+                <p class="online-write-wait hidden" id="onlineWriteWait">
+                    <i data-lucide="hourglass"></i>
+                    <span>Aguardando os outros jogadores...</span>
+                </p>
+            </div>
+
             <div class="top-bar">
                 <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
                     <i data-lucide="arrow-left"></i>
@@ -469,23 +487,10 @@
 
             <div class="card-panel">
                 <div class="round-badge" id="onlineWriteBadge">Rodada 1</div>
-                <h2 class="display-title">Sua vez de escrever</h2>
-                <p class="subtitle" id="onlineWriteSub">Digite uma palavra ou dica sobre o tema</p>
+                <h2 class="display-title">Palavras da partida</h2>
+                <p class="subtitle">Cada jogador digita sua palavra na sua vez</p>
 
-                <div class="timer-display" id="onlineWriteTimer">30s</div>
-
-                <div class="input-with-button">
-                    <input type="text" id="onlineWordInput" placeholder="Sua palavra/dica..." maxlength="25" autocomplete="off">
-                </div>
-
-                <button type="button" class="btn btn-primary btn-block" id="onlineSendWordBtn">
-                    <i data-lucide="send"></i> Enviar
-                </button>
-
-                <p class="waiting-msg hidden" id="onlineWaitWrite">
-                    <i data-lucide="hourglass"></i>
-                    <span>Aguardando os outros jogadores...</span>
-                </p>
+                <div class="write-rounds-container" id="onlineWriteRounds"></div>
             </div>
 
             <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
@@ -553,6 +558,11 @@
                 <h2 class="display-title" id="onlineResultTitle">Resultado</h2>
                 <p class="subtitle" id="onlineResultSub">Confira quem era o impostor</p>
 
+                <div class="vote-outcome">
+                    <p class="vote-outcome-line" id="onlineResultVoteLabel">Os jogadores escolheram …</p>
+                    <p class="vote-outcome-line strong" id="onlineResultImpostorCheck">Ele era o impostor</p>
+                </div>
+
                 <div class="result-reveal">
                     <p class="result-label">A palavra era</p>
                     <h3 class="result-word" id="onlineResultWord">PALAVRA</h3>
@@ -562,12 +572,14 @@
 
                 <div class="word-list" id="onlineResultWords"></div>
 
-                <button type="button" class="btn btn-primary btn-block hidden" id="onlineNextRoundBtn">
-                    <i data-lucide="arrow-right"></i> Próxima Rodada
+                <button type="button" class="btn btn-primary btn-block" id="onlineResultConfirmBtn">
+                    Próxima rodada
                 </button>
+                <p class="result-confirm-count" id="onlineResultConfirmCount">0/0</p>
+
                 <p class="waiting-msg hidden" id="onlineWaitResult">
                     <i data-lucide="hourglass"></i>
-                    <span>Aguardando o anfitrião...</span>
+                    <span>Aguardando os outros jogadores...</span>
                 </p>
             </div>
 
@@ -606,10 +618,15 @@
                     </button>
                 </div>
 
-                <p class="waiting-msg hidden" id="onlineSpectatorMsg">
-                    <i data-lucide="hourglass"></i>
-                    <span>Aguardando o anfitrião...</span>
-                </p>
+                <div class="spectator-block hidden" id="onlineSpectatorMsg">
+                    <p class="waiting-msg">
+                        <i data-lucide="hourglass"></i>
+                        <span>Aguardando o anfitrião...</span>
+                    </p>
+                    <button type="button" class="btn btn-secondary btn-block" id="onlineSpectatorMenuBtn">
+                        <i data-lucide="log-out"></i> Voltar ao menu
+                    </button>
+                </div>
             </div>
 
             <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
