@@ -14,13 +14,13 @@
 
     <main class="container">
 
-        <!-- ================= FASE 1: CONFIGURAÇÃO ================= -->
-        <section id="configScreen" class="screen-wrap">
+        <!-- ============ TELA 0: MENU DE MODOS ============ -->
+        <section id="modeMenuScreen" class="screen-wrap">
             <div class="top-bar">
                 <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
                     <i data-lucide="arrow-left"></i>
                 </button>
-                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <button type="button" class="ad-banner ad-banner-top-compact" data-ad-banner aria-label="Apoie ou anuncie aqui">
                     <span class="ad-banner-text">Apoie ou anuncie aqui</span>
                 </button>
             </div>
@@ -49,6 +49,41 @@
 
                 <div class="panel-divider"></div>
 
+                <div class="home-actions">
+                    <button type="button" class="btn btn-primary btn-block" id="modeLocalBtn">
+                        <i data-lucide="smartphone"></i> 1 dispositivo
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-block" id="modeOnlineBtn">
+                        <i data-lucide="users"></i> Cada um no seu
+                    </button>
+                </div>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ============ FASE 1: CONFIGURAÇÃO LOCAL ============ -->
+        <section id="configScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top-compact" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <header class="panel-header">
+                    <h1>Nova Partida</h1>
+                    <p>Modo 1 dispositivo</p>
+                </header>
+
+                <div class="panel-divider"></div>
+
                 <form id="configForm" onsubmit="return false;">
                     <div class="form-group">
                         <label class="form-label">Jogadores</label>
@@ -65,19 +100,25 @@
                             <button type="button" class="chip-btn active" data-value="1">1</button>
                             <button type="button" class="chip-btn" data-value="2">2</button>
                             <button type="button" class="chip-btn" data-value="3">3</button>
+                            <button type="button" class="chip-btn" data-value="4">4</button>
                         </div>
+                        <p class="chip-hint" id="impostorLimitHint">Adicione jogadores para liberar mais impostores.</p>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Impostor recebe...</label>
-                        <div class="segmented-control">
+                        <label class="form-label">Impostor</label>
+                        <div class="segmented-control segmented-three">
                             <button type="button" class="segment-btn active" data-mode="blind">
                                 <i data-lucide="eye-off"></i> Sem dica
+                            </button>
+                            <button type="button" class="segment-btn" data-mode="infiltrated">
+                                <i data-lucide="user-x"></i> Infiltrado
                             </button>
                             <button type="button" class="segment-btn" data-mode="hint">
                                 <i data-lucide="lightbulb"></i> Com dica
                             </button>
                         </div>
+                        <p class="mode-desc" id="modeDesc">O impostor não recebe nenhuma informação — precisa blefar do zero.</p>
                     </div>
 
                     <div class="form-group">
@@ -103,7 +144,7 @@
         </section>
 
 
-        <!-- ================= FASE 2: REVELAÇÃO DAS PALAVRAS ================= -->
+        <!-- ============ FASE 2: REVELAÇÃO LOCAL ============ -->
         <section id="revealScreen" class="screen-wrap hidden">
             <div class="top-bar">
                 <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
@@ -136,10 +177,14 @@
                     <i data-lucide="arrow-right"></i> Passar
                 </button>
             </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
         </section>
 
 
-        <!-- ================= FASE 3: SORTEIO DE QUEM COMEÇA ================= -->
+        <!-- ============ FASE 3: SORTEIO ============ -->
         <section id="sortScreen" class="screen-wrap hidden">
             <div class="top-bar">
                 <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
@@ -163,10 +208,14 @@
                     <i data-lucide="play"></i> Iniciar Rodada
                 </button>
             </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
         </section>
 
 
-        <!-- ================= FASE 4: RODADA EM ANDAMENTO ================= -->
+        <!-- ============ FASE 4: RODADA LOCAL ============ -->
         <section id="playingScreen" class="screen-wrap hidden">
             <div class="top-bar">
                 <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
@@ -191,10 +240,14 @@
                     <i data-lucide="check-circle-2"></i> Rodada Finalizada
                 </button>
             </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
         </section>
 
 
-        <!-- ================= FASE 5: RESULTADO DA RODADA ================= -->
+        <!-- ============ FASE 5: RESULTADO LOCAL ============ -->
         <section id="resultScreen" class="screen-wrap hidden">
             <div class="top-bar">
                 <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
@@ -226,6 +279,342 @@
                     <i data-lucide="settings"></i> Ajustar Configurações
                 </button>
             </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ============ ONLINE: MENU CRIAR/ENTRAR ============ -->
+        <section id="onlineMenuScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <header class="panel-header">
+                    <h1>Cada um no seu</h1>
+                    <p>Crie ou entre em uma sala</p>
+                </header>
+
+                <div class="panel-divider"></div>
+
+                <div class="home-actions">
+                    <button type="button" class="btn btn-primary btn-block" id="createRoomBtn">
+                        <i data-lucide="plus-circle"></i> Criar Sala
+                    </button>
+
+                    <div class="join-box">
+                        <input type="text" id="joinCodeInput" class="code-input" placeholder="CÓDIGO" maxlength="6" autocomplete="off" spellcheck="false">
+                        <button type="button" class="btn btn-secondary" id="joinRoomBtn">
+                            <i data-lucide="log-in"></i> Entrar
+                        </button>
+                    </div>
+
+                    <p class="home-hint">Crie uma sala e mande o código pros amigos.</p>
+                </div>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ============ ONLINE: LOBBY ============ -->
+        <section id="lobbyScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <header class="panel-header">
+                    <h1>Sala</h1>
+                    <p class="room-code-display" id="lobbyRoomCode">------</p>
+                </header>
+
+                <div class="host-config hidden" id="hostConfig">
+                    <div class="config-group">
+                        <label class="config-label">Voltas</label>
+                        <div class="chip-group" id="roundsGroup">
+                            <button type="button" class="chip-btn active" data-value="1">1</button>
+                            <button type="button" class="chip-btn" data-value="2">2</button>
+                            <button type="button" class="chip-btn" data-value="3">3</button>
+                        </div>
+                    </div>
+                    <div class="config-group">
+                        <label class="config-label">Tempo para jogar</label>
+                        <div class="chip-group" id="timeGroup">
+                            <button type="button" class="chip-btn active" data-value="30">30s</button>
+                            <button type="button" class="chip-btn" data-value="45">45s</button>
+                            <button type="button" class="chip-btn" data-value="60">60s</button>
+                        </div>
+                    </div>
+                    <div class="config-group">
+                        <label class="config-label">Impostor</label>
+                        <div class="segmented-control segmented-three">
+                            <button type="button" class="segment-btn active" data-mode="blind">
+                                <i data-lucide="eye-off"></i> Sem dica
+                            </button>
+                            <button type="button" class="segment-btn" data-mode="infiltrated">
+                                <i data-lucide="user-x"></i> Infiltrado
+                            </button>
+                            <button type="button" class="segment-btn" data-mode="hint">
+                                <i data-lucide="lightbulb"></i> Com dica
+                            </button>
+                        </div>
+                    </div>
+                    <div class="config-group">
+                        <label class="config-label">Temas das Palavras</label>
+                        <div class="theme-grid" id="onlineThemeGrid">
+                            <button type="button" class="theme-toggle" data-theme="animais">Animais</button>
+                            <button type="button" class="theme-toggle" data-theme="profissoes">Profissões</button>
+                            <button type="button" class="theme-toggle" data-theme="objetos">Objetos</button>
+                            <button type="button" class="theme-toggle" data-theme="comidas">Comidas</button>
+                            <button type="button" class="theme-toggle" data-theme="filmes">Filmes &amp; Séries</button>
+                            <button type="button" class="theme-toggle" data-theme="futebol">Futebol</button>
+                            <button type="button" class="theme-toggle" data-theme="marvelDC">Marvel & DC</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="players-section">
+                    <div class="players-header">
+                        <span>Jogadores</span>
+                        <span id="playerCount">0 / 10</span>
+                    </div>
+                    <ul class="players-list" id="playersList"></ul>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-block hidden" id="startGameOnlineBtn">
+                    <i data-lucide="play"></i> Iniciar Partida
+                </button>
+                <button type="button" class="btn btn-secondary btn-block" id="readyBtn">
+                    <i data-lucide="check"></i> Estou Pronto
+                </button>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ============ ONLINE: REVELAÇÃO DO PAPEL ============ -->
+        <section id="onlineRevealScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <div class="round-badge">Seu papel</div>
+                <h2 class="display-title" id="onlineRevealTitle">...</h2>
+                <p class="subtitle" id="onlineRevealSub">Toque para revelar</p>
+
+                <div class="card-secret" id="onlineCardSecret">
+                    <div class="card-secret-inner">
+                        <div class="card-front">
+                            <i data-lucide="eye" class="card-front-icon"></i>
+                            <p>Toque para revelar</p>
+                        </div>
+                        <div class="card-back" id="onlineCardBack">
+                            <span class="card-back-label" id="onlineSecretLabel">Sua palavra</span>
+                            <h3 id="onlineSecretContent">PALAVRA</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="waiting-msg hidden" id="onlineWaitReveal">
+                    <i data-lucide="hourglass"></i>
+                    <span>Aguardando os outros jogadores...</span>
+                </p>
+
+                <button type="button" class="btn btn-primary btn-block hidden" id="onlineRevealConfirmBtn">
+                    <i data-lucide="check"></i> Entendi
+                </button>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ============ ONLINE: ESCREVER PALAVRA ============ -->
+        <section id="onlineWriteScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <div class="round-badge" id="onlineWriteBadge">Rodada 1</div>
+                <h2 class="display-title">Sua vez de escrever</h2>
+                <p class="subtitle" id="onlineWriteSub">Digite uma palavra ou dica sobre o tema</p>
+
+                <div class="timer-display" id="onlineWriteTimer">30s</div>
+
+                <div class="input-with-button">
+                    <input type="text" id="onlineWordInput" placeholder="Sua palavra/dica..." maxlength="25" autocomplete="off">
+                </div>
+
+                <button type="button" class="btn btn-primary btn-block" id="onlineSendWordBtn">
+                    <i data-lucide="send"></i> Enviar
+                </button>
+
+                <p class="waiting-msg hidden" id="onlineWaitWrite">
+                    <i data-lucide="hourglass"></i>
+                    <span>Aguardando os outros jogadores...</span>
+                </p>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ============ ONLINE: VOTAÇÃO ============ -->
+        <section id="onlineVoteScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <div class="vote-header">
+                    <i data-lucide="vote"></i>
+                    <h2 id="onlineVoteTitle">Discussão</h2>
+                    <p class="subtitle" id="onlineVoteTimer">--</p>
+                </div>
+
+                <div class="word-list" id="onlineWordList"></div>
+
+                <p class="vote-instruction" id="onlineVoteInstruction">Quem é o impostor?</p>
+
+                <div class="vote-grid" id="onlineVoteGrid"></div>
+
+                <div class="vote-status hidden" id="onlineVoteStatus">
+                    <i data-lucide="check-circle"></i>
+                    <span>Você votou</span>
+                </div>
+
+                <p class="waiting-msg hidden" id="onlineWaitVote">
+                    <i data-lucide="hourglass"></i>
+                    <span>Aguardando votos...</span>
+                </p>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ============ ONLINE: RESULTADO ============ -->
+        <section id="onlineResultScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <div class="result-icon" id="onlineResultIcon">
+                    <i data-lucide="help-circle"></i>
+                </div>
+                <h2 class="display-title" id="onlineResultTitle">Resultado</h2>
+                <p class="subtitle" id="onlineResultSub">Confira quem era o impostor</p>
+
+                <div class="result-reveal">
+                    <p class="result-label">A palavra era</p>
+                    <h3 class="result-word" id="onlineResultWord">PALAVRA</h3>
+                    <p class="result-label" id="onlineResultImpostorLabel">O impostor era</p>
+                    <div class="result-impostors" id="onlineResultImpostors"></div>
+                </div>
+
+                <div class="word-list" id="onlineResultWords"></div>
+
+                <button type="button" class="btn btn-primary btn-block hidden" id="onlineNextRoundBtn">
+                    <i data-lucide="arrow-right"></i> Próxima Rodada
+                </button>
+                <p class="waiting-msg hidden" id="onlineWaitResult">
+                    <i data-lucide="hourglass"></i>
+                    <span>Aguardando o anfitrião...</span>
+                </p>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ============ ONLINE: FIM ============ -->
+        <section id="onlineGameOverScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <div class="result-icon win" id="onlineGameOverIcon">
+                    <i data-lucide="trophy"></i>
+                </div>
+                <h2 class="display-title" id="onlineGameOverTitle">Fim de jogo!</h2>
+                <p class="subtitle" id="onlineGameOverSub">Ranking final</p>
+
+                <div class="final-reveal" id="onlineFinalReveal"></div>
+
+                <div class="game-over-actions hidden" id="onlineGameOverActions">
+                    <button type="button" class="btn btn-primary btn-block" id="onlineRematchBtn">
+                        <i data-lucide="rotate-ccw"></i> Jogar Novamente
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-block" id="onlineCloseRoomBtn">
+                        <i data-lucide="log-out"></i> Encerrar Sala
+                    </button>
+                </div>
+
+                <p class="waiting-msg hidden" id="onlineSpectatorMsg">
+                    <i data-lucide="hourglass"></i>
+                    <span>Aguardando o anfitrião...</span>
+                </p>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
         </section>
 
     </main>
@@ -242,13 +631,33 @@
         </div>
     </div>
 
+    <!-- Modal nome -->
+    <div class="modal-overlay hidden" id="nameModal">
+        <div class="modal-card">
+            <h3>Qual seu nome?</h3>
+            <p>Escolha um nome para os outros verem.</p>
+            <input type="text" id="nameInput" class="code-input name-input" placeholder="Seu nome" maxlength="15" autocomplete="off">
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" id="cancelNameBtn">Cancelar</button>
+                <button class="btn btn-primary" id="confirmNameBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <p id="loadingText">Carregando...</p>
+        </div>
+    </div>
+
     <!-- Modal "Apoie ou anuncie aqui" -->
     <div class="ad-overlay" id="adOverlay"></div>
     <div class="ad-modal" id="adModal" role="dialog" aria-modal="true" aria-labelledby="adModalTitle">
         <button class="ad-modal-close" id="adModalClose" aria-label="Fechar">✕</button>
         <h3 class="ad-modal-title" id="adModalTitle">Apoie ou anuncie aqui</h3>
 
-        <!-- Abas -->
         <div class="ad-tabs" role="tablist">
             <button type="button" class="ad-tab active" data-ad-tab="advertise" role="tab" aria-selected="true">
                 Anuncie aqui
@@ -258,7 +667,6 @@
             </button>
         </div>
 
-        <!-- Aba: Anuncie -->
         <div class="ad-tab-panel" data-ad-panel="advertise">
             <p class="ad-modal-desc">
                 Quer divulgar sua marca para quem joga com os amigos?
@@ -273,7 +681,6 @@
             <p class="ad-copied-msg" id="adCopiedMsg">E-mail copiado!</p>
         </div>
 
-        <!-- Aba: Apoie -->
         <div class="ad-tab-panel hidden" data-ad-panel="support">
             <p class="ad-modal-desc ad-modal-desc-left">
                 O Rally é um projeto independente, feito por mim, para que todo mundo possa se divertir com os amigos de forma gratuita. Não pretendo cobrar pelo acesso, mas manter tudo funcionando e trazer novidades exige tempo e recursos.
@@ -296,6 +703,6 @@
         </div>
     </div>
 
-    <script src="impostor.js"></script>
+    <script type="module" src="impostor.js"></script>
 </body>
 </html>
