@@ -1,5 +1,5 @@
 // Rally - Impostor (Party Game)
-// Modo Local (1 dispositivo) + Modo Online (Cada um no seu — Firebase)
+// Modo Local (Juntos) + Modo Online (Cada um no seu — Firebase)
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
 import {
@@ -80,15 +80,15 @@ const HINT_GROUPS = {
         "Filme de Comédia": ["Shrek","As Branquelas","Se Beber, Não Case!","O Máskara","Debi & Lóide","Todo Mundo em Pânico","Superbad","Esqueceram de Mim"]
     },
     futebol: {
-        "Brasileiro em atividade": ["Neymar","Vinícius Júnior","Rodrygo","Raphinha","Richarlison","Endrick","Gabriel Jesus","Bruno Guimarães","Alisson","Ederson","Thiago Silva","Marquinhos","Lucas Paquetá","Philippe Coutinho","Hulk","Éder Militão","Gabriel Martinelli","Casemiro"],
-        "Brasileiro aposentado": ["Pelé","Ronaldo Fenômeno","Ronaldinho Gaúcho","Romário","Kaká","Rivaldo","Zico","Sócrates","Garrincha","Roberto Carlos","Cafu","Dida","Bebeto","Adriano Imperador","Juninho Pernambucano","Marcos","Rogério Ceni","Taffarel","Denílson"],
+        "Jogador brasileiro em atividade": ["Neymar","Vinícius Júnior","Rodrygo","Raphinha","Richarlison","Endrick","Gabriel Jesus","Bruno Guimarães","Alisson","Ederson","Thiago Silva","Marquinhos","Lucas Paquetá","Philippe Coutinho","Hulk","Éder Militão","Gabriel Martinelli","Casemiro"],
+        "Jogador brasileiro aposentado": ["Pelé","Ronaldo Fenômeno","Ronaldinho Gaúcho","Romário","Kaká","Rivaldo","Zico","Sócrates","Garrincha","Roberto Carlos","Cafu","Dida","Bebeto","Adriano Imperador","Juninho Pernambucano","Marcos","Rogério Ceni","Taffarel","Denílson"],
         "Jogador sul-americano em atividade": ["Lionel Messi","Ángel Di María","Lautaro Martínez","Julián Álvarez","Enzo Fernández","Rodrigo De Paul","Paulo Dybala","Luis Suárez","Federico Valverde","Darwin Núñez","James Rodríguez","Luis Díaz","Arturo Vidal","Alexis Sánchez","Vinícius Júnior","Rodrygo","Raphinha","Richarlison","Endrick","Gabriel Jesus","Bruno Guimarães","Casemiro"],
         "Jogador sul-americano aposentado": ["Diego Maradona","Sergio Agüero","Carlos Valderrama","Paolo Guerrero","Carlos Tévez","Pelé","Ronaldo Fenômeno","Ronaldinho Gaúcho","Romário","Kaká","Rivaldo","Zico","Sócrates","Garrincha","Roberto Carlos","Cafu","Bebeto","Adriano Imperador"],
         "Jogador europeu em atividade": ["Cristiano Ronaldo","Kylian Mbappé","Antoine Griezmann","Lamine Yamal","Rodri","Harry Kane","Jude Bellingham","Bukayo Saka","Phil Foden","Manuel Neuer","Jamal Musiala","Virgil van Dijk","Erling Haaland","Robert Lewandowski","Rafael Leão","Kevin De Bruyne","Romelu Lukaku","Declan Rice","Cole Palmer","Pedri","Gavi","Luka Modrić","Bruno Fernandes","Bernardo Silva","Alexander Isak","Martin Ødegaard","Desirré Doué","Khvicha Kvaratskhelia"],
         "Jogador europeu aposentado": ["Zinedine Zidane","Thierry Henry","Karim Benzema","Xavi","Andrés Iniesta","Sergio Ramos","Iker Casillas","Carles Puyol","David Beckham","Franz Beckenbauer","Toni Kroos","Paolo Maldini","Gianluigi Buffon","Johan Cruyff","Ruud Gullit","Gareth Bale","Zlatan Ibrahimović","Eusébio","Petr Čech","Eden Hazard","Clarence Seedorf","Wayne Rooney"],
         "Time brasileiro": ["Corinthians","Palmeiras","São Paulo","Santos","Flamengo","Fluminense","Botafogo","Vasco da Gama","Grêmio","Internacional","Atlético Mineiro","Cruzeiro","Bahia","Vitória","Sport Recife","Fortaleza","Ceará","Athletico Paranaense","Coritiba","Goiás","Cuiabá","Red Bull Bragantino","América Mineiro","Chapecoense","Ponte Preta","Guarani","Portuguesa","Juventude","Avaí","Náutico","Santa Cruz","Paysandu","Remo","Atlético Goianiense","Criciúma","Mirassol","São Bernardo","Ituano","Novorizontino","Ferroviária"],
         "Time europeu": ["Real Madrid","Barcelona","Atlético de Madrid","Manchester United","Manchester City","Liverpool","Arsenal","Chelsea","Tottenham","Bayern de Munique","Borussia Dortmund","Bayer Leverkusen","RB Leipzig","Juventus","Milan","Inter de Milão","Napoli","Roma","Lazio","Paris Saint-Germain","Olympique de Marseille","Lyon","Monaco","Ajax","Benfica","Porto","Sporting","Celtic","Rangers","Galatasaray","Fenerbahçe","Real Sociedad","Olympiacos"],
-        "Seleção": ["Brasil","Argentina","Uruguai","Colômbia","Chile","Paraguai","Peru","Bolívia","México","Estados Unidos","Inglaterra","França","Alemanha","Espanha","Portugal","Itália","Holanda","Bélgica","Croácia","Dinamarca","Noruega","Japão","Coreia do Sul","Austrália","Arábia Saudita","Marrocos","Egito","Costa do Marfim","África do Sul","Catar","Turquia","País de Gales"],
+        "Seleção de futebol": ["Brasil","Argentina","Uruguai","Colômbia","Chile","Paraguai","Peru","Bolívia","México","Estados Unidos","Inglaterra","França","Alemanha","Espanha","Portugal","Itália","Holanda","Bélgica","Croácia","Dinamarca","Noruega","Japão","Coreia do Sul","Austrália","Arábia Saudita","Marrocos","Egito","Costa do Marfim","África do Sul","Catar","Turquia","País de Gales"],
         "Técnico de futebol": ["Carlo Ancelotti","Pep Guardiola","José Mourinho","Jürgen Klopp","Abel Ferreira","Dorival Júnior","Tite","Felipão","Pofexô Luxemburgo","Zagallo","Fernando Diniz","Rogério Ceni","Renato Gaúcho","Jorge Jesus","Mano Menezes","Zinedine Zidane","Diego Simeone","Luis Enrique"],
         "Posição do futebol": ["Goleiro","Zagueiro","Lateral-direito","Lateral-esquerdo","Ala","Primeiro volante","Segundo volante","Meia central","Meia ofensivo","Armador","Ponta-direita","Ponta-esquerda","Centroavante","Segundo atacante","Falso nove"],
         "Campeonato brasileiro": ["Brasileirão","Copa do Brasil","Supercopa do Brasil","Libertadores","Copa Sul-Americana","Recopa Sul-Americana","Copinha","Campeonato Paulista","Campeonato Carioca","Campeonato Mineiro","Campeonato Gaúcho","Campeonato Baiano","Copa do Nordeste"],
@@ -108,21 +108,19 @@ const HINT_GROUPS = {
 };
 
 // ============================================================
-// CONSTANTES ONLINE
+// CONSTANTES
 // ============================================================
 const MAX_PLAYERS = 10;
 const MIN_PLAYERS = 3;
 const CODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const CODE_LENGTH = 6;
 const REVEAL_GRACE_MS = 3000;
-const NEXT_ROUND_GRACE_MS = 3000;
 
 // ============================================================
 // ESTADO
 // ============================================================
 const state = {
     gameMode: null,
-
     local: {
         players: [],
         impostorCount: 1,
@@ -138,7 +136,6 @@ const state = {
         isTransitioning: false,
         isRolling: false
     },
-
     online: {
         uid: null,
         playerName: null,
@@ -151,14 +148,12 @@ const state = {
         roleRevealed: false,
         myVote: null,
         voteSubmitted: false,
-        confirmedContinue: false,
         revealedCardUid: null,
         writeTimerInterval: null,
-        revealGraceTimer: null,
-        nextRoundGraceTimer: null,
         lastPhaseKey: null,
         lastPlayerOnTurn: null,
-        pendingAction: null
+        pendingAction: null,
+        roomCodeVisible: false
     }
 };
 
@@ -173,20 +168,17 @@ function shuffle(arr) {
     }
     return a;
 }
-
 function generateRoomCode() {
     let code = '';
     for (let i = 0; i < CODE_LENGTH; i++) code += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)];
     return code;
 }
-
 function getMaxImpostors(playerCount) {
     if (playerCount < 3) return 0;
     if (playerCount <= 4) return 1;
     if (playerCount <= 6) return 2;
     return 4;
 }
-
 function getWordsForThemes(themeSet) {
     const result = [];
     Array.from(themeSet).forEach(cat => {
@@ -198,7 +190,6 @@ function getWordsForThemes(themeSet) {
     });
     return result;
 }
-
 function pickWordFrom(themeSet, usedWords) {
     const pool = getWordsForThemes(themeSet);
     const available = pool.filter(item => !usedWords.has(item.word));
@@ -212,24 +203,19 @@ function pickWordFrom(themeSet, usedWords) {
     usedWords.add(chosen.word);
     return chosen;
 }
-
 function pickInfiltratedWords(realWord, count) {
     const group = HINT_GROUPS[realWord.cat]?.[realWord.hint];
-    if (!group || group.length < 2) {
-        return Array(count).fill(realWord);
-    }
+    if (!group || group.length < 2) return Array(count).fill(realWord);
     const candidates = group.filter(w => w !== realWord.word);
     const shuffled = shuffle(candidates);
     return Array.from({ length: count }, (_, i) => ({
         word: shuffled[i % shuffled.length], hint: realWord.hint, cat: realWord.cat
     }));
 }
-
 function getPlayersArray(roomData) {
     if (!roomData || !roomData.jogadores) return [];
     return Object.entries(roomData.jogadores).map(([uid, p]) => ({ uid, ...p }));
 }
-
 function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({
         '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
@@ -251,8 +237,7 @@ const screens = {
     onlineReveal: document.getElementById('onlineRevealScreen'),
     onlineWrite: document.getElementById('onlineWriteScreen'),
     onlineVote: document.getElementById('onlineVoteScreen'),
-    onlineResult: document.getElementById('onlineResultScreen'),
-    onlineGameOver: document.getElementById('onlineGameOverScreen')
+    onlineResult: document.getElementById('onlineResultScreen')
 };
 
 const exitModal = document.getElementById('exitModal');
@@ -268,14 +253,11 @@ function showScreen(key) {
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-
 function showLoading(text = 'Carregando...') {
     loadingText.innerText = text;
     loadingOverlay.classList.remove('hidden');
 }
-function hideLoading() {
-    loadingOverlay.classList.add('hidden');
-}
+function hideLoading() { loadingOverlay.classList.add('hidden'); }
 
 document.addEventListener('DOMContentLoaded', () => {
     if (window.lucide) lucide.createIcons();
@@ -298,8 +280,7 @@ function askName(callback) {
     const onConfirm = () => {
         const v = nameInput.value.trim();
         if (!v) { nameInput.focus(); return; }
-        cleanup();
-        callback(v);
+        cleanup(); callback(v);
     };
     const onCancel = () => { cleanup(); callback(null); };
     nameInput.addEventListener('keydown', onKey);
@@ -318,13 +299,14 @@ document.getElementById('modeLocalBtn').addEventListener('click', () => {
 
 document.getElementById('modeOnlineBtn').addEventListener('click', async () => {
     state.gameMode = 'online';
+    state.online.roomCodeVisible = false;
     showScreen('onlineMenu');
     const ok = await ensureAuth();
     if (!ok) { showScreen('modeMenu'); }
 });
 
 // ============================================================
-// MODO LOCAL
+// MODO LOCAL (JUNTOS)
 // ============================================================
 const localInputs = { player: document.getElementById('playerInput') };
 const localLists = { player: document.getElementById('playerList') };
@@ -629,12 +611,8 @@ onAuthStateChanged(auth, (user) => {
         }
     }
 });
-
 async function ensureAuth() {
-    if (auth.currentUser) {
-        state.online.uid = auth.currentUser.uid;
-        return true;
-    }
+    if (auth.currentUser) { state.online.uid = auth.currentUser.uid; return true; }
     try {
         const cred = await signInAnonymously(auth);
         state.online.uid = cred.user.uid;
@@ -672,25 +650,15 @@ async function doCreateRoom(name) {
             tries++;
         }
         if (exists) { hideLoading(); alert('Não foi possível gerar um código único.'); return; }
-
         const roomRef = doc(db, 'impostor_rooms', code);
         await setDoc(roomRef, {
             codigo: code,
             criadorId: state.online.uid,
             criadoEm: serverTimestamp(),
             status: 'lobby',
-            config: {
-                rodadas: 1,
-                tempo: 30,
-                impostorMode: 'blind',
-                temas: ['animais']
-            },
+            config: { rodadas: 1, tempo: 30, impostorMode: 'blind', temas: ['animais'] },
             jogadores: {
-                [state.online.uid]: {
-                    nome: state.online.playerName,
-                    pronto: false,
-                    pontos: 0
-                }
+                [state.online.uid]: { nome: state.online.playerName, pronto: false, pontos: 0 }
             },
             rodadaAtual: 0,
             jogo: null
@@ -698,6 +666,7 @@ async function doCreateRoom(name) {
         state.online.roomCode = code;
         state.online.roomRef = roomRef;
         state.online.isHost = true;
+        state.online.roomCodeVisible = false;
         hideLoading();
         listenToRoom(code);
     } catch (err) {
@@ -735,15 +704,12 @@ async function doJoinRoom(code, name) {
         const nomeDuplicado = players.some(p => p.nome && p.nome.toLowerCase() === meuNome);
         if (nomeDuplicado) { hideLoading(); alert('Já tem alguém com esse nome'); return; }
         await updateDoc(roomRef, {
-            [`jogadores.${state.online.uid}`]: {
-                nome: state.online.playerName,
-                pronto: false,
-                pontos: 0
-            }
+            [`jogadores.${state.online.uid}`]: { nome: state.online.playerName, pronto: false, pontos: 0 }
         });
         state.online.roomCode = code;
         state.online.roomRef = roomRef;
         state.online.isHost = false;
+        state.online.roomCodeVisible = false;
         hideLoading();
         listenToRoom(code);
     } catch (err) {
@@ -760,7 +726,6 @@ function listenToRoom(code) {
     if (state.online.unsubscribeRoom) state.online.unsubscribeRoom();
     const roomRef = doc(db, 'impostor_rooms', code);
     state.online.roomRef = roomRef;
-
     state.online.unsubscribeRoom = onSnapshot(roomRef, (snap) => {
         if (state.gameMode !== 'online') return;
         if (!snap.exists()) {
@@ -770,32 +735,24 @@ function listenToRoom(code) {
         }
         state.online.roomData = snap.data();
         state.online.isHost = state.online.roomData.criadorId === state.online.uid;
-
         if (!state.online.roomData.jogadores || !state.online.roomData.jogadores[state.online.uid]) {
             alert('Você foi removido da sala');
             cleanupAndHome();
             return;
         }
-
         const status = state.online.roomData.status;
         if (status === 'lobby') renderLobby();
         else if (status === 'revelacao') renderOnlineReveal();
         else if (status === 'escrita') renderOnlineWrite();
         else if (status === 'votacao') renderOnlineVote();
         else if (status === 'resultado') renderOnlineResult();
-        else if (status === 'fim') renderOnlineGameOver();
-
         if (state.online.isHost) maybeAdvancePhase(status);
-    }, (err) => {
-        console.error('Listener error:', err);
-    });
+    }, (err) => { console.error('Listener error:', err); });
 }
 
 function cleanupAndHome() {
     if (state.online.unsubscribeRoom) state.online.unsubscribeRoom();
     if (state.online.writeTimerInterval) clearInterval(state.online.writeTimerInterval);
-    if (state.online.revealGraceTimer) clearTimeout(state.online.revealGraceTimer);
-    if (state.online.nextRoundGraceTimer) clearTimeout(state.online.nextRoundGraceTimer);
     state.online.playerName = null;
     state.online.roomCode = null;
     state.online.roomRef = null;
@@ -806,14 +763,12 @@ function cleanupAndHome() {
     state.online.roleRevealed = false;
     state.online.myVote = null;
     state.online.voteSubmitted = false;
-    state.online.confirmedContinue = false;
     state.online.revealedCardUid = null;
     state.online.writeTimerInterval = null;
-    state.online.revealGraceTimer = null;
-    state.online.nextRoundGraceTimer = null;
     state.online.lastPhaseKey = null;
     state.online.lastPlayerOnTurn = null;
     state.online.pendingAction = null;
+    state.online.roomCodeVisible = false;
     showScreen('modeMenu');
 }
 
@@ -839,7 +794,6 @@ async function maybeAdvancePhase(status) {
             }
         }
     } else if (status === 'escrita') {
-        // Só avança para votação quando TODAS as rodadas tiverem sido preenchidas
         const players = getPlayersArray(room);
         const totalRodadas = room.config.rodadas || 1;
         const palavras = room.jogo?.palavras || {};
@@ -853,8 +807,7 @@ async function maybeAdvancePhase(status) {
             state.online.lastPhaseKey = key;
             await updateDoc(state.online.roomRef, {
                 status: 'votacao',
-                'jogo.votos': {},
-                'jogo.votacaoInicio': Date.now()
+                'jogo.votos': {}
             });
         }
     } else if (status === 'votacao') {
@@ -876,7 +829,14 @@ async function maybeAdvancePhase(status) {
 function renderLobby() {
     showScreen('lobby');
     const room = state.online.roomData;
-    document.getElementById('lobbyRoomCode').innerText = state.online.roomCode;
+    const codeEl = document.getElementById('lobbyRoomCode');
+    codeEl.innerText = state.online.roomCode;
+    codeEl.classList.toggle('masked', !state.online.roomCodeVisible);
+    const toggleBtn = document.getElementById('roomCodeToggle');
+    toggleBtn.innerHTML = state.online.roomCodeVisible
+        ? '<i data-lucide="eye-off"></i>'
+        : '<i data-lucide="eye"></i>';
+    toggleBtn.setAttribute('aria-label', state.online.roomCodeVisible ? 'Esconder código' : 'Mostrar código');
 
     const hostConfig = document.getElementById('hostConfig');
     if (state.online.isHost) {
@@ -893,12 +853,8 @@ function renderLobby() {
         document.querySelectorAll('#onlineThemeGrid .theme-toggle').forEach(b => {
             b.classList.toggle('active', (room.config.temas || []).includes(b.dataset.theme));
         });
-
-        // Descrição do modo impostor
         const modeDescEl = document.getElementById('onlineModeDesc');
-        if (modeDescEl) {
-            modeDescEl.textContent = MODE_DESCRIPTIONS[room.config.impostorMode] || MODE_DESCRIPTIONS.blind;
-        }
+        if (modeDescEl) modeDescEl.textContent = MODE_DESCRIPTIONS[room.config.impostorMode] || MODE_DESCRIPTIONS.blind;
     } else {
         hostConfig.classList.add('hidden');
     }
@@ -920,7 +876,6 @@ function renderLobby() {
     const startBtn = document.getElementById('startGameOnlineBtn');
     const readyBtn = document.getElementById('readyBtn');
     const me = room.jogadores[state.online.uid];
-
     if (state.online.isHost) {
         startBtn.classList.remove('hidden');
         readyBtn.classList.add('hidden');
@@ -942,6 +897,18 @@ function renderLobby() {
     if (window.lucide) lucide.createIcons();
 }
 
+document.getElementById('roomCodeToggle').addEventListener('click', () => {
+    state.online.roomCodeVisible = !state.online.roomCodeVisible;
+    const codeEl = document.getElementById('lobbyRoomCode');
+    codeEl.classList.toggle('masked', !state.online.roomCodeVisible);
+    const toggleBtn = document.getElementById('roomCodeToggle');
+    toggleBtn.innerHTML = state.online.roomCodeVisible
+        ? '<i data-lucide="eye-off"></i>'
+        : '<i data-lucide="eye"></i>';
+    toggleBtn.setAttribute('aria-label', state.online.roomCodeVisible ? 'Esconder código' : 'Mostrar código');
+    if (window.lucide) lucide.createIcons();
+});
+
 ['roundsGroup','timeGroup'].forEach(groupId => {
     document.querySelectorAll(`#${groupId} .chip-btn`).forEach(btn => {
         btn.addEventListener('click', async () => {
@@ -953,7 +920,6 @@ function renderLobby() {
         });
     });
 });
-
 document.querySelectorAll('#hostConfig .segment-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
         if (!state.online.isHost) return;
@@ -963,7 +929,6 @@ document.querySelectorAll('#hostConfig .segment-btn').forEach(btn => {
         if (modeDescEl) modeDescEl.textContent = MODE_DESCRIPTIONS[btn.dataset.mode] || '';
     });
 });
-
 document.querySelectorAll('#onlineThemeGrid .theme-toggle').forEach(btn => {
     btn.addEventListener('click', async () => {
         if (!state.online.isHost) return;
@@ -976,13 +941,11 @@ document.querySelectorAll('#onlineThemeGrid .theme-toggle').forEach(btn => {
         await updateDoc(state.online.roomRef, { config: { ...state.online.roomData.config, temas } });
     });
 });
-
 document.getElementById('readyBtn').addEventListener('click', async () => {
     const me = state.online.roomData.jogadores[state.online.uid];
     if (!me) return;
     await updateDoc(state.online.roomRef, { [`jogadores.${state.online.uid}.pronto`]: !me.pronto });
 });
-
 document.getElementById('startGameOnlineBtn').addEventListener('click', async () => {
     if (!state.online.isHost) return;
     const players = getPlayersArray(state.online.roomData);
@@ -1000,7 +963,6 @@ async function startOnlineRound() {
     const players = getPlayersArray(room);
     const config = room.config;
 
-    // Sorteia palavra
     const usedWords = new Set(room.jogo?.usadas || []);
     const wordObj = pickWordFrom(new Set(config.temas), usedWords);
     const impostorCount = Math.min(2, Math.max(1, Math.floor(players.length / 3)));
@@ -1013,9 +975,7 @@ async function startOnlineRound() {
         impostorIds.forEach((uid, i) => { infiltratedWords[uid] = picks[i]; });
     }
 
-    // Ordem de escrita aleatória por rodada — a mesma ordem é usada para todas as rodadas
     const ordemEscrita = shuffle(players.map(p => p.uid));
-
     const palavrasIniciais = {};
     players.forEach(p => { palavrasIniciais[p.uid] = []; });
 
@@ -1032,8 +992,7 @@ async function startOnlineRound() {
                    : config.impostorMode === 'hint' ? `Dica: ${wordObj.hint}`
                    : 'IMPOSTOR')
                 : wordObj.word,
-            viuPapel: false,
-            confirmouProximaRodada: false
+            viuPapel: false
         };
     });
 
@@ -1042,7 +1001,6 @@ async function startOnlineRound() {
     state.online.roleRevealed = false;
     state.online.myVote = null;
     state.online.voteSubmitted = false;
-    state.online.confirmedContinue = false;
     state.online.revealedCardUid = null;
     state.online.lastPlayerOnTurn = null;
 
@@ -1061,7 +1019,6 @@ async function startOnlineRound() {
             ordemEscrita,
             palavras: palavrasIniciais,
             votos: {},
-            votacaoInicio: null,
             escritaInicio: null,
             resultadoRodada: null
         }
@@ -1069,7 +1026,7 @@ async function startOnlineRound() {
 }
 
 // ============================================================
-// MODO ONLINE — TELA DE REVELAÇÃO
+// MODO ONLINE — REVELAÇÃO
 // ============================================================
 function renderOnlineReveal() {
     showScreen('onlineReveal');
@@ -1087,7 +1044,6 @@ function renderOnlineReveal() {
     const secretContent = document.getElementById('onlineSecretContent');
     secretContent.classList.remove('is-impostor-text');
     const secretLabel = document.getElementById('onlineSecretLabel');
-
     const oldHint = back.querySelector('.card-back-hint');
     if (oldHint) oldHint.remove();
 
@@ -1144,7 +1100,7 @@ function renderOnlineReveal() {
 }
 
 // ============================================================
-// MODO ONLINE — TELA DE ESCRITA (todas as rodadas)
+// MODO ONLINE — ESCRITA
 // ============================================================
 function renderOnlineWrite() {
     showScreen('onlineWrite');
@@ -1155,11 +1111,8 @@ function renderOnlineWrite() {
     const totalRodadas = room.config.rodadas || 1;
     const players = getPlayersArray(room);
 
-    // Descobre qual jogador está na vez agora
-    // A ordem se repete: rodada 0 (todos na ordem), rodada 1 (todos de novo), etc.
     const ordem = jogo.ordemEscrita || [];
     const palavras = jogo.palavras || {};
-
     let jogadorDaVez = null;
     let rodadaDaVez = null;
     for (let r = 0; r < totalRodadas; r++) {
@@ -1174,25 +1127,22 @@ function renderOnlineWrite() {
         if (jogadorDaVez) break;
     }
 
-    // Renderiza painéis de rodadas
-    renderWriteRounds(room, rodadaDaVez);
-
-    // Atualiza barra flutuante
+    renderWriteRounds(room, rodadaDaVez, 'onlineWriteRounds', 'onlineWriteBadge');
     updateWriteBar(room, me, jogadorDaVez, rodadaDaVez, players);
     if (window.lucide) lucide.createIcons();
 }
 
-function renderWriteRounds(room, rodadaAtualIdx) {
+function renderWriteRounds(room, rodadaAtualIdx, containerId, badgeId) {
     const jogo = room.jogo || {};
     const players = getPlayersArray(room);
     const ordem = jogo.ordemEscrita || [];
     const palavras = jogo.palavras || {};
     const totalRodadas = room.config.rodadas || 1;
-    const container = document.getElementById('onlineWriteRounds');
+    const container = document.getElementById(containerId);
+    if (!container) return;
     container.innerHTML = '';
 
-    // Marca badge no topo da tela
-    const badge = document.getElementById('onlineWriteBadge');
+    const badge = document.getElementById(badgeId);
     if (badge) {
         if (rodadaAtualIdx !== null && rodadaAtualIdx !== undefined) {
             badge.innerText = `Rodada ${rodadaAtualIdx + 1} de ${totalRodadas}`;
@@ -1208,7 +1158,6 @@ function renderWriteRounds(room, rodadaAtualIdx) {
         bloco.innerHTML = `<h3 class="write-round-title">Rodada ${r + 1}${r === rodadaAtualIdx ? ' <span class="round-now-tag">agora</span>' : ''}</h3>`;
         const list = document.createElement('ol');
         list.className = 'write-round-list';
-
         ordem.forEach((uid, idx) => {
             const p = players.find(x => x.uid === uid);
             if (!p) return;
@@ -1217,10 +1166,6 @@ function renderWriteRounds(room, rodadaAtualIdx) {
             const li = document.createElement('li');
             li.className = 'write-round-item';
             if (word) li.classList.add('filled');
-            // Destaca quem está na vez
-            if (r === rodadaAtualIdx && uid === (jogo.ordemEscrita || [])[idx]) {
-                // não faz nada
-            }
             li.innerHTML = `
                 <span class="write-round-pos">${idx + 1}.</span>
                 <span class="write-round-name">${p.nome}</span>
@@ -1252,7 +1197,6 @@ function updateWriteBar(room, me, jogadorDaVez, rodadaDaVez, players) {
     }
 
     bar.classList.remove('hidden');
-
     const jogador = players.find(p => p.uid === jogadorDaVez);
     const isMeuTurno = jogadorDaVez === state.online.uid;
     const totalRodadas = room.config.rodadas || 1;
@@ -1264,7 +1208,6 @@ function updateWriteBar(room, me, jogadorDaVez, rodadaDaVez, players) {
         sendBtn.classList.remove('hidden');
         waitEl.classList.add('hidden');
         startWriteTimer(room);
-
         const key = `${jogadorDaVez}-${rodadaDaVez}`;
         if (state.online.lastPlayerOnTurn !== key) {
             input.value = '';
@@ -1288,11 +1231,9 @@ function startWriteTimer(room) {
     const tempo = room.config.tempo || 30;
     const inicio = room.jogo?.escritaInicio || Date.now();
     const timerEl = document.getElementById('onlineWriteTimer');
-
     if (!room.jogo?.escritaInicio) {
         updateDoc(state.online.roomRef, { 'jogo.escritaInicio': Date.now() }).catch(() => {});
     }
-
     const update = () => {
         const elapsed = Math.floor((Date.now() - inicio) / 1000);
         const restante = Math.max(0, tempo - elapsed);
@@ -1317,7 +1258,6 @@ async function sendOnlineWord(auto = false) {
     const ordem = jogo.ordemEscrita || [];
     const palavras = jogo.palavras || {};
 
-    // Descobre qual é a rodada da minha vez
     let minhaRodada = null;
     for (let r = 0; r < totalRodadas; r++) {
         for (const uid of ordem) {
@@ -1358,7 +1298,7 @@ document.getElementById('onlineWordInput').addEventListener('keydown', (e) => {
 });
 
 // ============================================================
-// MODO ONLINE — VOTAÇÃO (após TODAS as rodadas)
+// MODO ONLINE — VOTAÇÃO (mostra TODAS as palavras ditas)
 // ============================================================
 function renderOnlineVote() {
     showScreen('onlineVote');
@@ -1369,9 +1309,11 @@ function renderOnlineVote() {
     document.getElementById('onlineVoteTitle').innerText = 'Quem é o impostor?';
     document.getElementById('onlineVoteTimer').innerText = 'Discutam e votem quando quiserem';
 
+    // Mostra todas as palavras de todas as rodadas
+    renderWriteRounds(room, null, 'onlineVoteRounds', null);
+
     const players = getPlayersArray(room);
 
-    // Grid de votos
     const grid = document.getElementById('onlineVoteGrid');
     grid.innerHTML = '';
     const votos = room.jogo?.votos || {};
@@ -1402,21 +1344,19 @@ function renderOnlineVote() {
 }
 
 // ============================================================
-// MODO ONLINE — RESOLVER
+// MODO ONLINE — RESOLVER + RESULTADO
 // ============================================================
 async function resolveOnlineRound() {
     if (!state.online.isHost) return;
     const room = state.online.roomData;
     const votos = room.jogo?.votos || {};
     const impostorIds = room.jogo?.impostorIds || [];
-    const jogadores = room.jogadores || {};
 
     const contagem = {};
     Object.values(votos).forEach(v => {
         if (v === 'skip') return;
         contagem[v] = (contagem[v] || 0) + 1;
     });
-
     let maisVotado = null, max = 0, empate = false;
     Object.entries(contagem).forEach(([uid, c]) => {
         if (c > max) { max = c; maisVotado = uid; empate = false; }
@@ -1425,25 +1365,9 @@ async function resolveOnlineRound() {
     if (empate) maisVotado = null;
 
     const acertou = maisVotado && impostorIds.includes(maisVotado);
-    const jogadoresAtualizados = JSON.parse(JSON.stringify(jogadores));
-
-    if (acertou) {
-        Object.entries(jogadoresAtualizados).forEach(([uid, p]) => {
-            if (!impostorIds.includes(uid)) p.pontos = (p.pontos || 0) + 1;
-        });
-    } else {
-        impostorIds.forEach(uid => {
-            if (jogadoresAtualizados[uid]) jogadoresAtualizados[uid].pontos = (jogadoresAtualizados[uid].pontos || 0) + 1;
-        });
-    }
-
-    Object.keys(jogadoresAtualizados).forEach(uid => {
-        jogadoresAtualizados[uid].confirmouProximaRodada = false;
-    });
 
     await updateDoc(state.online.roomRef, {
         status: 'resultado',
-        jogadores: jogadoresAtualizados,
         'jogo.resultadoRodada': {
             maisVotado: maisVotado || null,
             acertou: !!acertou,
@@ -1452,9 +1376,6 @@ async function resolveOnlineRound() {
     });
 }
 
-// ============================================================
-// MODO ONLINE — RESULTADO FINAL
-// ============================================================
 function renderOnlineResult() {
     showScreen('onlineResult');
     const room = state.online.roomData;
@@ -1482,7 +1403,6 @@ function renderOnlineResult() {
         impContainer.appendChild(chip);
     });
 
-    // Voto da maioria
     const votos = jogo.votos || {};
     const contagem = {};
     Object.values(votos).forEach(v => { if (v !== 'skip') contagem[v] = (contagem[v] || 0) + 1; });
@@ -1514,13 +1434,11 @@ function renderOnlineResult() {
         sub.innerText = 'Ele enganou a maioria 😈';
     }
 
-    // Lista de palavras (todas as rodadas)
     const wordList = document.getElementById('onlineResultWords');
     wordList.innerHTML = '';
     const jogadores = getPlayersArray(room);
     const totalRodadas = room.config.rodadas || 1;
     const palavras = jogo.palavras || {};
-
     for (let r = 0; r < totalRodadas; r++) {
         const bloco = document.createElement('div');
         bloco.className = 'write-round-block';
@@ -1545,103 +1463,16 @@ function renderOnlineResult() {
         wordList.appendChild(bloco);
     }
 
-    // Botões de continuar
-    const confirmBtn = document.getElementById('onlineResultConfirmBtn');
-    const waitEl = document.getElementById('onlineWaitResult');
-    const confirmCountEl = document.getElementById('onlineResultConfirmCount');
-
-    const players = getPlayersArray(room);
-    const confirmados = players.filter(p => p.confirmouProximaRodada).length;
-    confirmCountEl.innerText = `${confirmados}/${players.length}`;
-
-    if (state.online.confirmedContinue) {
-        confirmBtn.classList.add('hidden');
-        waitEl.classList.remove('hidden');
-    } else {
-        confirmBtn.classList.remove('hidden');
-        waitEl.classList.add('hidden');
-        confirmBtn.innerText = 'Ver ranking final';
-        const newBtn = confirmBtn.cloneNode(true);
-        confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
-        newBtn.addEventListener('click', async () => {
-            if (state.online.confirmedContinue) return;
-            state.online.confirmedContinue = true;
-            newBtn.disabled = true;
-            newBtn.classList.add('hidden');
-            waitEl.classList.remove('hidden');
-            await updateDoc(state.online.roomRef, {
-                [`jogadores.${state.online.uid}.confirmouProximaRodada`]: true
-            });
-        });
-    }
-
-    if (state.online.isHost) {
-        maybeAdvanceFromResult(room);
-    }
-
-    if (window.lucide) lucide.createIcons();
-}
-
-async function maybeAdvanceFromResult(room) {
-    const players = getPlayersArray(room);
-    const confirmados = players.filter(p => p.confirmouProximaRodada).length;
-    if (confirmados < players.length) return;
-
-    const key = `result-${room.rodadaAtual}`;
-    if (state.online.lastPhaseKey === key) return;
-    state.online.lastPhaseKey = key;
-
-    await new Promise(r => setTimeout(r, NEXT_ROUND_GRACE_MS));
-
-    const fresh = await getDoc(state.online.roomRef);
-    if (!fresh.exists()) return;
-    const freshData = fresh.data();
-    const freshPlayers = getPlayersArray(freshData);
-    if (freshPlayers.filter(p => p.confirmouProximaRodada).length < freshPlayers.length) return;
-
-    // Fim de partida → vai para ranking
-    await updateDoc(state.online.roomRef, { status: 'fim' });
-}
-
-// ============================================================
-// MODO ONLINE — FIM DE JOGO
-// ============================================================
-function renderOnlineGameOver() {
-    showScreen('onlineGameOver');
-    const room = state.online.roomData;
-    const players = getPlayersArray(room);
-    players.sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
-
-    const reveal = document.getElementById('onlineFinalReveal');
-    reveal.innerHTML = '';
-    players.forEach((p, i) => {
-        const line = document.createElement('div');
-        line.className = 'result-line';
-        line.innerHTML = `
-            <span class="label">${i + 1}º ${p.nome}</span>
-            <span class="value">${p.pontos || 0} pts</span>
-        `;
-        reveal.appendChild(line);
-    });
-
-    const actions = document.getElementById('onlineGameOverActions');
-    const spectMsg = document.getElementById('onlineSpectatorMsg');
-    if (state.online.isHost) {
-        actions.classList.remove('hidden');
-        spectMsg.classList.add('hidden');
-    } else {
-        actions.classList.add('hidden');
-        spectMsg.classList.remove('hidden');
-    }
-
-    const rematch = document.getElementById('onlineRematchBtn');
-    const newRematch = rematch.cloneNode(true);
-    rematch.parentNode.replaceChild(newRematch, rematch);
+    // Botão "Jogar novamente" — para o host envia todos ao lobby
+    const rematchBtn = document.getElementById('onlineRematchBtn');
+    const newRematch = rematchBtn.cloneNode(true);
+    rematchBtn.parentNode.replaceChild(newRematch, rematchBtn);
     newRematch.addEventListener('click', async () => {
-        showLoading('Preparando...');
-        try {
+        // Cada um vai imediatamente para o lobby, sem esperar os outros.
+        // Se for host, volta todos de uma vez.
+        if (state.online.isHost) {
             const jogadoresReset = {};
-            players.forEach(p => {
+            jogadores.forEach(p => {
                 jogadoresReset[p.uid] = { nome: p.nome, pronto: false, pontos: 0 };
             });
             await updateDoc(state.online.roomRef, {
@@ -1651,32 +1482,17 @@ function renderOnlineGameOver() {
                 jogo: null
             });
             state.online.lastPhaseKey = null;
-        } finally { hideLoading(); }
+        } else {
+            // Não-host: reset apenas do seu próprio "pronto" e força ir pro lobby
+            await updateDoc(state.online.roomRef, {
+                [`jogadores.${state.online.uid}.pronto`]: false
+            });
+            // Volta para a tela de lobby localmente; se o host já tiver resetado tudo,
+            // o listener pega e todos veem o lobby.
+            showScreen('lobby');
+        }
     });
 
-    const closeBtn = document.getElementById('onlineCloseRoomBtn');
-    const newClose = closeBtn.cloneNode(true);
-    closeBtn.parentNode.replaceChild(newClose, closeBtn);
-    newClose.addEventListener('click', async () => {
-        if (!confirm('Encerrar a sala para todos?')) return;
-        showLoading('Encerrando...');
-        try { await deleteDoc(state.online.roomRef); } catch (e) { console.error(e); }
-        hideLoading();
-        cleanupAndHome();
-    });
-
-    const backMenuBtn = document.getElementById('onlineSpectatorMenuBtn');
-    if (backMenuBtn) {
-        const newBtn = backMenuBtn.cloneNode(true);
-        backMenuBtn.parentNode.replaceChild(newBtn, backMenuBtn);
-        newBtn.addEventListener('click', () => {
-            if (confirm('Sair da sala?')) {
-                cleanupAndHome();
-            }
-        });
-    }
-
-    if (window.confetti) confetti({ particleCount: 120, spread: 90, origin: { y: 0.5 } });
     if (window.lucide) lucide.createIcons();
 }
 

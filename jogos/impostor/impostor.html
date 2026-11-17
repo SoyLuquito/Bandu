@@ -341,7 +341,12 @@
             <div class="card-panel">
                 <header class="panel-header">
                     <h1>Sala</h1>
-                    <p class="room-code-display" id="lobbyRoomCode">------</p>
+                    <div class="room-code-wrapper">
+                        <p class="room-code-display masked" id="lobbyRoomCode">------</p>
+                        <button type="button" class="room-code-toggle" id="roomCodeToggle" aria-label="Mostrar código">
+                            <i data-lucide="eye"></i>
+                        </button>
+                    </div>
                 </header>
 
                 <div class="host-config hidden" id="hostConfig">
@@ -459,7 +464,7 @@
 
         <!-- ============ ONLINE: ESCRITA (barra flutuante + rodadas) ============ -->
         <section id="onlineWriteScreen" class="screen-wrap hidden write-screen-wrap">
-            <!-- Barra flutuante fixa no topo -->
+            <!-- Barra flutuante fixa no topo (ao lado do botão voltar) -->
             <div class="online-write-bar hidden" id="onlineWriteBar">
                 <div class="online-write-bar-row">
                     <span class="online-write-bar-info" id="onlineWriteBarInfo">—</span>
@@ -518,7 +523,8 @@
                     <p class="subtitle" id="onlineVoteTimer">Discutam e votem quando quiserem</p>
                 </div>
 
-                <div class="word-list" id="onlineWordList"></div>
+                <!-- Todas as palavras ditas (todas as rodadas) — visível durante votação -->
+                <div class="write-rounds-container" id="onlineVoteRounds"></div>
 
                 <p class="vote-instruction" id="onlineVoteInstruction">Quem é o impostor?</p>
 
@@ -573,61 +579,9 @@
 
                 <div class="word-list" id="onlineResultWords"></div>
 
-                <button type="button" class="btn btn-primary btn-block" id="onlineResultConfirmBtn">
-                    Ver ranking final
+                <button type="button" class="btn btn-primary btn-block" id="onlineRematchBtn">
+                    <i data-lucide="rotate-ccw"></i> Jogar novamente
                 </button>
-                <p class="result-confirm-count" id="onlineResultConfirmCount">0/0</p>
-
-                <p class="waiting-msg hidden" id="onlineWaitResult">
-                    <i data-lucide="hourglass"></i>
-                    <span>Aguardando os outros jogadores...</span>
-                </p>
-            </div>
-
-            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
-                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
-            </button>
-        </section>
-
-
-        <!-- ============ ONLINE: FIM ============ -->
-        <section id="onlineGameOverScreen" class="screen-wrap hidden">
-            <div class="top-bar">
-                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
-                    <i data-lucide="arrow-left"></i>
-                </button>
-                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
-                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
-                </button>
-            </div>
-
-            <div class="card-panel">
-                <div class="result-icon win" id="onlineGameOverIcon">
-                    <i data-lucide="trophy"></i>
-                </div>
-                <h2 class="display-title" id="onlineGameOverTitle">Fim de jogo!</h2>
-                <p class="subtitle" id="onlineGameOverSub">Ranking final</p>
-
-                <div class="final-reveal" id="onlineFinalReveal"></div>
-
-                <div class="game-over-actions hidden" id="onlineGameOverActions">
-                    <button type="button" class="btn btn-primary btn-block" id="onlineRematchBtn">
-                        <i data-lucide="rotate-ccw"></i> Jogar Novamente
-                    </button>
-                    <button type="button" class="btn btn-secondary btn-block" id="onlineCloseRoomBtn">
-                        <i data-lucide="log-out"></i> Encerrar Sala
-                    </button>
-                </div>
-
-                <div class="spectator-block hidden" id="onlineSpectatorMsg">
-                    <p class="waiting-msg">
-                        <i data-lucide="hourglass"></i>
-                        <span>Aguardando o anfitrião...</span>
-                    </p>
-                    <button type="button" class="btn btn-secondary btn-block" id="onlineSpectatorMenuBtn">
-                        <i data-lucide="log-out"></i> Voltar ao menu
-                    </button>
-                </div>
             </div>
 
             <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
