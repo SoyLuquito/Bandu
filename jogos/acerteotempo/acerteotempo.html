@@ -20,7 +20,7 @@
                 <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
                     <i data-lucide="arrow-left"></i>
                 </button>
-                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <button type="button" class="ad-banner ad-banner-top-compact" data-ad-banner aria-label="Apoie ou anuncie aqui">
                     <span class="ad-banner-text">Apoie ou anuncie aqui</span>
                 </button>
             </div>
@@ -34,10 +34,15 @@
 
                 <div class="panel-rules">
                     <h2 class="panel-subtitle">Como jogar?</h2>
-                    <p class="panel-desc">
-                        Um tempo entre <strong>0 e 12 segundos</strong> é sorteado secretamente no início da rodada.
+                    <p class="panel-desc" id="rulesParty">
+                        Um tempo entre <strong>0 e 10 segundos</strong> é sorteado secretamente no início da rodada.
                         Cada jogador, na sua vez, <strong>inicia e para o cronômetro</strong> confiando apenas na intuição.
                         Quem parar mais perto do tempo sorteado vence a rodada!
+                    </p>
+                    <p class="panel-desc hidden" id="rulesImpostor">
+                        Todos veem o mesmo tempo, menos os <strong>impostores</strong>, que recebem uma <strong>margem</strong>
+                        (ex.: "de 0 a 5s", "de 8 a 12s"). O objetivo é parar o cronômetro o mais perto possível do tempo real!
+                        No final, todos votam em quem acham que é impostor. Jogadores ganham se acertarem, impostores ganham se enganarem a maioria.
                     </p>
                 </div>
 
@@ -63,6 +68,27 @@
                             <button type="button" class="btn btn-secondary" id="addPlayerBtn">Adicionar</button>
                         </div>
                         <ul class="tag-list" id="playerList"></ul>
+                    </div>
+
+                    <div id="impostorSetup" class="form-group hidden">
+                        <div class="form-group-inner">
+                            <label class="form-label">Jogadores</label>
+                            <div class="input-with-button">
+                                <input type="text" id="playerInputImp" placeholder="Nome do jogador..." maxlength="15">
+                                <button type="button" class="btn btn-secondary" id="addPlayerImpBtn">Adicionar</button>
+                            </div>
+                            <ul class="tag-list" id="playerListImp"></ul>
+                        </div>
+
+                        <div class="form-group-inner">
+                            <label class="form-label">Quantos impostores?</label>
+                            <div class="chip-group" id="impostorCountGroup">
+                                <button type="button" class="chip-btn active" data-value="1">1</button>
+                                <button type="button" class="chip-btn" data-value="2">2</button>
+                                <button type="button" class="chip-btn" data-value="3">3</button>
+                            </div>
+                            <p class="chip-hint" id="impostorLimitHint">Adicione jogadores para liberar mais impostores.</p>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -114,10 +140,14 @@
                     <i data-lucide="play"></i> Começar Rodada
                 </button>
             </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
         </section>
 
 
-        <!-- ================= FASE 3: VEZ DO JOGADOR (BOTÃO) ================= -->
+        <!-- ================= FASE 3: VEZ DO JOGADOR ================= -->
         <section id="actionScreen" class="screen-wrap hidden">
             <div class="top-bar">
                 <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
@@ -137,7 +167,7 @@
                 </div>
 
                 <h2 id="turnActorName" class="display-title">Nome do Jogador</h2>
-                <p class="subtitle">Passe o celular para ele(a)</p>
+                <p class="subtitle" id="turnSub">Passe o celular para ele(a)</p>
 
                 <button type="button" class="big-timer-btn" id="timerBtn">
                     <span class="big-timer-label" id="timerBtnLabel">PLAY</span>
@@ -145,10 +175,14 @@
 
                 <p class="action-hint" id="actionHint">Toque para iniciar o cronômetro</p>
             </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
         </section>
 
 
-        <!-- ================= FASE 4: RESULTADOS DA RODADA ================= -->
+        <!-- ================= FASE 4: RESULTADOS DA RODADA (Rei da Festa) ================= -->
         <section id="resultsScreen" class="screen-wrap hidden">
             <div class="top-bar">
                 <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
@@ -179,10 +213,193 @@
                     <i data-lucide="arrow-right"></i> Próxima Rodada
                 </button>
             </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
         </section>
 
 
-        <!-- ================= FASE 5: FIM DE JOGO ================= -->
+        <!-- ================= IMPOSTOR: REVELAÇÃO DO TEMPO ================= -->
+        <section id="impRevealScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <div class="round-badge" id="impRevealBadge">Rodada 1</div>
+                <h2 id="impRevealActorName" class="display-title">Nome do Jogador</h2>
+                <p class="subtitle">Passe o celular para ele(a)</p>
+
+                <div class="card-secret" id="impCardSecret">
+                    <div class="card-secret-inner">
+                        <div class="card-front">
+                            <i data-lucide="eye" class="card-front-icon"></i>
+                            <p>Toque para revelar</p>
+                        </div>
+                        <div class="card-back" id="impCardBack">
+                            <span class="card-back-label" id="impSecretLabel">Seu tempo</span>
+                            <h3 id="impSecretContent">00:00</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-block hidden" id="impNextPlayerBtn">
+                    <i data-lucide="arrow-right"></i> Passar
+                </button>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ================= IMPOSTOR: SORTEIO DE QUEM COMEÇA ================= -->
+        <section id="impSortScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <div class="round-badge">Todos prontos!</div>
+                <h2 class="display-title">Sorteando quem começa</h2>
+                <p class="subtitle">Siga a ordem no sentido horário</p>
+
+                <div class="sort-display" id="impSortDisplay">
+                    <div class="sort-name" id="impSortName">Sorteando...</div>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-block hidden" id="impStartRoundBtn">
+                    <i data-lucide="play"></i> Iniciar Rodada
+                </button>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ================= IMPOSTOR: RESULTADO DA RODADA ================= -->
+        <section id="impRoundEndScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <div class="round-badge" id="impRoundEndBadge">Rodada 1</div>
+                <h2 class="display-title">Todos jogaram!</h2>
+                <p class="subtitle">Confira os tempos e decidam</p>
+
+                <div id="impResultsList" class="results-list"></div>
+
+                <div class="next-round-choice">
+                    <button type="button" class="btn btn-primary btn-block" id="impAddRoundBtn">
+                        +1 rodada
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-block" id="impVoteBtn">
+                        Votar agora
+                    </button>
+                </div>
+                <p class="result-confirm-count" id="impRoundEndHint">Rodada 1 de 3</p>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ================= IMPOSTOR: VOTAÇÃO ================= -->
+        <section id="impVoteScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <div class="vote-header">
+                    <i data-lucide="vote"></i>
+                    <h2 id="impVoteTitle">Quem é o impostor?</h2>
+                    <p class="subtitle" id="impVoteTimer">Todos votam</p>
+                </div>
+
+                <div class="vote-grid" id="impVoteGrid"></div>
+
+                <div class="vote-status hidden" id="impVoteStatus">
+                    <i data-lucide="check-circle"></i>
+                    <span>Você votou</span>
+                </div>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ================= IMPOSTOR: RESULTADO FINAL ================= -->
+        <section id="impFinalScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <div class="result-icon" id="impFinalIcon">
+                    <i data-lucide="help-circle"></i>
+                </div>
+                <h2 class="display-title" id="impFinalTitle">Resultado</h2>
+                <p class="subtitle" id="impFinalSub">Confira quem era o impostor</p>
+
+                <div class="vote-outcome">
+                    <p class="vote-outcome-line" id="impFinalVoteLabel">Os jogadores escolheram …</p>
+                    <p class="vote-outcome-line strong" id="impFinalCheck">Ele era o impostor</p>
+                </div>
+
+                <div class="result-reveal">
+                    <p class="result-label">O tempo real era</p>
+                    <h3 class="result-word" id="impFinalRealTime">00:00</h3>
+                    <p class="result-label" id="impFinalImpostorLabel">O impostor era</p>
+                    <div class="result-impostors" id="impFinalImpostors"></div>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-block" id="impPlayAgainBtn">
+                    <i data-lucide="rotate-ccw"></i> Jogar novamente
+                </button>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ================= FASE 5: FIM DE JOGO (Rei da Festa) ================= -->
         <section id="winnerScreen" class="screen-wrap hidden">
             <div class="top-bar">
                 <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
@@ -210,6 +427,10 @@
                     </button>
                 </div>
             </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
         </section>
 
     </main>
@@ -220,20 +441,6 @@
             <div class="transition-label" id="transitionLabel">A seguir</div>
             <div class="transition-name" id="transitionName">Nome</div>
             <div class="transition-sub" id="transitionSub">Prepare-se!</div>
-        </div>
-    </div>
-
-    <!-- Modal "Em breve" -->
-    <div class="modal-overlay hidden" id="comingSoonModal">
-        <div class="modal-card">
-            <div class="modal-icon" style="background: #FFF3CD; color: #B6A300;">
-                <i data-lucide="construction"></i>
-            </div>
-            <h3>Em breve!</h3>
-            <p>O modo <strong>Impostor</strong> estará disponível em breve. Por enquanto, jogue no modo <strong>Rei da Festa</strong>.</p>
-            <div class="modal-buttons">
-                <button class="btn btn-primary" id="comingSoonCloseBtn">Entendi</button>
-            </div>
         </div>
     </div>
 

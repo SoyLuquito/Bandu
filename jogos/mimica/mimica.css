@@ -19,7 +19,6 @@
     --vermelho-falha: #FA5252;
 }
 
-/* ===== Fundo com ondas diagonais animadas (igual ao index) ===== */
 body {
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
     background-color: var(--bege);
@@ -93,7 +92,6 @@ body::after {
     min-height: calc(100dvh - 5rem);
 }
 
-/* ===== Wrapper de tela com top-bar + centralização vertical ===== */
 .screen-wrap {
     position: relative;
     display: flex;
@@ -104,7 +102,6 @@ body::after {
     margin: auto 0;
 }
 
-/* Barra do Topo (ancorada na janela) */
 .top-bar {
     position: absolute;
     top: 0;
@@ -161,7 +158,6 @@ body::after {
     display: none !important;
 }
 
-/* Header */
 .panel-header {
     text-align: center;
 }
@@ -173,7 +169,6 @@ body::after {
     margin-bottom: 0.25rem;
 }
 
-/* Divisores tracejados (mesmo estilo dos form-groups) */
 .panel-divider {
     border: none;
     border-top: 2px dashed var(--bege-escuro);
@@ -181,7 +176,6 @@ body::after {
     height: 0;
 }
 
-/* Regras / Como jogar */
 .panel-rules {
     text-align: center;
 }
@@ -207,7 +201,6 @@ body::after {
     color: var(--texto);
 }
 
-/* Form Groups */
 .form-group {
     display: flex;
     flex-direction: column;
@@ -238,7 +231,6 @@ body::after {
     color: var(--texto-suave);
 }
 
-/* Segmented */
 .segmented-control {
     display: flex;
     background: var(--bege-escuro);
@@ -270,7 +262,6 @@ body::after {
     box-shadow: 0 2px 6px var(--sombra);
 }
 
-/* Inputs */
 .input-with-button {
     display: flex;
     gap: 0.4rem;
@@ -292,7 +283,6 @@ body::after {
     border-color: var(--texto);
 }
 
-/* Equipes */
 .teams-container-stacked {
     display: flex;
     flex-direction: column;
@@ -321,7 +311,6 @@ body::after {
     margin-top: 0.5rem;
 }
 
-/* Chips */
 .chip-group {
     display: flex;
     gap: 0.4rem;
@@ -346,7 +335,6 @@ body::after {
     color: #FFFFFF;
 }
 
-/* ===== Grade de temas ===== */
 .theme-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -394,7 +382,6 @@ body::after {
     background-image: none;
 }
 
-/* Tags */
 .tag-list {
     display: flex;
     flex-wrap: wrap;
@@ -422,7 +409,6 @@ body::after {
     display: flex;
 }
 
-/* Botões */
 .btn {
     padding: 0.85rem 1rem;
     border: none;
@@ -448,7 +434,6 @@ body::after {
 .btn-danger { background: var(--vermelho-falha); color: #FFFFFF; }
 .btn-block { width: 100%; }
 
-/* Cartão Secreto */
 .round-badge {
     align-self: center;
     background: var(--amarelo);
@@ -467,7 +452,6 @@ body::after {
 .display-title { font-size: 1.6rem; text-align: center; font-weight: 900; }
 .subtitle { text-align: center; font-size: 0.85rem; color: var(--texto-suave); }
 
-/* Bloco de escolha de palavras */
 .words-block {
     display: flex;
     flex-direction: column;
@@ -543,7 +527,6 @@ body::after {
     margin-top: 0.5rem;
 }
 
-/* Cronômetro */
 .action-header {
     text-align: center;
     font-size: 0.9rem;
@@ -574,7 +557,6 @@ body::after {
     gap: 0.5rem;
 }
 
-/* Placar */
 .trophy-icon {
     align-self: center;
     width: 70px;
@@ -635,7 +617,6 @@ body::after {
 .score-team-a { color: var(--azul-time); }
 .score-team-b { color: var(--vermelho-time); }
 
-/* Overlay de transição */
 .transition-overlay {
     position: fixed;
     inset: 0;
@@ -689,7 +670,6 @@ body::after {
     margin-top: 0.35rem;
 }
 
-/* Modal */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -762,6 +742,14 @@ body::after {
     padding: 0 1rem;
     font-size: 0.75rem;
     letter-spacing: 0.09em;
+}
+
+.ad-banner-top-compact {
+    flex: 1;
+    height: 40px;
+    padding: 0 0.9rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.07em;
 }
 
 .ad-banner-bottom {
@@ -889,7 +877,6 @@ body::after {
     margin-bottom: 0.85rem;
 }
 
-/* Abas */
 .ad-tabs {
     display: flex;
     background: var(--bege-escuro);
@@ -995,7 +982,6 @@ body::after {
     opacity: 1;
 }
 
-/* Rótulo da chave Pix */
 .ad-pix-label {
     font-size: 0.75rem;
     font-weight: 700;
@@ -1006,7 +992,6 @@ body::after {
     margin: 0.75rem 0 0.4rem;
 }
 
-/* QR Code */
 .ad-qr-wrap {
     display: flex;
     justify-content: center;
@@ -1047,7 +1032,6 @@ body::after {
     margin-top: -1.25rem;
 }
 
-/* Ajustes para telas pequenas */
 @media (max-height: 750px) {
     body {
         padding: 1.5rem 0.75rem 1.5rem 0.75rem;
@@ -1116,6 +1100,11 @@ body::after {
         height: 40px;
         padding: 0 0.75rem;
         font-size: 0.68rem;
+    }
+
+    .ad-banner-top-compact {
+        height: 38px;
+        font-size: 0.64rem;
     }
 
     .icon-button {

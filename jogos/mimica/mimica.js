@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "Milk-shake", "Vinho", "Cerveja", "Água de Coco", "Limonada"
         ],
         filmes: [
-            "Homem-Aranha", "Batman", "Superman", "Homem de Ferro", "Vingadores", "Harry Potter", "Senhor dos Anéis", "Star Wars",
+            "Vingadores", "Harry Potter", "Senhor dos Anéis", "Star Wars",
             "Jurassic Park", "Titanic", "Avatar", "Matrix", "De Volta para o Futuro", "Tubarão", "O Rei Leão", "Toy Story",
             "Shrek", "Procurando Nemo", "Os Incríveis", "Frozen", "Moana", "Barbie", "O Poderoso Chefão", "Forrest Gump",
             "Gladiador", "Piratas do Caribe", "Transformers", "Velozes e Furiosos", "Missão Impossível", "Indiana Jones", "Crepúsculo", "Jogos Vorazes",
@@ -92,6 +92,28 @@ document.addEventListener('DOMContentLoaded', () => {
             "Mulan", "Pocahontas", "Hercules", "Tarzan", "Up - Altas Aventuras", "WALL-E", "Ratatouille", "Coraline", "O Estranho Mundo de Jack",
             "A Família Addams", "Ghostbusters", "Meninas Malvadas", "As Branquelas", "Se Beber, Não Case!", "O Máskara", "Debi & Lóide",
             "Todo Mundo em Pânico", "Pânico", "A Hora do Pesadelo", "Sexta-Feira 13", "O Iluminado", "It - A Coisa", "Atividade Paranormal", "Invocação do Mal"
+        ],
+        marvelDC: [
+            // HERÓIS MARVEL
+            "Homem-Aranha", "Homem de Ferro", "Capitão América", "Thor", "Hulk", "Doutor Estranho",
+            "Pantera Negra", "Wolverine", "Deadpool", "Demolidor",
+            "Feiticeira Escarlate", "Visão", "Homem-Formiga", "Gavião Arqueiro", "Viúva Negra",
+            "Senhor das Estrelas", "Groot", "Falcão", "Motoqueiro Fantasma",
+            // HERÓIS DC
+            "Batman", "Superman", "Mulher-Maravilha", "Flash", "Aquaman",
+            "Lanterna Verde", "Ciborgue", "Shazam", "Supergirl", "Robin",
+            "Arqueiro Verde",
+            "Caçador de Marte", "Ravena", "Estelar", "Mutano", "Canário Negro", "Zatanna",
+            // VILÕES MARVEL
+            "Thanos", "Loki", "Duende Verde", "Doutor Destino", "Magneto",
+            "Venom", "Ultron", "Kang", "Caveira Vermelha",
+            "Killmonger", "Mysterio", "Abutre", "Rei do Crime", "Dormammu",
+            "Galactus",
+            // VILÕES DC
+            "Coringa", "Lex Luthor", "Arlequina", "Charada",
+            "Pinguim", "Duas-Caras", "Bane", "Espantalho",
+            "Sinestro", "Brainiac", "General Zod", "Mulher-Leopardo", "Adão Negro",
+            "Sr. Frio", "Gorila Grodd"
         ]
     };
 
@@ -765,7 +787,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('restartGameBtn').addEventListener('click', () => showScreen('config'));
     document.getElementById('returnRallyBtn').addEventListener('click', () => window.location.href = '../../index.html');
 
-    // ====== SAIR (qualquer botão com data-exit-btn) ======
+    // ====== SAIR ======
     const exitModal = document.getElementById('exitModal');
 
     document.querySelectorAll('[data-exit-btn]').forEach(btn => {
@@ -792,12 +814,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const adTabs = document.querySelectorAll('.ad-tab');
     const adPanels = document.querySelectorAll('.ad-tab-panel');
 
-    // Anúncio
     const adEmailText = document.getElementById('adEmailText');
     const adCopyBtn = document.getElementById('adCopyBtn');
     const adCopiedMsg = document.getElementById('adCopiedMsg');
 
-    // Apoio
     const adPixText = document.getElementById('adPixText');
     const adCopyPixBtn = document.getElementById('adCopyPixBtn');
     const adCopiedPixMsg = document.getElementById('adCopiedPixMsg');
