@@ -17,7 +17,7 @@
         <!-- ================= MENU INICIAL ================= -->
         <section id="homeScreen" class="screen-wrap">
             <div class="top-bar">
-                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                <button class="icon-button exit-btn" data-back-btn data-back-level="home" aria-label="Voltar">
                     <i data-lucide="arrow-left"></i>
                 </button>
                 <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
@@ -35,14 +35,17 @@
                 <div class="panel-rules">
                     <h2 class="panel-subtitle">Como jogar?</h2>
                     <p class="panel-desc">
-                        Duas equipes (<strong>Azul</strong> e <strong>Vermelha</strong>) disputam. Em cada equipe há um
-                        <strong>decodificador</strong> e os demais são <strong>agentes</strong>. São sorteadas 25 cartas:
-                        9 azuis, 9 vermelhas, 6 brancas e <strong>1 preta</strong>.
+                        Um <strong>decifrador</strong> tenta adivinhar as palavras certas com base nas dicas dos
+                        outros jogadores. Em cada rodada, alguém dá uma <strong>dica + número</strong>, e o
+                        decifrador clica nas cartas que acha que combinam.
                     </p>
                     <p class="panel-desc">
-                        O agente da vez vê as cores e dá uma dica (palavra + número). O decodificador clica nas cartas
-                        que acha que combinam. Enquanto acertar as próprias, continua jogando. Se errar ou virar a preta,
-                        a vez passa. Vence quem revelar todas as suas cartas primeiro.
+                        <strong>Dupla/Trio:</strong> cuidado com as cartas brancas — se virar 3, você perde!
+                        E tem uma carta preta: se virar, perde na hora.
+                    </p>
+                    <p class="panel-desc">
+                        <strong>Equipes:</strong> o time Azul tem 10 cartas azuis e o Vermelho 10 vermelhas.
+                        Quem revelar todas primeiro vence. A carta preta é derrota na hora.
                     </p>
                 </div>
 
@@ -50,10 +53,10 @@
 
                 <div class="home-actions">
                     <button type="button" class="btn btn-primary btn-block" id="modeLocalBtn">
-                        <i data-lucide="smartphone"></i> 1 dispositivo
+                        <i data-lucide="users"></i> Juntos
                     </button>
                     <button type="button" class="btn btn-secondary btn-block" id="modeOnlineBtn">
-                        <i data-lucide="users"></i> Cada um no seu
+                        <i data-lucide="smartphone"></i> Online
                     </button>
                 </div>
             </div>
@@ -64,10 +67,10 @@
         </section>
 
 
-        <!-- ================= CONFIGURAÇÃO DE EQUIPES ================= -->
+        <!-- ================= CONFIGURAÇÃO (JUNTOS) ================= -->
         <section id="configScreen" class="screen-wrap hidden">
             <div class="top-bar">
-                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                <button class="icon-button exit-btn" data-back-btn data-back-level="config" aria-label="Voltar">
                     <i data-lucide="arrow-left"></i>
                 </button>
                 <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
@@ -78,36 +81,42 @@
             <div class="card-panel">
                 <header class="panel-header">
                     <h1>Nova Partida</h1>
-                    <p>Monte as duas equipes</p>
+                    <p id="configModeLabel">Modo detectado automaticamente</p>
                 </header>
 
-                <div class="teams-container">
-                    <div class="team-box team-a">
-                        <h3>Equipe Azul</h3>
-                        <div class="input-with-button">
-                            <input type="text" id="teamAInput" placeholder="Nome na azul..." maxlength="15">
-                            <button type="button" class="btn btn-secondary" id="addTeamABtn">+</button>
-                        </div>
-                        <ul class="tag-list" id="teamAList"></ul>
+                <div class="form-group">
+                    <label class="form-label">Jogadores</label>
+                    <div class="input-with-button">
+                        <input type="text" id="playerInput" placeholder="Nome do jogador..." maxlength="15">
+                        <button type="button" class="btn btn-secondary" id="addPlayerBtn">Adicionar</button>
                     </div>
-
-                    <div class="team-box team-b">
-                        <h3>Equipe Vermelha</h3>
-                        <div class="input-with-button">
-                            <input type="text" id="teamBInput" placeholder="Nome na vermelha..." maxlength="15">
-                            <button type="button" class="btn btn-secondary" id="addTeamBBtn">+</button>
-                        </div>
-                        <ul class="tag-list" id="teamBList"></ul>
+                    <ul class="tag-list" id="playerList"></ul>
+                    <div class="mode-hint" id="configHint">
+                        <span class="mode-hint-line"><strong>2 jogadores</strong> = Dupla</span>
+                        <span class="mode-hint-line"><strong>3 jogadores</strong> = Trio</span>
+                        <span class="mode-hint-line"><strong>4+ jogadores</strong> = Equipes</span>
                     </div>
                 </div>
 
-                <button type="button" class="btn btn-secondary btn-block shuffle-btn" id="randomizeTeamsBtn">
-                    <i data-lucide="shuffle"></i> Embaralhar Equipes
-                </button>
-
-                <p class="teams-hint" id="teamsHint">
-                    Mínimo de 2 jogadores por equipe para começar.
-                </p>
+                <div id="teamSplitSection" class="form-group hidden">
+                    <label class="form-label">Dividir entre as equipes</label>
+                    <div class="split-buttons">
+                        <button type="button" class="btn btn-secondary btn-block" id="randomizeTeamsBtn">
+                            <i data-lucide="shuffle"></i> Embaralhar automaticamente
+                        </button>
+                    </div>
+                    <p class="split-hint" id="splitHint">Toque em um jogador para mudar de equipe</p>
+                    <div class="team-split-boxes">
+                        <div class="team-box team-a">
+                            <h3>Equipe Azul <span class="team-count" id="countA">0</span></h3>
+                            <ul class="tag-list team-split-list" id="teamAList"></ul>
+                        </div>
+                        <div class="team-box team-b">
+                            <h3>Equipe Vermelha <span class="team-count" id="countB">0</span></h3>
+                            <ul class="tag-list team-split-list" id="teamBList"></ul>
+                        </div>
+                    </div>
+                </div>
 
                 <button type="button" class="btn btn-primary btn-block btn-start" id="startGameBtn" disabled>
                     <i data-lucide="play"></i> Iniciar Partida
@@ -120,10 +129,10 @@
         </section>
 
 
-        <!-- ================= ESCOLHA DO DECODIFICADOR ================= -->
+        <!-- ================= ESCOLHA DO DECIFRADOR ================= -->
         <section id="rolePickScreen" class="screen-wrap hidden">
             <div class="top-bar">
-                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                <button class="icon-button exit-btn" data-back-btn data-back-level="rolePick" aria-label="Voltar">
                     <i data-lucide="arrow-left"></i>
                 </button>
                 <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
@@ -133,33 +142,27 @@
 
             <div class="card-panel">
                 <header class="panel-header">
-                    <h1>Decodificadores</h1>
-                    <p>Cada equipe escolhe quem será o decodificador</p>
+                    <h1>Decifrador</h1>
+                    <p id="rolePickSub">Quem vai decifrar as palavras?</p>
                 </header>
 
-                <div class="role-pick-team team-a">
-                    <h3>Equipe Azul</h3>
-                    <p class="role-pick-sub">Quem vai decodificar?</p>
-                    <div class="role-pick-list" id="rolePickA"></div>
-                </div>
-
-                <div class="role-pick-team team-b">
-                    <h3>Equipe Vermelha</h3>
-                    <p class="role-pick-sub">Quem vai decodificar?</p>
-                    <div class="role-pick-list" id="rolePickB"></div>
-                </div>
+                <div id="rolePickContainer" class="role-pick-container"></div>
 
                 <button type="button" class="btn btn-primary btn-block btn-start" id="confirmRolesBtn" disabled>
-                    <i data-lucide="check"></i> Confirmar Decodificadores
+                    <i data-lucide="check"></i> Começar Jogo
                 </button>
             </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
         </section>
 
 
-        <!-- ================= HANDOFF: PASSE PARA O AGENTE ================= -->
-        <section id="handoffAgentScreen" class="screen-wrap hidden">
+        <!-- ================= HANDOFF: PASSE PARA O DICIONARISTA ================= -->
+        <section id="handoffClueScreen" class="screen-wrap hidden">
             <div class="top-bar">
-                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                <button class="icon-button exit-btn" data-back-btn data-back-level="handoff" aria-label="Voltar">
                     <i data-lucide="arrow-left"></i>
                 </button>
                 <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
@@ -172,25 +175,29 @@
                     <i data-lucide="smartphone"></i>
                 </div>
                 <h2 class="display-title">Passe o celular</h2>
-                <p class="subtitle" id="handoffAgentSub">Para o agente da equipe</p>
+                <p class="subtitle" id="handoffClueSub">Para quem vai dar a dica</p>
 
-                <div class="handoff-badge team-a" id="handoffAgentTeam">Equipe Azul</div>
+                <div class="handoff-badge" id="handoffClueTeam">Dupla</div>
 
-                <p class="handoff-name" id="handoffAgentName">Nome do agente</p>
+                <p class="handoff-name" id="handoffClueName">Nome do jogador</p>
 
-                <p class="handoff-hint">Só o agente pode ver a tela com as cores. Os decodificadores não podem espiar!</p>
+                <p class="handoff-hint">Só essa pessoa pode ver a tela com as cores. O decifrador não pode espiar!</p>
 
-                <button type="button" class="btn btn-primary btn-block btn-start" id="confirmAgentBtn">
+                <button type="button" class="btn btn-primary btn-block btn-start" id="confirmClueBtn">
                     <i data-lucide="check"></i> Sou eu, começar
                 </button>
             </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
         </section>
 
 
-        <!-- ================= TABULEIRO (AGENTE) ================= -->
+        <!-- ================= TABULEIRO DO DICIONARISTA ================= -->
         <section id="agentBoardScreen" class="screen-wrap hidden">
             <div class="top-bar">
-                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                <button class="icon-button exit-btn" data-back-btn data-back-level="board" aria-label="Voltar">
                     <i data-lucide="arrow-left"></i>
                 </button>
                 <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
@@ -202,47 +209,55 @@
             </div>
 
             <div class="card-panel board-panel">
-                <div class="turn-bar team-a" id="agentTurnBar">
-                    <div class="turn-team" id="agentTeamLabel">Equipe Azul</div>
-                    <div class="turn-role" id="agentRoleLabel">Agente</div>
+                <div class="turn-bar" id="agentTurnBar">
+                    <div class="turn-team" id="agentTeamLabel">Dupla</div>
+                    <div class="turn-role" id="agentRoleLabel">Dando dica</div>
                 </div>
 
-                <p class="board-instruction" id="agentInstruction">
-                    Este é o tabuleiro com as cores. Escolha uma dica e um número.
+                <p class="board-instruction">
+                    Este é o tabuleiro com as cores. Escolha uma dica e quantas cartas o decifrador deve tentar.
                 </p>
 
-                <div class="board-score">
+                <div class="board-score" id="agentScoreBox">
                     <div class="score-mini team-a">
-                        <span>Azul</span>
-                        <strong id="agentScoreA">0/9</strong>
+                        <span id="scoreLabelA">Acertos</span>
+                        <strong id="agentScoreA">0</strong>
                     </div>
-                    <div class="score-mini team-b">
-                        <span>Vermelha</span>
-                        <strong id="agentScoreB">0/9</strong>
+                    <div class="score-mini team-b" id="scoreMiniB">
+                        <span id="scoreLabelB">Vidas</span>
+                        <strong id="agentScoreB">0/3</strong>
                     </div>
                 </div>
 
-                <!-- Grade 5x5 colorida -->
                 <div class="board-grid" id="agentBoardGrid"></div>
 
-                <!-- Área de dar dica -->
                 <div class="agent-area">
                     <div class="agent-hint-row">
                         <input type="text" id="clueWordInput" class="agent-input" placeholder="Dica (uma palavra)" maxlength="20" autocomplete="off">
-                        <input type="number" id="clueNumberInput" class="agent-number" placeholder="Nº" min="1" max="9" value="1">
+                        <select id="clueNumberSelect" class="agent-number-select">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
                     </div>
                     <button type="button" class="btn btn-primary btn-block" id="giveClueBtn">
                         <i data-lucide="send"></i> Dar dica
                     </button>
                 </div>
             </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
         </section>
 
 
-        <!-- ================= HANDOFF: PASSE PARA O DECODIFICADOR ================= -->
+        <!-- ================= HANDOFF: PASSE PARA O DECIFRADOR ================= -->
         <section id="handoffDecoderScreen" class="screen-wrap hidden">
             <div class="top-bar">
-                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                <button class="icon-button exit-btn" data-back-btn data-back-level="handoff" aria-label="Voltar">
                     <i data-lucide="arrow-left"></i>
                 </button>
                 <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
@@ -255,11 +270,11 @@
                     <i data-lucide="search"></i>
                 </div>
                 <h2 class="display-title">Passe o celular</h2>
-                <p class="subtitle" id="handoffDecoderSub">Para o decodificador da equipe</p>
+                <p class="subtitle" id="handoffDecoderSub">Para o decifrador</p>
 
-                <div class="handoff-badge team-a" id="handoffDecoderTeam">Equipe Azul</div>
+                <div class="handoff-badge" id="handoffDecoderTeam">Dupla</div>
 
-                <p class="handoff-name" id="handoffDecoderName">Nome do decodificador</p>
+                <p class="handoff-name" id="handoffDecoderName">Nome do decifrador</p>
 
                 <div class="handoff-clue" id="handoffClueBox">
                     <span class="handoff-clue-label">Dica</span>
@@ -267,19 +282,23 @@
                     <span class="handoff-clue-number" id="handoffClueNumber">0</span>
                 </div>
 
-                <p class="handoff-hint">As cores estão escondidas. O decodificador só vê as palavras.</p>
+                <p class="handoff-hint">As cores estão escondidas. Você só vê as palavras.</p>
 
                 <button type="button" class="btn btn-primary btn-block btn-start" id="confirmDecoderBtn">
                     <i data-lucide="check"></i> Sou eu, começar
                 </button>
             </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
         </section>
 
 
-        <!-- ================= TABULEIRO (DECODIFICADOR) ================= -->
+        <!-- ================= TABULEIRO DO DECIFRADOR ================= -->
         <section id="decoderBoardScreen" class="screen-wrap hidden">
             <div class="top-bar">
-                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                <button class="icon-button exit-btn" data-back-btn data-back-level="board" aria-label="Voltar">
                     <i data-lucide="arrow-left"></i>
                 </button>
                 <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
@@ -291,13 +310,13 @@
             </div>
 
             <div class="card-panel board-panel">
-                <div class="turn-bar team-a" id="decoderTurnBar">
-                    <div class="turn-team" id="decoderTeamLabel">Equipe Azul</div>
-                    <div class="turn-role" id="decoderRoleLabel">Decodificador</div>
+                <div class="turn-bar" id="decoderTurnBar">
+                    <div class="turn-team" id="decoderTeamLabel">Dupla</div>
+                    <div class="turn-role" id="decoderRoleLabel">Decifrador</div>
                 </div>
 
                 <div class="clue-display" id="clueDisplay">
-                    <span class="clue-label">Dica atual</span>
+                    <span class="clue-label">Dica</span>
                     <span class="clue-text" id="clueText">—</span>
                     <span class="clue-number" id="clueNumber">0</span>
                 </div>
@@ -306,33 +325,36 @@
                     Clique nas cartas que você acha que combinam com a dica.
                 </p>
 
-                <div class="board-score">
+                <div class="board-score" id="decoderScoreBox">
                     <div class="score-mini team-a">
-                        <span>Azul</span>
-                        <strong id="decoderScoreA">0/9</strong>
+                        <span id="decScoreLabelA">Acertos</span>
+                        <strong id="decoderScoreA">0</strong>
                     </div>
-                    <div class="score-mini team-b">
-                        <span>Vermelha</span>
-                        <strong id="decoderScoreB">0/9</strong>
+                    <div class="score-mini team-b" id="decScoreMiniB">
+                        <span id="decScoreLabelB">Vidas</span>
+                        <strong id="decoderScoreB">0/3</strong>
                     </div>
                 </div>
 
-                <!-- Grade 5x5 sem cor -->
                 <div class="board-grid" id="decoderBoardGrid"></div>
 
                 <div class="decoder-area">
                     <button type="button" class="btn btn-secondary btn-block" id="passTurnBtn">
-                        <i data-lucide="skip-forward"></i> Passar a vez
+                        <i data-lucide="skip-forward"></i> Parar de tentar
                     </button>
                 </div>
             </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
         </section>
 
 
         <!-- ================= FIM DE JOGO ================= -->
         <section id="gameOverScreen" class="screen-wrap hidden">
             <div class="top-bar">
-                <button class="icon-button exit-btn" data-exit-btn aria-label="Voltar à Rally">
+                <button class="icon-button exit-btn" data-back-btn data-back-level="over" aria-label="Voltar">
                     <i data-lucide="arrow-left"></i>
                 </button>
                 <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
@@ -351,9 +373,229 @@
                     <i data-lucide="rotate-ccw"></i> Jogar Novamente
                 </button>
                 <button type="button" class="btn btn-secondary btn-block" id="backToConfigBtn">
-                    <i data-lucide="settings"></i> Ajustar Equipes
+                    <i data-lucide="settings"></i> Ajustar Jogadores
                 </button>
             </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ================= ONLINE: MENU CRIAR/ENTRAR ================= -->
+        <section id="onlineMenuScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-back-btn data-back-level="onlineMenu" aria-label="Voltar">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <header class="panel-header">
+                    <h1>Online</h1>
+                    <p>Crie ou entre em uma sala</p>
+                </header>
+
+                <div class="panel-divider"></div>
+
+                <div class="home-actions">
+                    <button type="button" class="btn btn-primary btn-block" id="createRoomBtn">
+                        <i data-lucide="plus-circle"></i> Criar Sala
+                    </button>
+
+                    <div class="join-box">
+                        <input type="text" id="joinCodeInput" class="code-input" placeholder="CÓDIGO" maxlength="6" autocomplete="off" spellcheck="false">
+                        <button type="button" class="btn btn-secondary" id="joinRoomBtn">
+                            <i data-lucide="log-in"></i> Entrar
+                        </button>
+                    </div>
+
+                    <p class="home-hint">Crie uma sala e mande o código pros amigos.</p>
+                </div>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ================= ONLINE: LOBBY ================= -->
+        <section id="lobbyScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-back-btn data-back-level="lobby" aria-label="Voltar">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <header class="panel-header">
+                    <h1>Sala</h1>
+                    <div class="room-code-wrapper">
+                        <p class="room-code-display masked" id="lobbyRoomCode">------</p>
+                        <button type="button" class="room-code-toggle" id="roomCodeToggle" aria-label="Mostrar código">
+                            <i data-lucide="eye"></i>
+                        </button>
+                    </div>
+                    <p id="lobbyModeLabel">Aguardando jogadores...</p>
+                </header>
+
+                <div class="host-config hidden" id="hostConfig">
+                    <div class="config-group">
+                        <label class="config-label">Tempo para dar a dica</label>
+                        <div class="chip-group" id="clueTimeGroup">
+                            <button type="button" class="chip-btn active" data-value="45">45s</button>
+                            <button type="button" class="chip-btn" data-value="60">60s</button>
+                            <button type="button" class="chip-btn" data-value="90">90s</button>
+                            <button type="button" class="chip-btn" data-value="0">∞</button>
+                        </div>
+                    </div>
+                    <div class="config-group">
+                        <label class="config-label">Tempo para adivinhar</label>
+                        <div class="chip-group" id="guessTimeGroup">
+                            <button type="button" class="chip-btn active" data-value="45">45s</button>
+                            <button type="button" class="chip-btn" data-value="60">60s</button>
+                            <button type="button" class="chip-btn" data-value="90">90s</button>
+                            <button type="button" class="chip-btn" data-value="0">∞</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="players-section">
+                    <div class="players-header">
+                        <span>Jogadores</span>
+                        <span id="playerCount">0 / 10</span>
+                    </div>
+                    <ul class="players-list" id="playersList"></ul>
+                </div>
+
+                <p class="teams-hint" id="lobbyModeHint">2 jogadores = Dupla • 3 = Trio • 4+ = Equipes</p>
+
+                <button type="button" class="btn btn-primary btn-block hidden" id="startGameOnlineBtn">
+                    <i data-lucide="play"></i> Iniciar Partida
+                </button>
+                <p class="waiting-msg hidden" id="waitingHostMsg">
+                    <i data-lucide="hourglass"></i>
+                    <span>Aguardando o dono da sala iniciar...</span>
+                </p>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ================= ONLINE: TABULEIRO ================= -->
+        <section id="onlineBoardScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-back-btn data-back-level="onlineBoard" aria-label="Sair">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel board-panel">
+                <div class="turn-bar" id="onlineTurnBar">
+                    <div class="turn-team" id="onlineTeamLabel">Dupla</div>
+                    <div class="turn-role" id="onlineRoleLabel">Turno</div>
+                </div>
+
+                <div class="online-timer-display" id="onlineTimerDisplay">--s</div>
+
+                <div class="online-status-banner" id="onlineStatusBanner">
+                    <i data-lucide="info"></i>
+                    <span id="onlineStatusText">Aguardando...</span>
+                </div>
+
+                <div class="clue-display hidden" id="onlineClueDisplay">
+                    <span class="clue-label">Dica</span>
+                    <span class="clue-text" id="onlineClueText">—</span>
+                    <span class="clue-number" id="onlineClueNumber">0</span>
+                </div>
+
+                <p class="board-instruction" id="onlineInstruction"></p>
+
+                <div class="board-score" id="onlineScoreBox">
+                    <div class="score-mini team-a">
+                        <span id="onlineScoreLabelA">Acertos</span>
+                        <strong id="onlineScoreA">0</strong>
+                    </div>
+                    <div class="score-mini team-b" id="onlineScoreMiniB">
+                        <span id="onlineScoreLabelB">Vidas</span>
+                        <strong id="onlineScoreB">0/3</strong>
+                    </div>
+                </div>
+
+                <div class="board-grid" id="onlineBoardGrid"></div>
+
+                <div class="online-actions hidden" id="onlineClueActions">
+                    <div class="agent-hint-row">
+                        <input type="text" id="onlineClueInput" class="agent-input" placeholder="Dica (uma palavra)" maxlength="20" autocomplete="off">
+                        <select id="onlineClueNumber" class="agent-number-select">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-block" id="onlineGiveClueBtn">
+                        <i data-lucide="send"></i> Dar dica
+                    </button>
+                </div>
+
+                <div class="online-actions hidden" id="onlinePassActions">
+                    <button type="button" class="btn btn-secondary btn-block" id="onlinePassBtn">
+                        <i data-lucide="skip-forward"></i> Parar de tentar
+                    </button>
+                </div>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
+        </section>
+
+
+        <!-- ================= ONLINE: FIM DE JOGO ================= -->
+        <section id="onlineGameOverScreen" class="screen-wrap hidden">
+            <div class="top-bar">
+                <button class="icon-button exit-btn" data-back-btn data-back-level="onlineOver" aria-label="Voltar">
+                    <i data-lucide="arrow-left"></i>
+                </button>
+                <button type="button" class="ad-banner ad-banner-top" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                    <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+                </button>
+            </div>
+
+            <div class="card-panel">
+                <div class="result-icon" id="onlineResultIcon">
+                    <i data-lucide="trophy"></i>
+                </div>
+                <h2 class="display-title" id="onlineResultTitle">Fim de jogo!</h2>
+                <p class="subtitle" id="onlineResultSub">...</p>
+
+                <button type="button" class="btn btn-primary btn-block" id="onlineRematchBtn">
+                    <i data-lucide="rotate-ccw"></i> Jogar Novamente
+                </button>
+                <button type="button" class="btn btn-secondary btn-block" id="onlineBackLobbyBtn">
+                    <i data-lucide="home"></i> Voltar ao Lobby
+                </button>
+            </div>
+
+            <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">
+                <span class="ad-banner-text">Apoie ou anuncie aqui</span>
+            </button>
         </section>
 
     </main>
@@ -367,29 +609,50 @@
         </div>
     </div>
 
-    <!-- Modal "Em breve" -->
-    <div class="modal-overlay hidden" id="comingSoonModal">
+    <!-- Modal de confirmação para sair -->
+    <div class="modal-overlay hidden" id="exitModal">
         <div class="modal-card">
-            <div class="modal-icon" style="background: #FFF3CD; color: #B6A300;">
-                <i data-lucide="construction"></i>
-            </div>
-            <h3>Em breve!</h3>
-            <p>O modo <strong>Cada um no seu</strong> estará disponível em breve. Por enquanto, jogue com todos no mesmo dispositivo.</p>
+            <h3>Sair do Jogo?</h3>
+            <p>Você voltará ao menu inicial do Codinomes.</p>
             <div class="modal-buttons">
-                <button class="btn btn-primary" id="comingSoonCloseBtn">Entendi</button>
+                <button class="btn btn-secondary" id="cancelExitBtn">Continuar</button>
+                <button class="btn btn-danger" id="confirmExitBtn">Sair</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal de confirmação para sair -->
-    <div class="modal-overlay hidden" id="exitModal">
+    <!-- Modal nome (online) -->
+    <div class="modal-overlay hidden" id="nameModal">
         <div class="modal-card">
-            <h3>Cancelar Partida?</h3>
-            <p>Se voltar à Rally, a partida atual será cancelada.</p>
+            <h3>Qual seu nome?</h3>
+            <p>Escolha um nome para os outros verem.</p>
+            <input type="text" id="nameInput" class="code-input name-input" placeholder="Seu nome" maxlength="15" autocomplete="off">
             <div class="modal-buttons">
-                <button class="btn btn-secondary" id="cancelExitBtn">Continuar</button>
-                <button class="btn btn-danger" id="confirmExitBtn">Sair da Partida</button>
+                <button class="btn btn-secondary" id="cancelNameBtn">Cancelar</button>
+                <button class="btn btn-primary" id="confirmNameBtn">Confirmar</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal genérico de aviso (substitui alert) -->
+    <div class="modal-overlay hidden" id="noticeModal">
+        <div class="modal-card">
+            <div class="modal-icon" style="background: #FFE8EC; color: #C92A2A;">
+                <i data-lucide="alert-circle"></i>
+            </div>
+            <h3 id="noticeTitle">Atenção</h3>
+            <p id="noticeMessage">Mensagem do sistema.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="noticeOkBtn">Entendi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <p id="loadingText">Carregando...</p>
         </div>
     </div>
 
@@ -444,6 +707,6 @@
         </div>
     </div>
 
-    <script src="codinomes.js"></script>
+    <script type="module" src="codinomes.js"></script>
 </body>
 </html>
