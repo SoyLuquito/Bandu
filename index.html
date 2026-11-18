@@ -28,6 +28,7 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23FBFAF7'/%3E%3Ctext x='50' y='50' text-anchor='middle' dominant-baseline='central' font-family='Outfit, Arial, sans-serif' font-weight='900' font-size='78' fill='%23FF6B8A'%3ER%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="index.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@900&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -93,17 +94,17 @@
                 </p>
             </div>
             <div class="filter-group">
-                <label class="filter-label">Nº de dispositivos</label>
+                <label class="filter-label">Modo</label>
                 <div class="filter-options" data-filter="device">
                     <button class="filter-chip" data-value="any">Qualquer</button>
-                    <button class="filter-chip" data-value="shared">1 dispositivo</button>
-                    <button class="filter-chip" data-value="each">Cada um no seu</button>
+                    <button class="filter-chip" data-value="shared">Juntos</button>
+                    <button class="filter-chip" data-value="each">Online</button>
                 </div>
             </div>
         </div>
 
         <div class="games-grid" id="gamesGrid">
-            <!-- Stop (NOVO) -->
+            <!-- Stop -->
             <div class="game-card" 
                  data-game="/jogos/stop/stop.html"
                  data-title="stop"
@@ -111,7 +112,6 @@
                  data-device="shared"
                  data-emoji="hand"
                  data-bg="linear-gradient(135deg, #7BE495 0%, #6EC6FF 100%)">
-                <span class="card-badge-new">Novo</span>
                 <div class="card-image" style="background: linear-gradient(135deg, #7BE495 0%, #6EC6FF 100%);">
                     <i data-lucide="hand" class="card-icon"></i>
                 </div>
@@ -126,6 +126,7 @@
                  data-device="shared"
                  data-emoji="timer"
                  data-bg="linear-gradient(135deg, #FFC078 0%, #FF8FA3 100%)">
+                <span class="card-badge-updated">Atualizado</span>
                 <div class="card-image" style="background: linear-gradient(135deg, #FFC078 0%, #FF8FA3 100%);">
                     <i data-lucide="timer" class="card-icon"></i>
                 </div>
@@ -150,10 +151,11 @@
             <div class="game-card" 
                  data-game="/jogos/impostor/impostor.html"
                  data-title="impostor"
-                 data-players-min="4"
-                 data-device="shared"
+                 data-players-min="3"
+                 data-device="shared each"
                  data-emoji="user-x"
                  data-bg="linear-gradient(135deg, #7BE495 0%, #6EC6FF 100%)">
+                <span class="card-badge-updated">Atualizado</span>
                 <div class="card-image" style="background: linear-gradient(135deg, #7BE495 0%, #6EC6FF 100%);">
                     <i data-lucide="user-x" class="card-icon"></i>
                 </div>
@@ -164,10 +166,11 @@
             <div class="game-card" 
                  data-game="/jogos/mimica/mimica.html"
                  data-title="mímica mimica"
-                 data-players-min="4"
+                 data-players-min="2"
                  data-device="shared"
                  data-emoji="sparkles"
                  data-bg="linear-gradient(135deg, #FFE066 0%, #FF9A8B 100%)">
+                <span class="card-badge-updated">Atualizado</span>
                 <div class="card-image" style="background: linear-gradient(135deg, #FFE066 0%, #FF9A8B 100%);">
                     <i data-lucide="sparkles" class="card-icon"></i>
                 </div>
@@ -192,10 +195,11 @@
             <div class="game-card" 
                  data-game="/jogos/codinomes/codinomes.html"
                  data-title="codinomes"
-                 data-players-min="4"
-                 data-device="each"
+                 data-players-min="2"
+                 data-device="shared each"
                  data-emoji="search"
                  data-bg="linear-gradient(135deg, #4DD0C8 0%, #7B9EFF 100%)">
+                <span class="card-badge-updated">Atualizado</span>
                 <div class="card-image" style="background: linear-gradient(135deg, #4DD0C8 0%, #7B9EFF 100%);">
                     <i data-lucide="search" class="card-icon"></i>
                 </div>

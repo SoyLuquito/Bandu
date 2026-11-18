@@ -78,8 +78,11 @@ body::after {
     padding: 5rem 1rem 1.5rem;
 }
 
+
+
 .logo {
-    font-size: clamp(2.5rem, 12vw, 4.5rem);
+    font-family: 'Futura Display', 'Outfit', sans-serif;
+    font-size: clamp(3.5rem, 16vw, 6rem);
     font-weight: 900;
     letter-spacing: 0.05em;
     display: inline-flex;
@@ -1478,4 +1481,81 @@ body::after {
 .modal-buttons .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* ===== Badge "Atualizado" — mesmo estilo do "Novo" mas azul ===== */
+.card-badge-updated {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    z-index: 5;
+    background: #4DABF7;
+    color: #FFFFFF;
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    box-shadow: 0 4px 12px rgba(77, 171, 247, 0.5),
+                0 0 0 3px #FFFFFF;
+    animation: badgePulse 2.2s ease-in-out infinite;
+    pointer-events: none;
+    user-select: none;
+    transform-origin: center;
+    rotate: -6deg;
+}
+
+/* ===== Bloco "O que mudou?" no modal do card ===== */
+.card-updates {
+    background: var(--bege);
+    border-left: 4px solid #4DABF7;
+    border-radius: 12px;
+    padding: 0.75rem 0.9rem;
+    margin: 0.5rem 0 1rem;
+    text-align: left;
+}
+.card-updates-title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #1D6FA5;
+    margin-bottom: 0.5rem;
+}
+.card-updates-title svg {
+    width: 14px;
+    height: 14px;
+}
+.card-updates-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.card-updates-list li {
+    font-size: 0.82rem;
+    color: #5A5050;
+    line-height: 1.45;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    font-weight: 400;
+}
+.card-updates-list li::before {
+    content: '•';
+    color: #4DABF7;
+    font-weight: 900;
+    flex-shrink: 0;
+    line-height: 1.45;
+}
+
+@font-face {
+    font-family: 'Futura Display';
+    src: url('fonts/FuturaDisplay.ttf') format('truetype');
+    font-weight: 900; /* ou o peso que você for usar */
+    font-style: normal;
 }

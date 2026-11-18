@@ -1,5 +1,5 @@
 // Rally - Lobby de Party Games
-// Versão 2.8
+// Versão 3.0
 
 // ============================================================
 // FIREBASE (para envio de feedback)
@@ -43,12 +43,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================
     // ★ VERSÃO DO SITE — atualize esta string a cada deploy ★
     // ============================================================
-    const SITE_VERSION = 'v0.2.8';
+    const SITE_VERSION = 'v0.3.0';
 
     // ============================================================
     // ★ DEVLOG — últimas atualizações (mais recente no topo) ★
     // ============================================================
     const DEVLOG = [
+        {
+            version: 'v0.3.0',
+            date: '18/11/2026',
+            items: [
+                'Impostor: novo modo "Infiltrado" e modo Online disponível.',
+                'Mímica: novo tema "Marvel & DC".',
+                'Acerte o Tempo: novo modo "Impostor".',
+                'Codinomes: novos modos "Dupla" e "Trio" para 2 ou 3 jogadores, e modo Online disponível.',
+                'Filtro de dispositivos virou filtro de modo: Juntos e Online.'
+            ]
+        },
         {
             version: 'v0.2.8',
             date: '11/11/2026',
@@ -221,10 +232,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const GAMES_INFO = {
         '/jogos/stop/stop.html': {
             title: 'Stop',
-            icon: 'octagon',
+            icon: 'hand',
             bg: 'linear-gradient(135deg, #7BE495 0%, #6EC6FF 100%)',
             players: '2+ jogadores',
-            device: '1 dispositivo',
+            device: 'Juntos',
             description: 'Uma letra é sorteada e todos preenchem as categorias começando com ela. O primeiro a gritar STOP! encerra a rodada. Neste modo, o celular só faz o sorteio das letras.'
         },
         '/jogos/acerteotempo/acerteotempo.html': {
@@ -232,55 +243,69 @@ document.addEventListener('DOMContentLoaded', () => {
             icon: 'timer',
             bg: 'linear-gradient(135deg, #FFC078 0%, #FF8FA3 100%)',
             players: '2+ jogadores',
-            device: '1 dispositivo',
-            description: 'Um tempo entre 0 e 12 segundos é sorteado secretamente. Aperte o botão para iniciar e tente parar no momento certo, confiando apenas na sua intuição!'
+            device: 'Juntos',
+            description: 'Um tempo entre 0 e 12 segundos é sorteado secretamente. Aperte o botão para iniciar e tente parar no momento certo, confiando apenas na sua intuição!',
+            updates: [
+                'Novo modo "Impostor".'
+            ]
         },
         '/jogos/corescomdicas/corescomdicas.html': {
             title: 'Cores com Dicas',
             icon: 'palette',
             bg: 'linear-gradient(135deg, #FF8FA3 0%, #FFC078 100%)',
             players: '2 à 10 jogadores',
-            device: '1 dispositivo ou Cada um no seu',
+            device: 'Juntos ou Online',
             description: 'Dê dicas com palavras para que os outros jogadores acertem a cor correta no tabuleiro. Quanto mais próximo, mais pontos!'
         },
         '/jogos/impostor/impostor.html': {
             title: 'Impostor',
             icon: 'user-x',
             bg: 'linear-gradient(135deg, #7BE495 0%, #6EC6FF 100%)',
-            players: '4 à 10 jogadores',
-            device: '1 dispositivo',
-            description: 'Todos recebem a mesma palavra, exceto o impostor. Descubra quem é o impostor antes que ele te engane!'
+            players: '3 à 10 jogadores',
+            device: 'Juntos ou Online',
+            description: 'Todos recebem a mesma palavra, exceto o impostor. Descubra quem é o impostor antes que ele te engane!',
+            updates: [
+                'Novo modo "Infiltrado".',
+                'Modo Online criado e já disponível.'
+            ]
         },
         '/jogos/mimica/mimica.html': {
             title: 'Mímica',
             icon: 'sparkles',
             bg: 'linear-gradient(135deg, #FFE066 0%, #FF9A8B 100%)',
-            players: '4+ jogadores',
-            device: '1 dispositivo',
-            description: 'Faça mímica para que sua equipe adivinhe a palavra ou frase. Sem falar, sem sons, só gestos!'
+            players: '2+ jogadores',
+            device: 'Juntos',
+            description: 'Faça mímica para que sua equipe adivinhe a palavra ou frase. Sem falar, sem sons, só gestos!',
+            updates: [
+                'Novo tema "Marvel & DC".'
+            ]
         },
         '/jogos/eununca/eununca.html': {
             title: 'Eu Nunca',
             icon: 'message-circle',
             bg: 'linear-gradient(135deg, #C77DFF 0%, #FF7EB9 100%)',
             players: '2+ jogadores',
-            device: '1 dispositivo',
+            device: 'Juntos',
             description: 'O jogo clássico de revelações! Diga algo que nunca fez e descubra quem já fez. Prepare-se para rir!'
         },
         '/jogos/codinomes/codinomes.html': {
             title: 'Codinomes',
             icon: 'search',
             bg: 'linear-gradient(135deg, #4DD0C8 0%, #7B9EFF 100%)',
-            players: '4+ jogadores',
-            device: 'Cada um no seu',
-            description: 'Dê pistas para sua equipe encontrar as palavras secretas no tabuleiro, mas cuidado para não ajudar o time adversário!'
+            players: '2 à 10 jogadores',
+            device: 'Juntos ou Online',
+            description: 'Dê pistas para sua equipe encontrar as palavras secretas no tabuleiro, mas cuidado para não ajudar o time adversário!',
+            updates: [
+                'Novos modos "Dupla" e "Trio", para 2 ou 3 jogadores respectivamente.',
+                'Modo Online criado e já disponível.'
+            ]
         },
         '/jogos/cidadedorme/cidadedorme.html': {
             title: 'Cidade Dorme',
             icon: 'moon',
             bg: 'linear-gradient(135deg, #6A8EEA 0%, #4DD0C8 100%)',
             players: '6+ jogadores',
-            device: '1 dispositivo ou Cada um no seu',
+            device: 'Juntos ou Online',
             description: 'A cidade dorme, mas o assassino está acordado! Descubra quem está matando os cidadãos antes que seja tarde.'
         },
         '/jogos/sintonia/sintonia.html': {
@@ -288,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
             icon: 'activity',
             bg: 'linear-gradient(135deg, #FFB067 0%, #A8E063 100%)',
             players: '2+ jogadores',
-            device: '1 dispositivo ou Cada um no seu',
+            device: 'Juntos ou Online',
             description: 'Dê uma dica para que sua equipe posicione o ponteiro no espectro entre dois opostos. Comunicação é tudo!'
         },
         '/jogos/meupar/meupar.html': {
@@ -296,7 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
             icon: 'users',
             bg: 'linear-gradient(135deg, #B197FC 0%, #FF9A8B 100%)',
             players: '5+ jogadores',
-            device: '1 dispositivo',
+            device: 'Juntos',
             description: 'Cada jogador recebe uma palavra secreta, compartilhada com sua dupla. O impostor não sabe a palavra e precisa blefar! Dê dicas, descubra sua dupla e desmascare o impostor. Cuidado: pode haver mais de um!'
         }
     };
@@ -361,6 +386,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const bg = card.dataset.bg || info.bg;
 
+        const updatesHtml = info.updates && info.updates.length
+            ? `
+                <div class="card-updates">
+                    <div class="card-updates-title">
+                        <i data-lucide="sparkles"></i>
+                        <span>O que mudou</span>
+                    </div>
+                    <ul class="card-updates-list">
+                        ${info.updates.map(u => `<li>${u}</li>`).join('')}
+                    </ul>
+                </div>
+            `
+            : '';
+
         modalContent.innerHTML = `
             <div class="card-image" style="background: ${bg};">
                 <i data-lucide="${info.icon}" class="card-icon"></i>
@@ -376,6 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span>${info.device}</span>
                 </div>
                 <p class="card-description">${info.description}</p>
+                ${updatesHtml}
                 <button class="play-button" id="modalPlayButton">Jogar</button>
             </div>
         `;
@@ -426,7 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderDevlog() {
         if (!devlogList) return;
         devlogList.innerHTML = '';
-        const latest = DEVLOG.slice(0, 5);
+        const latest = DEVLOG.slice(0, 6);
 
         latest.forEach(entry => {
             const item = document.createElement('div');
