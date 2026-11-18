@@ -468,6 +468,25 @@
                     </div>
                 </div>
 
+                <!-- NOVO: escolha de decifrador (host) -->
+                <div class="host-config hidden" id="decoderPickerSection">
+                    <div class="config-group">
+                        <div class="decoder-picker-header">
+                            <label class="config-label">Quem vai decifrar?</label>
+                            <button type="button" class="btn btn-secondary" id="randomizeDecoderBtn">
+                                <i data-lucide="shuffle"></i> Sortear
+                            </button>
+                        </div>
+                        <div id="decoderPickerContainer" class="decoder-picker-container"></div>
+                    </div>
+                </div>
+
+                <!-- NOVO: mostra o decifrador escolhido (não-host) -->
+                <div class="decoder-viewer hidden" id="decoderViewerBox">
+                    <p class="config-label">Decifrador</p>
+                    <p class="decoder-viewer-name" id="decoderViewerName">—</p>
+                </div>
+
                 <div class="players-section">
                     <div class="players-header">
                         <span>Jogadores</span>
@@ -477,6 +496,11 @@
                 </div>
 
                 <p class="teams-hint" id="lobbyModeHint">2 jogadores = Dupla • 3 = Trio • 4+ = Equipes</p>
+
+                <!-- NOVO: pronto (não-host) -->
+                <button type="button" class="btn btn-primary btn-block hidden" id="readyBtn">
+                    <i data-lucide="check"></i> Estou Pronto
+                </button>
 
                 <button type="button" class="btn btn-primary btn-block hidden" id="startGameOnlineBtn">
                     <i data-lucide="play"></i> Iniciar Partida
@@ -591,6 +615,12 @@
                 <button type="button" class="btn btn-secondary btn-block" id="onlineBackLobbyBtn">
                     <i data-lucide="home"></i> Voltar ao Lobby
                 </button>
+
+                <!-- NOVO: aviso pra quem não é host -->
+                <p class="waiting-msg hidden" id="onlineWaitHostMsg">
+                    <i data-lucide="hourglass"></i>
+                    <span>Aguardando o host iniciar uma nova partida...</span>
+                </p>
             </div>
 
             <button type="button" class="ad-banner ad-banner-bottom" data-ad-banner aria-label="Apoie ou anuncie aqui">

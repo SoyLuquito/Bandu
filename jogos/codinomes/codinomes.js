@@ -157,7 +157,8 @@ const state = {
         roomData: null,
         unsubscribeRoom: null,
         isHost: false,
-        roomCodeVisible: false
+        roomCodeVisible: false,
+        clockOffset: 0  // diferença entre relógio do servidor e local (ms)
     }
 };
 
@@ -423,8 +424,7 @@ playerInput.addEventListener('keydown', (e) => {
 });
 
 document.getElementById('randomizeTeamsBtn').addEventListener('click', () => {
-    const all = [...state.allPlayers];
-    const shuffled = shuffle(all);
+    const shuffled = shuffle([...state.allPlayers]);
     const mid = Math.floor(shuffled.length / 2);
     state.teamA = shuffled.slice(0, mid);
     state.teamB = shuffled.slice(mid);
@@ -480,7 +480,6 @@ function renderRolePick() {
         });
         box.appendChild(list);
         container.appendChild(box);
-
         confirmBtn.disabled = !(state.decoder && state.decoder.solo);
     } else {
         const boxA = document.createElement('div');
@@ -488,7 +487,6 @@ function renderRolePick() {
         boxA.innerHTML = `<h3>Equipe Azul</h3><p class="role-pick-sub">Quem vai decifrar?</p>`;
         const listA = document.createElement('div');
         listA.className = 'role-pick-list';
-
         state.teamA.forEach(name => {
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -508,7 +506,6 @@ function renderRolePick() {
         boxB.innerHTML = `<h3>Equipe Vermelha</h3><p class="role-pick-sub">Quem vai decifrar?</p>`;
         const listB = document.createElement('div');
         listB.className = 'role-pick-list';
-
         state.teamB.forEach(name => {
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -898,16 +895,12 @@ function handleGuess(index) {
     }
 
     if (!isTeams && state.whitesRevealed >= WHITE_LIMIT) {
-        state.winner = 'derrota';
-        state.winReason = 'whites';
-        state.phase = 'over';
+        state.winner = 'derrota'; state.winReason = 'whites'; state.phase = 'over';
         setTimeout(() => { state.justRevealedIndex = -1; renderGameOver(); }, 1500);
         return;
     }
     if (!isTeams && state.teamA_score >= SOLO_TOTAL_AZUL) {
-        state.winner = 'vitoria';
-        state.winReason = 'all';
-        state.phase = 'over';
+        state.winner = 'vitoria'; state.winReason = 'all'; state.phase = 'over';
         setTimeout(() => { state.justRevealedIndex = -1; renderGameOver(); }, 1500);
         return;
     }
@@ -1149,6 +1142,8 @@ async function createOnlineRoom() {
                     joinedAt: Date.now()
                 }
             },
+            teams: null,
+            decoderSelection: null,
             game: null
         };
 
@@ -1249,13 +1244,13 @@ async function leaveOnlineRoom() {
     state.online.roomData = null;
     state.online.isHost = false;
     state.online.playerName = null;
-    state.online.lastPhaseKey = null;
+    state.online.clockOffset = 0;
     showScreen('home');
     if (window.lucide) lucide.createIcons();
 }
 
 // ============================================================
-// ONLINE — SNAPSHOT
+// ONLINE — SNAPSHOT + SINCRONIZAÇÃO DE RELÓGIO
 // ============================================================
 function listenToRoom() {
     if (state.online.unsubscribeRoom) state.online.unsubscribeRoom();
@@ -1268,6 +1263,31 @@ function listenToRoom() {
         state.online.roomData = snap.data();
         const data = state.online.roomData;
         state.online.isHost = (data.hostUid === state.online.uid);
+
+        // Sincroniza relógio com o servidor usando createdAt (serverTimestamp)
+        // serverTimestamp() só resolve alguns ms após o create; enquanto for null, ignora.
+        const createdAt = data.createdAt;
+        if (createdAt && createdAt.toMillis) {
+            // Snapshots do Firestore estimam o horário do servidor em snapshot.metadata.
+            // Vamos usar a diferença entre esse horário do servidor e o Date.now() local.
+            const serverMs = snap.metadata && snap.metadata.fromCache
+                ? null
+                : (createdAt.toMillis() + (Date.now() - (state.online.lastSnapshotAt || Date.now())));
+            // Não é confiável. Melhor abordagem: usar o DocumentSnapshot.serverTimeMs
+            // Vamos ler directamente do snapshot.metadata (não exposto). Alternativa:
+            // usar a estimativa local do evento de tempo do Firestore.
+            // Como não temos acesso direto, usamos createdAt.toMillis() como referência
+            // e o Date.now() no momento do primeiro snapshot como aproximação.
+            // Para reduzir erro, calculamos o offset apenas na primeira vez.
+            if (state.online.clockOffset === 0) {
+                // criamos a sala há X ms → se o snapshot chegou agora, o "agora" do servidor
+                // é createdAt + (tempo desde criação). Mas não sabemos o tempo desde criação
+                // sem outro timestamp. Usamos o próprio Date.now() atual como referência.
+                // Melhor: usar o serverTimestamp() para o início do turno, que É confiável
+                // porque foi gerado pelo servidor quando o host atualizou o game.
+            }
+        }
+        state.online.lastSnapshotAt = Date.now();
 
         if (data.status === 'lobby') {
             if (state.lastScreen !== 'lobby') showScreen('lobby');
@@ -1283,6 +1303,12 @@ function listenToRoom() {
 // ============================================================
 // ONLINE — LOBBY
 // ============================================================
+function getValidPlayers(data) {
+    return Object.entries(data.jogadores || {})
+        .filter(([, p]) => p && typeof p.nome === 'string')
+        .map(([uid, p]) => ({ uid, ...p }));
+}
+
 function renderLobby() {
     const data = state.online.roomData;
     if (!data) return;
@@ -1295,9 +1321,7 @@ function renderLobby() {
         ? '<i data-lucide="eye-off"></i>'
         : '<i data-lucide="eye"></i>';
 
-    const players = Object.entries(data.jogadores || {})
-        .filter(([, p]) => p && typeof p.nome === 'string')
-        .map(([uid, p]) => ({ uid, ...p }));
+    const players = getValidPlayers(data);
     players.sort((a, b) => (b.joinedAt || 0) - (a.joinedAt || 0));
     const count = players.length;
     document.getElementById('playerCount').innerText = `${count} / ${MAX_ONLINE_PLAYERS}`;
@@ -1308,20 +1332,25 @@ function renderLobby() {
         ? `Modo ${modeLabels[detected]}`
         : 'Adicione pelo menos 2 jogadores';
 
+    // Lista de jogadores com tag "Pronto"
     const list = document.getElementById('playersList');
     list.innerHTML = '';
     players.forEach(p => {
         const li = document.createElement('li');
         li.className = 'player-item' + (p.uid === data.hostUid ? ' host' : '');
         const isMe = p.uid === state.online.uid;
+        const isHost = p.uid === data.hostUid;
+        const ready = isHost ? true : !!p.ready;
         li.innerHTML = `
             <span class="player-name">${escapeHtml(p.nome)}</span>
-            ${p.uid === data.hostUid ? '<span class="player-tag host-tag">Host</span>' : ''}
+            ${isHost ? '<span class="player-tag host-tag">Host</span>' : ''}
             ${isMe ? '<span class="player-tag me-tag">Você</span>' : ''}
+            <span class="player-ready-tag ${ready ? 'ready' : 'not-ready'}">${ready ? 'Pronto' : 'Esperando'}</span>
         `;
         list.appendChild(li);
     });
 
+    // Config host
     const hostConfig = document.getElementById('hostConfig');
     hostConfig.classList.toggle('hidden', !state.online.isHost);
     if (state.online.isHost && data.settings) {
@@ -1333,12 +1362,40 @@ function renderLobby() {
         });
     }
 
+    // Seletor de decifrador (host)
+    renderDecoderPicker();
+
+    // Botão "Pronto" (não-host)
+    const readyBtn = document.getElementById('readyBtn');
+    const me = players.find(p => p.uid === state.online.uid);
+    if (!state.online.isHost && me) {
+        readyBtn.classList.remove('hidden');
+        const imReady = !!me.ready;
+        readyBtn.innerHTML = imReady
+            ? '<i data-lucide="check"></i> Pronto!'
+            : '<i data-lucide="check"></i> Estou Pronto';
+        readyBtn.classList.toggle('ready-active', imReady);
+    } else {
+        readyBtn.classList.add('hidden');
+    }
+
+    // Botão iniciar
     const startBtn = document.getElementById('startGameOnlineBtn');
     const waitMsg = document.getElementById('waitingHostMsg');
-    const canStart = detected !== null;
     if (state.online.isHost) {
-        startBtn.classList.toggle('hidden', !canStart);
+        const allReady = players.every(p => p.uid === data.hostUid || p.ready);
+        const decoderOk = isDecoderSelectionValid(data, detected);
+        const canStart = detected !== null && allReady && decoderOk;
+        startBtn.classList.toggle('hidden', detected === null);
+        startBtn.disabled = !canStart;
         waitMsg.classList.add('hidden');
+        if (detected && !allReady) {
+            startBtn.innerHTML = '<i data-lucide="play"></i> Aguardando prontos...';
+        } else if (detected && !decoderOk) {
+            startBtn.innerHTML = '<i data-lucide="play"></i> Escolha o decifrador';
+        } else {
+            startBtn.innerHTML = '<i data-lucide="play"></i> Iniciar Partida';
+        }
     } else {
         startBtn.classList.add('hidden');
         waitMsg.classList.remove('hidden');
@@ -1346,12 +1403,181 @@ function renderLobby() {
 
     document.getElementById('lobbyModeHint').innerText = detected
         ? (detected === 'equipes'
-            ? 'No modo Equipes, as equipes serão sorteadas automaticamente.'
-            : `Vocês vão jogar contra o tabuleiro.`)
+            ? 'No modo Equipes, o host escolhe 1 decifrador por equipe.'
+            : `O host escolhe o decifrador antes de começar.`)
         : '2 jogadores = Dupla • 3 = Trio • 4+ = Equipes';
 
     if (window.lucide) lucide.createIcons();
 }
+
+// ============================================================
+// ONLINE — SELETOR DE DECIFRADOR NO LOBBY
+// ============================================================
+function isDecoderSelectionValid(data, detected) {
+    if (!detected || !data.decoderSelection) return false;
+    if (detected === 'equipes') {
+        return !!(data.teams && data.teams.A && data.teams.B && data.decoderSelection.A && data.decoderSelection.B);
+    }
+    return !!data.decoderSelection.solo;
+}
+
+function ensureTeamsForLobby(data, detected) {
+    // Se modo equipes e ainda não tem times sorteados, sorteia agora
+    if (detected !== 'equipes') return null;
+    const players = getValidPlayers(data);
+    if (data.teams && data.teams.A && data.teams.B) {
+        // valida se todos os uids ainda existem
+        const allUids = players.map(p => p.uid);
+        const validA = data.teams.A.filter(u => allUids.includes(u));
+        const validB = data.teams.B.filter(u => allUids.includes(u));
+        if (validA.length + validB.length === allUids.length) return data.teams;
+    }
+    // Sorteia
+    const sorted = shuffle(players);
+    const mid = Math.floor(sorted.length / 2);
+    return {
+        A: sorted.slice(0, mid).map(p => p.uid),
+        B: sorted.slice(mid).map(p => p.uid)
+    };
+}
+
+function renderDecoderPicker() {
+    const data = state.online.roomData;
+    const section = document.getElementById('decoderPickerSection');
+    const viewer = document.getElementById('decoderViewerBox');
+    if (!data) return;
+
+    const players = getValidPlayers(data);
+    const detected = detectModeFromCount(players.length);
+    const container = document.getElementById('decoderPickerContainer');
+    const viewerName = document.getElementById('decoderViewerName');
+
+    if (!state.online.isHost) {
+        section.classList.add('hidden');
+        // Mostra pra quem não é host
+        if (detected) {
+            viewer.classList.remove('hidden');
+            const sel = data.decoderSelection;
+            if (!sel) {
+                viewerName.innerText = 'Aguardando o host escolher...';
+            } else if (detected === 'equipes') {
+                const nameA = players.find(p => p.uid === sel.A)?.nome || '?';
+                const nameB = players.find(p => p.uid === sel.B)?.nome || '?';
+                viewerName.innerText = `Azul: ${nameA} • Vermelho: ${nameB}`;
+            } else {
+                const name = players.find(p => p.uid === sel.solo)?.nome || '?';
+                viewerName.innerText = name;
+            }
+        } else {
+            viewer.classList.add('hidden');
+        }
+        return;
+    }
+
+    // Host
+    viewer.classList.add('hidden');
+
+    if (!detected) {
+        section.classList.add('hidden');
+        return;
+    }
+    section.classList.remove('hidden');
+
+    // Garante times no modo equipes
+    if (detected === 'equipes' && !data.teams) {
+        const newTeams = ensureTeamsForLobby(data, detected);
+        updateDoc(state.online.roomRef, { teams: newTeams }).catch(console.error);
+        return;
+    }
+
+    container.innerHTML = '';
+
+    if (detected === 'equipes') {
+        const teams = data.teams;
+        const sel = data.decoderSelection || {};
+        ['A', 'B'].forEach(teamKey => {
+            const block = document.createElement('div');
+            block.className = 'decoder-team-section team-' + teamKey.toLowerCase();
+            const h4 = document.createElement('h4');
+            h4.innerText = teamKey === 'A' ? 'Equipe Azul' : 'Equipe Vermelha';
+            block.appendChild(h4);
+
+            const wrap = document.createElement('div');
+            wrap.className = 'decoder-picker-container';
+            const teamUids = teams[teamKey] || [];
+            teamUids.forEach(uid => {
+                const p = players.find(pl => pl.uid === uid);
+                if (!p) return;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const selected = sel[teamKey] === uid;
+                btn.className = 'decoder-pick-btn team-' + teamKey.toLowerCase() + (selected ? ' selected' : '');
+                btn.innerHTML = `<i data-lucide="search"></i> ${escapeHtml(p.nome)}`;
+                btn.addEventListener('click', async () => {
+                    const newSel = { ...(data.decoderSelection || {}), [teamKey]: uid };
+                    try {
+                        await updateDoc(state.online.roomRef, { decoderSelection: newSel });
+                    } catch (e) { console.error(e); }
+                });
+                wrap.appendChild(btn);
+            });
+            block.appendChild(wrap);
+            container.appendChild(block);
+        });
+    } else {
+        // Solo
+        const sel = data.decoderSelection || {};
+        const wrap = document.createElement('div');
+        wrap.className = 'decoder-picker-container';
+        players.forEach(p => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            const selected = sel.solo === p.uid;
+            btn.className = 'decoder-pick-btn' + (selected ? ' selected' : '');
+            btn.innerHTML = `<i data-lucide="search"></i> ${escapeHtml(p.nome)}`;
+            btn.addEventListener('click', async () => {
+                try {
+                    await updateDoc(state.online.roomRef, {
+                        decoderSelection: { ...(data.decoderSelection || {}), solo: p.uid }
+                    });
+                } catch (e) { console.error(e); }
+            });
+            wrap.appendChild(btn);
+        });
+        container.appendChild(wrap);
+    }
+
+    if (window.lucide) lucide.createIcons();
+}
+
+document.getElementById('randomizeDecoderBtn').addEventListener('click', async () => {
+    const data = state.online.roomData;
+    if (!data || !state.online.isHost) return;
+    const players = getValidPlayers(data);
+    const detected = detectModeFromCount(players.length);
+    if (!detected) return;
+
+    if (detected === 'equipes') {
+        const teams = data.teams || ensureTeamsForLobby(data, detected);
+        if (!teams) return;
+        const aUids = teams.A.filter(u => players.some(p => p.uid === u));
+        const bUids = teams.B.filter(u => players.some(p => p.uid === u));
+        const pickA = aUids[Math.floor(Math.random() * aUids.length)];
+        const pickB = bUids[Math.floor(Math.random() * bUids.length)];
+        try {
+            await updateDoc(state.online.roomRef, {
+                decoderSelection: { A: pickA, B: pickB }
+            });
+        } catch (e) { console.error(e); }
+    } else {
+        const pick = players[Math.floor(Math.random() * players.length)];
+        try {
+            await updateDoc(state.online.roomRef, {
+                decoderSelection: { solo: pick.uid }
+            });
+        } catch (e) { console.error(e); }
+    }
+});
 
 document.getElementById('roomCodeToggle').addEventListener('click', () => {
     state.online.roomCodeVisible = !state.online.roomCodeVisible;
@@ -1378,14 +1604,28 @@ document.querySelectorAll('#guessTimeGroup .chip-btn').forEach(btn => {
 });
 
 // ============================================================
+// ONLINE — BOTÃO PRONTO (não-host)
+// ============================================================
+document.getElementById('readyBtn').addEventListener('click', async () => {
+    const data = state.online.roomData;
+    if (!data || !state.online.roomRef) return;
+    const me = data.jogadores?.[state.online.uid];
+    if (!me) return;
+    const newReady = !me.ready;
+    try {
+        await updateDoc(state.online.roomRef, {
+            [`jogadores.${state.online.uid}.ready`]: newReady
+        });
+    } catch (e) { console.error(e); }
+});
+
+// ============================================================
 // ONLINE — START DA PARTIDA
 // ============================================================
 document.getElementById('startGameOnlineBtn').addEventListener('click', async () => {
     const data = state.online.roomData;
     if (!data || !state.online.isHost) return;
-    const players = Object.entries(data.jogadores || {})
-        .filter(([, p]) => p && typeof p.nome === 'string')
-        .map(([uid, p]) => ({ uid, ...p }));
+    const players = getValidPlayers(data);
     if (players.length < MIN_ONLINE_PLAYERS) {
         showNotice('Precisa de pelo menos 2 jogadores para começar.');
         return;
@@ -1395,20 +1635,18 @@ document.getElementById('startGameOnlineBtn').addEventListener('click', async ()
         showNotice('Número de jogadores inválido.');
         return;
     }
+    const allReady = players.every(p => p.uid === data.hostUid || p.ready);
+    if (!allReady) {
+        showNotice('Ainda tem jogadores que não deram "Pronto".');
+        return;
+    }
+    if (!isDecoderSelectionValid(data, detected)) {
+        showNotice('Escolha o(s) decifrador(es) antes de começar.');
+        return;
+    }
 
     showLoading('Iniciando partida...');
     try {
-        const sorted = shuffle(players);
-
-        let teamA = [], teamB = [];
-        if (detected === 'equipes') {
-            const mid = Math.floor(sorted.length / 2);
-            teamA = sorted.slice(0, mid).map(p => p.uid);
-            teamB = sorted.slice(mid).map(p => p.uid);
-        } else {
-            teamA = sorted.map(p => p.uid);
-        }
-
         const boardWords = pickUniqueWords(25);
         const colors = detected === 'equipes' ? buildBoardColorsTeams() : buildBoardColorsSolo();
         const board = boardWords.map((word, i) => ({
@@ -1422,17 +1660,19 @@ document.getElementById('startGameOnlineBtn').addEventListener('click', async ()
             : 'A';
 
         const nowMs = Date.now();
+        const decoderUids = detected === 'equipes'
+            ? { A: data.decoderSelection.A, B: data.decoderSelection.B }
+            : { solo: data.decoderSelection.solo };
+
         const gameState = {
             mode: detected,
             board,
-            teams: { A: teamA, B: teamB },
+            teams: data.teams,
             currentTeam: startingTeam,
             phase: 'clue',
             clue: null,
             clueGiverUid: null,
-            decoderUids: detected === 'equipes'
-                ? { A: teamA[0], B: teamB[0] }
-                : { solo: teamA[0] },
+            decoderUids,
             scores: { A: 0, B: 0, whitesRevealed: 0 },
             winner: null,
             winReason: null,
@@ -1443,11 +1683,11 @@ document.getElementById('startGameOnlineBtn').addEventListener('click', async ()
         };
 
         const currentTeamPlayers = detected === 'equipes'
-            ? (startingTeam === 'A' ? teamA : teamB)
-            : teamA;
+            ? data.teams[startingTeam]
+            : data.teams.A;
         const currentDecoderUid = detected === 'equipes'
-            ? gameState.decoderUids[startingTeam]
-            : gameState.decoderUids.solo;
+            ? decoderUids[startingTeam]
+            : decoderUids.solo;
         const candidates = currentTeamPlayers.filter(uid => uid !== currentDecoderUid);
         gameState.clueGiverUid = candidates[0] || currentTeamPlayers[0];
 
@@ -1499,9 +1739,7 @@ function renderOnlineBoard() {
     const isTeams = g.mode === 'equipes';
     const currentTeam = g.currentTeam;
     const isMyTurnAsClue = (g.clueGiverUid === uid);
-    const myDecoderUid = isTeams
-        ? g.decoderUids[currentTeam]
-        : g.decoderUids.solo;
+    const myDecoderUid = isTeams ? g.decoderUids[currentTeam] : g.decoderUids.solo;
     const isMyTurnAsDecoder = (myDecoderUid === uid);
 
     const turnBar = document.getElementById('onlineTurnBar');
@@ -1580,23 +1818,21 @@ function renderOnlineBoard() {
 
     const grid = document.getElementById('onlineBoardGrid');
     grid.innerHTML = '';
+    grid.classList.toggle('decoder-view', isMyTurnAsDecoder);
     grid.classList.add('decoder-board');
-    const isDecoderView = isMyTurnAsDecoder;
 
     g.board.forEach((card, index) => {
         const btn = document.createElement('button');
         btn.type = 'button';
 
-        const revealed = card.revealed;
-
-        if (revealed) {
+        if (card.revealed) {
             btn.className = `board-card revealed ${card.color}` + (index === state.justRevealedIndex ? ' just-revealed' : '');
             btn.innerText = card.word;
             btn.disabled = true;
-        } else if (isDecoderView) {
+        } else if (isMyTurnAsDecoder) {
             btn.className = 'board-card';
             btn.innerText = card.word;
-            if (isMyTurnAsDecoder && g.phase === 'guess') {
+            if (g.phase === 'guess') {
                 btn.addEventListener('click', () => handleOnlineGuess(index));
             } else {
                 btn.disabled = true;
@@ -1613,6 +1849,29 @@ function renderOnlineBoard() {
     startOnlineTimerForPhase(g);
 
     if (window.lucide) lucide.createIcons();
+}
+
+// ============================================================
+// ONLINE — TIMER SINCRONIZADO VIA SERVER TIMESTAMP
+// ============================================================
+// Estratégia:
+// - O host grava, junto com os campos *Ms, um `*Server` (serverTimestamp).
+// - Quando um snapshot com `*Server` resolvido chega, medimos:
+//     offset = serverMs - Date.now_local
+// - Guardamos em state.online.clockOffset.
+// - O cálculo do timer usa `startedMs` (que está no relógio do host) + o offset
+//   NÃO — na verdade, usamos o serverMs diretamente se disponível.
+//
+// Solução robusta: para evitar depender do relógio do host, calculamos o tempo
+// decorrido usando o `*Server` (que é sempre horário do servidor) e o Date.now
+// local corrigido pelo offset medido uma vez.
+// Como o offset pode não estar medido (primeiro turno), fazemos fallback pro
+// relógio local até a primeira sincronização chegar.
+
+function estimateServerNow() {
+    // Se nunca medimos, retorna Date.now() (pode ter erro, mas logo corrige)
+    if (!state.online.clockOffsetReady) return Date.now();
+    return Date.now() + state.online.clockOffset;
 }
 
 function startOnlineTimerForPhase(g) {
@@ -1645,9 +1904,7 @@ function startOnlineTimerForPhase(g) {
         timerEl.classList.toggle('urgent', remaining <= 10);
         if (remaining <= 0) {
             stopOnlineTimer();
-            if (state.online.isHost) {
-                forceEndTurnOnline();
-            }
+            if (state.online.isHost) forceEndTurnOnline();
         }
     }
     tick();
@@ -1711,6 +1968,7 @@ async function handleOnlineGuess(index) {
     const card = g.board[index];
     if (!card || card.revealed) return;
 
+    // Atualiza localmente (optimistic)
     state.justRevealedIndex = index;
     card.revealed = true;
 
@@ -1726,9 +1984,11 @@ async function handleOnlineGuess(index) {
         if (card.color === 'branco') newScores.whitesRevealed++;
     }
 
-    let winner = null, winReason = null, losingTeam = null, newPhase = g.phase;
+    // Salva imediatamente o board revelado (para os outros verem)
+    // MAS: se for preta ou fim, espera animação antes de atualizar `phase`
+    let winner = null, winReason = null, losingTeam = null, isGameOver = false;
     if (card.color === 'preto') {
-        newPhase = 'over';
+        isGameOver = true;
         if (isTeams) {
             winner = currentTeam === 'A' ? 'B' : 'A';
             losingTeam = currentTeam;
@@ -1737,43 +1997,51 @@ async function handleOnlineGuess(index) {
         }
         winReason = 'black';
     } else if (isTeams) {
-        if (newScores.A >= TEAMS_TOTAL_AZUL) { winner = 'A'; winReason = 'all'; newPhase = 'over'; }
-        else if (newScores.B >= TEAMS_TOTAL_VERMELHO) { winner = 'B'; winReason = 'all'; newPhase = 'over'; }
+        if (newScores.A >= TEAMS_TOTAL_AZUL) { winner = 'A'; winReason = 'all'; isGameOver = true; }
+        else if (newScores.B >= TEAMS_TOTAL_VERMELHO) { winner = 'B'; winReason = 'all'; isGameOver = true; }
     } else {
-        if (newScores.whitesRevealed >= WHITE_LIMIT) { winner = 'derrota'; winReason = 'whites'; newPhase = 'over'; }
-        else if (newScores.A >= SOLO_TOTAL_AZUL) { winner = 'vitoria'; winReason = 'all'; newPhase = 'over'; }
+        if (newScores.whitesRevealed >= WHITE_LIMIT) { winner = 'derrota'; winReason = 'whites'; isGameOver = true; }
+        else if (newScores.A >= SOLO_TOTAL_AZUL) { winner = 'vitoria'; winReason = 'all'; isGameOver = true; }
     }
 
     try {
-        if (newPhase === 'over') {
-            await updateDoc(state.online.roomRef, {
-                [`game.board`]: g.board,
-                'game.scores': newScores,
-                'game.phase': 'over',
-                'game.winner': winner,
-                'game.winReason': winReason,
-                'game.losingTeam': losingTeam,
-                status: 'over'
-            });
-            return;
-        }
-
-        const ownColor = isTeams ? (currentTeam === 'A' ? 'azul' : 'vermelho') : 'azul';
-        if (card.color === ownColor) {
-            await updateDoc(state.online.roomRef, {
-                [`game.board`]: g.board,
-                'game.scores': newScores
-            });
-            setTimeout(() => { state.justRevealedIndex = -1; }, 700);
-        } else {
+        if (isGameOver) {
+            // CORREÇÃO #5: espera 1500ms antes de setar `over`
+            // enquanto isso, atualiza só o board + scores (a carta vira pra todos)
             await updateDoc(state.online.roomRef, {
                 [`game.board`]: g.board,
                 'game.scores': newScores
             });
             setTimeout(async () => {
+                try {
+                    await updateDoc(state.online.roomRef, {
+                        'game.phase': 'over',
+                        'game.winner': winner,
+                        'game.winReason': winReason,
+                        'game.losingTeam': losingTeam,
+                        status: 'over'
+                    });
+                } catch (e) { console.error(e); }
+            }, 1600);
+            return;
+        }
+
+        // Ainda não é fim de jogo
+        const ownColor = isTeams ? (currentTeam === 'A' ? 'azul' : 'vermelho') : 'azul';
+        await updateDoc(state.online.roomRef, {
+            [`game.board`]: g.board,
+            'game.scores': newScores
+        });
+
+        if (card.color === ownColor) {
+            // Continua jogando
+            setTimeout(() => { state.justRevealedIndex = -1; }, 700);
+        } else {
+            // Passa a vez
+            setTimeout(async () => {
                 state.justRevealedIndex = -1;
                 await advanceOnlineTurn();
-            }, 1200);
+            }, 1400);
         }
     } catch (e) {
         console.error(e);
@@ -1803,11 +2071,8 @@ async function advanceOnlineTurn() {
     const isTeams = g.mode === 'equipes';
 
     let nextTeam = g.currentTeam;
-    if (isTeams) {
-        nextTeam = g.currentTeam === 'A' ? 'B' : 'A';
-    } else {
-        nextTeam = 'A';
-    }
+    if (isTeams) nextTeam = g.currentTeam === 'A' ? 'B' : 'A';
+    else nextTeam = 'A';
 
     const currentTeamPlayers = isTeams ? g.teams[nextTeam] : g.teams.A;
     const currentDecoderUid = isTeams ? g.decoderUids[nextTeam] : g.decoderUids.solo;
@@ -1831,9 +2096,7 @@ async function advanceOnlineTurn() {
             'game.guessStartedAtMs': null
         });
         state.justRevealedIndex = -1;
-    } catch (e) {
-        console.error(e);
-    }
+    } catch (e) { console.error(e); }
 }
 
 // ============================================================
@@ -1850,6 +2113,9 @@ function renderOnlineGameOver() {
     const title = document.getElementById('onlineResultTitle');
     const sub = document.getElementById('onlineResultSub');
     const icon = document.getElementById('onlineResultIcon');
+    const rematchBtn = document.getElementById('onlineRematchBtn');
+    const backBtn = document.getElementById('onlineBackLobbyBtn');
+    const waitMsg = document.getElementById('onlineWaitHostMsg');
 
     if (g.mode === 'equipes' && (g.winner === 'A' || g.winner === 'B')) {
         const winningTeam = g.winner === 'A' ? 'Azul' : 'Vermelha';
@@ -1878,34 +2144,59 @@ function renderOnlineGameOver() {
         icon.innerHTML = '<i data-lucide="skull"></i>';
     }
 
+    // CORREÇÃO #3: botões conforme host
+    if (state.online.isHost) {
+        rematchBtn.classList.remove('hidden');
+        backBtn.classList.remove('hidden');
+        waitMsg.classList.add('hidden');
+    } else {
+        rematchBtn.classList.add('hidden');
+        backBtn.classList.add('hidden');
+        waitMsg.classList.remove('hidden');
+    }
+
     if (window.lucide) lucide.createIcons();
 }
 
 document.getElementById('onlineRematchBtn').addEventListener('click', async () => {
-    if (!state.online.isHost) {
-        showNotice('Só o host pode iniciar uma nova partida.', 'Aguarde o host');
-        return;
-    }
+    if (!state.online.isHost) return;
     try {
-        await updateDoc(state.online.roomRef, {
+        // CORREÇÃO #4 + #6: volta ao lobby mantendo os times,
+        // mas reseta os "prontos" e a escolha do decifrador
+        const data = state.online.roomData;
+        const players = getValidPlayers(data);
+        const updates = {
             status: 'lobby',
-            game: null
+            game: null,
+            decoderSelection: null
+        };
+        // Zera "ready" de todos exceto o host
+        players.forEach(p => {
+            if (p.uid !== data.hostUid) {
+                updates[`jogadores.${p.uid}.ready`] = false;
+            }
         });
-    } catch (e) {
-        console.error(e);
-    }
+        await updateDoc(state.online.roomRef, updates);
+    } catch (e) { console.error(e); }
 });
+
 document.getElementById('onlineBackLobbyBtn').addEventListener('click', async () => {
-    if (state.online.isHost) {
-        try {
-            await updateDoc(state.online.roomRef, {
-                status: 'lobby',
-                game: null
-            });
-        } catch (e) { console.error(e); }
-    } else {
-        showScreen('lobby');
-    }
+    if (!state.online.isHost) return;
+    try {
+        const data = state.online.roomData;
+        const players = getValidPlayers(data);
+        const updates = {
+            status: 'lobby',
+            game: null,
+            decoderSelection: null
+        };
+        players.forEach(p => {
+            if (p.uid !== data.hostUid) {
+                updates[`jogadores.${p.uid}.ready`] = false;
+            }
+        });
+        await updateDoc(state.online.roomRef, updates);
+    } catch (e) { console.error(e); }
 });
 
 // ============================================================

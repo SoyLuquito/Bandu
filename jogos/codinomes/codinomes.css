@@ -1251,3 +1251,156 @@ body::after {
     .handoff-icon svg { width: 32px; height: 32px; }
     .online-timer-display { font-size: 1.5rem; }
 }
+
+/* ================= CORREÇÃO 1 & NOVO: .agent-input com contorno (já existia, manter) ================= */
+.agent-input {
+    flex: 1; min-width: 0;
+    padding: 0.7rem 0.85rem;
+    border: 2px solid var(--bege-escuro);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    outline: none;
+    background: #FFFFFF;
+    color: var(--texto);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.agent-input:focus {
+    border-color: var(--texto);
+    box-shadow: 0 0 0 3px rgba(46, 38, 38, 0.08);
+}
+.agent-input::placeholder {
+    color: var(--texto-suave);
+    font-weight: 600;
+    opacity: 0.7;
+}
+
+/* ================= NOVO: carta revelada visível para espectadores ================= */
+/* Antes, .board-card.revealed tinha opacity 0.35 e grayscale, e no online ficava
+   invisível. Agora, no tabuleiro online (todos veem as cores), a carta revelada
+   fica com cor forte e check ✓ — igual ao modo local. */
+#onlineBoardGrid .board-card.revealed {
+    opacity: 1;
+    filter: none;
+}
+#onlineBoardGrid .board-card.revealed::after {
+    content: '✓';
+    position: absolute;
+    top: 2px; right: 4px;
+    font-size: 0.75rem;
+    font-weight: 900;
+    color: #FFFFFF;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    line-height: 1;
+    z-index: 2;
+}
+/* Quando é a vez do decifrador, ele vê tudo virado e a carta revelada mostra a cor */
+#onlineBoardGrid.decoder-view .board-card.revealed {
+    opacity: 1;
+    filter: none;
+}
+#onlineBoardGrid.decoder-view .board-card.revealed::after {
+    content: none;
+}
+
+/* ================= NOVO: seletor de decifrador no lobby ================= */
+.decoder-picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+.decoder-picker-header .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+}
+.decoder-picker-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+.decoder-pick-btn {
+    padding: 0.55rem 0.85rem;
+    border: 2px solid var(--bege-escuro);
+    background: #FFFFFF;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--texto-suave);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all 0.2s ease;
+}
+.decoder-pick-btn svg { width: 14px; height: 14px; }
+.decoder-pick-btn.selected {
+    background: var(--texto);
+    border-color: var(--texto);
+    color: #FFFFFF;
+}
+.decoder-pick-btn.team-a.selected { background: var(--azul-escuro); border-color: var(--azul-escuro); }
+.decoder-pick-btn.team-b.selected { background: var(--vermelho-escuro); border-color: var(--vermelho-escuro); }
+
+.decoder-viewer {
+    background: var(--bege-escuro);
+    border-radius: 14px;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.decoder-viewer-name {
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: var(--texto);
+}
+
+/* ================= NOVO: sistema de pronto ================= */
+.player-ready-tag {
+    font-size: 0.62rem;
+    font-weight: 900;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+}
+.player-ready-tag.ready {
+    background: var(--verde-sucesso);
+    color: #FFFFFF;
+}
+.player-ready-tag.not-ready {
+    background: #E0E0E0;
+    color: #888;
+}
+
+#readyBtn.ready-active {
+    background: var(--verde-sucesso);
+    color: #FFFFFF;
+}
+
+/* ================= NOVO: seleção de decifrador por time ================= */
+.decoder-team-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 0.5rem;
+}
+.decoder-team-section h4 {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.decoder-team-section.team-a h4 { color: var(--azul-escuro); }
+.decoder-team-section.team-b h4 { color: var(--vermelho-escuro); }
+
+/* ================= NOVO: fim de jogo — esconder botões pro não-host ================= */
+#onlineGameOverScreen .waiting-msg {
+    margin-top: 0.25rem;
+}
