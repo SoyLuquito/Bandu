@@ -636,12 +636,24 @@ body::after {
 .agent-input {
     flex: 1; min-width: 0;
     padding: 0.7rem 0.85rem;
-    border: 2px solid #FFFFFF;
+    border: 2px solid var(--bege-escuro);
     border-radius: 10px;
     font-family: inherit;
     font-size: 0.95rem;
     font-weight: 700;
     outline: none;
+    background: #FFFFFF;
+    color: var(--texto);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.agent-input:focus {
+    border-color: var(--texto);
+    box-shadow: 0 0 0 3px rgba(46, 38, 38, 0.08);
+}
+.agent-input::placeholder {
+    color: var(--texto-suave);
+    font-weight: 600;
+    opacity: 0.7;
 }
 .agent-number-select {
     width: 75px;

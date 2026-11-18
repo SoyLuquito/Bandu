@@ -4,7 +4,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
 import {
     getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc,
-    onSnapshot, serverTimestamp
+    onSnapshot, serverTimestamp, deleteField
 } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
 import {
     getAuth, signInAnonymously, onAuthStateChanged
@@ -157,11 +157,7 @@ const state = {
         roomData: null,
         unsubscribeRoom: null,
         isHost: false,
-        roomCodeVisible: false,
-        // timers locais
-        timerInterval: null,
-        // evita re-render desnecessário
-        lastPhaseKey: null
+        roomCodeVisible: false
     }
 };
 
@@ -286,7 +282,6 @@ document.querySelectorAll('[data-back-btn]').forEach(btn => {
         } else if (level === 'lobby') {
             leaveOnlineRoom();
         } else if (level === 'onlineBoard') {
-            // sair do tabuleiro online → confirma e volta ao lobby
             document.getElementById('exitModal').classList.remove('hidden');
         } else if (level === 'onlineOver') {
             showScreen('home');
@@ -736,7 +731,7 @@ document.getElementById('giveClueBtn').addEventListener('click', () => {
     const clueNum = parseInt(numberInput.value, 10);
 
     if (!clueWord) { showNotice('Digite uma dica.'); return; }
-    if (!clueNum || clueNum < 1 || clueNum > 5) {
+    if (!Number.isFinite(clueNum) || clueNum < 1 || clueNum > 5) {
         showNotice('Escolha um número entre 1 e 5.');
         return;
     }
@@ -1189,12 +1184,15 @@ async function joinOnlineRoom(code) {
             return;
         }
         const players = data.jogadores || {};
-        if (Object.keys(players).length >= MAX_ONLINE_PLAYERS) {
+        const validPlayers = Object.values(players).filter(p => p && typeof p.nome === 'string');
+        if (validPlayers.length >= MAX_ONLINE_PLAYERS) {
             hideLoading();
             showNotice(`A sala está cheia (${MAX_ONLINE_PLAYERS} jogadores).`, 'Sala cheia');
             return;
         }
-        const nameTaken = Object.values(players).some(p => p.nome.toLowerCase() === state.online.playerName.toLowerCase());
+        const nameTaken = validPlayers.some(p =>
+            p.nome.toLowerCase() === state.online.playerName.toLowerCase()
+        );
         if (nameTaken) {
             hideLoading();
             showNotice('Já tem alguém com esse nome na sala. Escolha outro.', 'Nome em uso');
@@ -1229,14 +1227,11 @@ async function leaveOnlineRoom() {
             const snap = await getDoc(state.online.roomRef);
             if (snap.exists()) {
                 const data = snap.data();
-                const players = data.jogadores || {};
                 if (data.hostUid === state.online.uid) {
-                    // host sai → fecha sala
                     await deleteDoc(state.online.roomRef);
                 } else {
-                    // remove a si mesmo
                     const update = {};
-                    update[`jogadores.${state.online.uid}`] = null;
+                    update[`jogadores.${state.online.uid}`] = deleteField();
                     await updateDoc(state.online.roomRef, update);
                 }
             }
@@ -1274,7 +1269,6 @@ function listenToRoom() {
         const data = state.online.roomData;
         state.online.isHost = (data.hostUid === state.online.uid);
 
-        // Decide qual tela mostrar de acordo com status
         if (data.status === 'lobby') {
             if (state.lastScreen !== 'lobby') showScreen('lobby');
             renderLobby();
@@ -1293,7 +1287,6 @@ function renderLobby() {
     const data = state.online.roomData;
     if (!data) return;
 
-    // Código
     const codeEl = document.getElementById('lobbyRoomCode');
     codeEl.innerText = data.code;
     codeEl.classList.toggle('masked', !state.online.roomCodeVisible);
@@ -1302,20 +1295,19 @@ function renderLobby() {
         ? '<i data-lucide="eye-off"></i>'
         : '<i data-lucide="eye"></i>';
 
-    // Jogadores
-    const players = Object.entries(data.jogadores || {}).map(([uid, p]) => ({ uid, ...p }));
+    const players = Object.entries(data.jogadores || {})
+        .filter(([, p]) => p && typeof p.nome === 'string')
+        .map(([uid, p]) => ({ uid, ...p }));
     players.sort((a, b) => (b.joinedAt || 0) - (a.joinedAt || 0));
     const count = players.length;
     document.getElementById('playerCount').innerText = `${count} / ${MAX_ONLINE_PLAYERS}`;
 
-    // Modo detectado
     const detected = detectModeFromCount(count);
     const modeLabels = { dupla: 'Dupla', trio: 'Trio', equipes: 'Equipes' };
     document.getElementById('lobbyModeLabel').innerText = detected
         ? `Modo ${modeLabels[detected]}`
         : 'Adicione pelo menos 2 jogadores';
 
-    // Lista
     const list = document.getElementById('playersList');
     list.innerHTML = '';
     players.forEach(p => {
@@ -1330,7 +1322,6 @@ function renderLobby() {
         list.appendChild(li);
     });
 
-    // Config host
     const hostConfig = document.getElementById('hostConfig');
     hostConfig.classList.toggle('hidden', !state.online.isHost);
     if (state.online.isHost && data.settings) {
@@ -1342,7 +1333,6 @@ function renderLobby() {
         });
     }
 
-    // Botão iniciar / esperar
     const startBtn = document.getElementById('startGameOnlineBtn');
     const waitMsg = document.getElementById('waitingHostMsg');
     const canStart = detected !== null;
@@ -1354,7 +1344,6 @@ function renderLobby() {
         waitMsg.classList.remove('hidden');
     }
 
-    // Hint
     document.getElementById('lobbyModeHint').innerText = detected
         ? (detected === 'equipes'
             ? 'No modo Equipes, as equipes serão sorteadas automaticamente.'
@@ -1394,7 +1383,9 @@ document.querySelectorAll('#guessTimeGroup .chip-btn').forEach(btn => {
 document.getElementById('startGameOnlineBtn').addEventListener('click', async () => {
     const data = state.online.roomData;
     if (!data || !state.online.isHost) return;
-    const players = Object.values(data.jogadores || {});
+    const players = Object.entries(data.jogadores || {})
+        .filter(([, p]) => p && typeof p.nome === 'string')
+        .map(([uid, p]) => ({ uid, ...p }));
     if (players.length < MIN_ONLINE_PLAYERS) {
         showNotice('Precisa de pelo menos 2 jogadores para começar.');
         return;
@@ -1407,8 +1398,7 @@ document.getElementById('startGameOnlineBtn').addEventListener('click', async ()
 
     showLoading('Iniciando partida...');
     try {
-        const playerList = Object.entries(data.jogadores).map(([uid, p]) => ({ uid, ...p }));
-        const sorted = shuffle(playerList);
+        const sorted = shuffle(players);
 
         let teamA = [], teamB = [];
         if (detected === 'equipes') {
@@ -1416,7 +1406,7 @@ document.getElementById('startGameOnlineBtn').addEventListener('click', async ()
             teamA = sorted.slice(0, mid).map(p => p.uid);
             teamB = sorted.slice(mid).map(p => p.uid);
         } else {
-            teamA = sorted.map(p => p.uid); // todos no "team A" (solo)
+            teamA = sorted.map(p => p.uid);
         }
 
         const boardWords = pickUniqueWords(25);
@@ -1427,18 +1417,18 @@ document.getElementById('startGameOnlineBtn').addEventListener('click', async ()
             revealed: false
         }));
 
-        // Sorteia quem começa
         const startingTeam = detected === 'equipes'
             ? (Math.random() < 0.5 ? 'A' : 'B')
             : 'A';
 
+        const nowMs = Date.now();
         const gameState = {
             mode: detected,
             board,
             teams: { A: teamA, B: teamB },
             currentTeam: startingTeam,
-            phase: 'clue',           // 'clue' | 'guess' | 'over'
-            clue: null,              // { word, number }
+            phase: 'clue',
+            clue: null,
             clueGiverUid: null,
             decoderUids: detected === 'equipes'
                 ? { A: teamA[0], B: teamB[0] }
@@ -1447,13 +1437,11 @@ document.getElementById('startGameOnlineBtn').addEventListener('click', async ()
             winner: null,
             winReason: null,
             losingTeam: null,
-            turnStartedAt: serverTimestamp(),
-            clueStartedAt: null,
-            guessStartedAt: null,
-            turnLog: []
+            turnStartedAtMs: nowMs,
+            clueStartedAtMs: nowMs,
+            guessStartedAtMs: null
         };
 
-        // Atribui o clue giver atual
         const currentTeamPlayers = detected === 'equipes'
             ? (startingTeam === 'A' ? teamA : teamB)
             : teamA;
@@ -1476,7 +1464,7 @@ document.getElementById('startGameOnlineBtn').addEventListener('click', async ()
 });
 
 // ============================================================
-// ONLINE — RENDER DO TABULEIRO
+// ONLINE — TIMER
 // ============================================================
 let onlineTimerTick = null;
 
@@ -1492,6 +1480,9 @@ function formatTime(sec) {
     return `${sec}s`;
 }
 
+// ============================================================
+// ONLINE — RENDER DO TABULEIRO
+// ============================================================
 function renderOnlineBoard() {
     const data = state.online.roomData;
     if (!data || !data.game) return;
@@ -1513,7 +1504,6 @@ function renderOnlineBoard() {
         : g.decoderUids.solo;
     const isMyTurnAsDecoder = (myDecoderUid === uid);
 
-    // Turn bar
     const turnBar = document.getElementById('onlineTurnBar');
     if (isTeams) {
         turnBar.className = 'turn-bar team-' + currentTeam.toLowerCase();
@@ -1524,13 +1514,11 @@ function renderOnlineBoard() {
         ? (currentTeam === 'A' ? 'Equipe Azul' : 'Equipe Vermelha')
         : (g.mode === 'dupla' ? 'Dupla' : 'Trio');
 
-    // Pega nome do clue giver
     const allPlayers = data.jogadores || {};
     const clueGiverName = allPlayers[g.clueGiverUid]?.nome || '???';
     const decoderName = allPlayers[myDecoderUid]?.nome || '???';
     document.getElementById('onlineRoleLabel').innerText = `Dando dica: ${clueGiverName}`;
 
-    // Scores
     const scoreLabelA = document.getElementById('onlineScoreLabelA');
     const scoreLabelB = document.getElementById('onlineScoreLabelB');
     const scoreMiniB = document.getElementById('onlineScoreMiniB');
@@ -1553,7 +1541,6 @@ function renderOnlineBoard() {
         scoreB.innerText = `${g.scores.whitesRevealed}/${WHITE_LIMIT}`;
     }
 
-    // Clue display
     const clueDisp = document.getElementById('onlineClueDisplay');
     if (g.clue && g.phase === 'guess') {
         clueDisp.classList.remove('hidden');
@@ -1563,7 +1550,6 @@ function renderOnlineBoard() {
         clueDisp.classList.add('hidden');
     }
 
-    // Status / instruction
     const statusBanner = document.getElementById('onlineStatusBanner');
     const statusText = document.getElementById('onlineStatusText');
     const instruction = document.getElementById('onlineInstruction');
@@ -1589,11 +1575,9 @@ function renderOnlineBoard() {
         }
     }
 
-    // Actions
     document.getElementById('onlineClueActions').classList.toggle('hidden', !(isMyTurnAsClue && g.phase === 'clue'));
     document.getElementById('onlinePassActions').classList.toggle('hidden', !(isMyTurnAsDecoder && g.phase === 'guess'));
 
-    // Grid
     const grid = document.getElementById('onlineBoardGrid');
     grid.innerHTML = '';
     grid.classList.add('decoder-board');
@@ -1604,15 +1588,12 @@ function renderOnlineBoard() {
         btn.type = 'button';
 
         const revealed = card.revealed;
-        // O decifrador vê tudo virado; os outros veem as cores
-        let showColor = !isDecoderView || revealed;
 
         if (revealed) {
             btn.className = `board-card revealed ${card.color}` + (index === state.justRevealedIndex ? ' just-revealed' : '');
             btn.innerText = card.word;
             btn.disabled = true;
         } else if (isDecoderView) {
-            // Decifrador vê cartas brancas (sem cor)
             btn.className = 'board-card';
             btn.innerText = card.word;
             if (isMyTurnAsDecoder && g.phase === 'guess') {
@@ -1621,7 +1602,6 @@ function renderOnlineBoard() {
                 btn.disabled = true;
             }
         } else {
-            // Outros jogadores veem a cor
             btn.className = 'board-card color-' + card.color;
             btn.innerText = card.word;
             btn.disabled = true;
@@ -1630,7 +1610,6 @@ function renderOnlineBoard() {
         grid.appendChild(btn);
     });
 
-    // Timer
     startOnlineTimerForPhase(g);
 
     if (window.lucide) lucide.createIcons();
@@ -1643,35 +1622,29 @@ function startOnlineTimerForPhase(g) {
     if (!data) return;
 
     let duration = 0;
-    let startedAt = null;
+    let startedMs = null;
 
     if (g.phase === 'clue') {
         duration = data.settings?.clueTime || 0;
-        startedAt = g.clueStartedAt || g.turnStartedAt;
+        startedMs = g.clueStartedAtMs || g.turnStartedAtMs;
     } else if (g.phase === 'guess') {
         duration = data.settings?.guessTime || 0;
-        startedAt = g.guessStartedAt;
+        startedMs = g.guessStartedAtMs;
     }
 
-    if (!duration || duration === 0) {
+    if (!duration || duration === 0 || !startedMs) {
         timerEl.classList.add('hidden');
         return;
     }
     timerEl.classList.remove('hidden');
 
     function tick() {
-        if (!startedAt) {
-            timerEl.innerText = formatTime(duration);
-            return;
-        }
-        const startMs = startedAt.toMillis ? startedAt.toMillis() : (startedAt.seconds ? startedAt.seconds * 1000 : Date.now());
-        const elapsed = Math.floor((Date.now() - startMs) / 1000);
+        const elapsed = Math.floor((Date.now() - startedMs) / 1000);
         const remaining = Math.max(0, duration - elapsed);
         timerEl.innerText = formatTime(remaining);
         timerEl.classList.toggle('urgent', remaining <= 10);
         if (remaining <= 0) {
             stopOnlineTimer();
-            // Só o host força a virada para evitar corrida
             if (state.online.isHost) {
                 forceEndTurnOnline();
             }
@@ -1699,17 +1672,22 @@ document.getElementById('onlineGiveClueBtn').addEventListener('click', async () 
     const g = data.game;
     if (g.clueGiverUid !== state.online.uid || g.phase !== 'clue') return;
 
-    const input = document.getElementById('onlineClueInput');
-    const number = parseInt(document.getElementById('onlineClueNumber').value, 10);
+    const input = document.getElementById('onlineClueWordInput');
+    const select = document.getElementById('onlineClueNumSelect');
     const word = input.value.trim();
+    const number = parseInt(select.value, 10);
+
     if (!word) { showNotice('Digite uma dica.'); return; }
-    if (!number || number < 1 || number > 5) { showNotice('Número inválido.'); return; }
+    if (!Number.isFinite(number) || number < 1 || number > 5) {
+        showNotice('Número inválido.');
+        return;
+    }
 
     try {
         await updateDoc(state.online.roomRef, {
             'game.clue': { word, number },
             'game.phase': 'guess',
-            'game.guessStartedAt': serverTimestamp()
+            'game.guessStartedAtMs': Date.now()
         });
         input.value = '';
     } catch (e) {
@@ -1733,14 +1711,12 @@ async function handleOnlineGuess(index) {
     const card = g.board[index];
     if (!card || card.revealed) return;
 
-    // Atualiza localmente para feedback imediato
     state.justRevealedIndex = index;
     card.revealed = true;
 
     const isTeams = g.mode === 'equipes';
     const currentTeam = g.currentTeam;
 
-    // Atualiza scores
     const newScores = { ...g.scores };
     if (isTeams) {
         if (card.color === 'azul') newScores.A++;
@@ -1750,7 +1726,6 @@ async function handleOnlineGuess(index) {
         if (card.color === 'branco') newScores.whitesRevealed++;
     }
 
-    // Detecta fim de jogo
     let winner = null, winReason = null, losingTeam = null, newPhase = g.phase;
     if (card.color === 'preto') {
         newPhase = 'over';
@@ -1783,7 +1758,6 @@ async function handleOnlineGuess(index) {
             return;
         }
 
-        // Continua se acertou a própria cor
         const ownColor = isTeams ? (currentTeam === 'A' ? 'azul' : 'vermelho') : 'azul';
         if (card.color === ownColor) {
             await updateDoc(state.online.roomRef, {
@@ -1792,7 +1766,6 @@ async function handleOnlineGuess(index) {
             });
             setTimeout(() => { state.justRevealedIndex = -1; }, 700);
         } else {
-            // Errou → passa a vez
             await updateDoc(state.online.roomRef, {
                 [`game.board`]: g.board,
                 'game.scores': newScores
@@ -1829,7 +1802,6 @@ async function advanceOnlineTurn() {
     const g = data.game;
     const isTeams = g.mode === 'equipes';
 
-    // Próximo time
     let nextTeam = g.currentTeam;
     if (isTeams) {
         nextTeam = g.currentTeam === 'A' ? 'B' : 'A';
@@ -1837,28 +1809,26 @@ async function advanceOnlineTurn() {
         nextTeam = 'A';
     }
 
-    // Próximo clue giver
-    const allPlayers = data.jogadores || {};
     const currentTeamPlayers = isTeams ? g.teams[nextTeam] : g.teams.A;
     const currentDecoderUid = isTeams ? g.decoderUids[nextTeam] : g.decoderUids.solo;
     const candidates = currentTeamPlayers.filter(uid => uid !== currentDecoderUid);
 
-    // Rotaciona o clue giver (pega o próximo da lista depois do atual)
     const prevClueGiver = g.clueGiverUid;
     const prevIdx = candidates.indexOf(prevClueGiver);
     const nextClueGiver = candidates.length > 0
         ? candidates[(prevIdx + 1) % candidates.length]
         : currentTeamPlayers[0];
 
+    const nowMs = Date.now();
     try {
         await updateDoc(state.online.roomRef, {
             'game.currentTeam': nextTeam,
             'game.phase': 'clue',
             'game.clue': null,
             'game.clueGiverUid': nextClueGiver,
-            'game.turnStartedAt': serverTimestamp(),
-            'game.clueStartedAt': serverTimestamp(),
-            'game.guessStartedAt': null
+            'game.turnStartedAtMs': nowMs,
+            'game.clueStartedAtMs': nowMs,
+            'game.guessStartedAtMs': null
         });
         state.justRevealedIndex = -1;
     } catch (e) {
@@ -1875,6 +1845,7 @@ function renderOnlineGameOver() {
     const g = data.game;
 
     showScreen('onlineGameOver');
+    stopOnlineTimer();
 
     const title = document.getElementById('onlineResultTitle');
     const sub = document.getElementById('onlineResultSub');
